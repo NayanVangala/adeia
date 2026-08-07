@@ -1,0 +1,27 @@
+{
+  "name": "adeia",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "src/shared",
+    "src/backend",
+    "src/sdk",
+    "examples/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p .",
+    "dev": "node --experimental-strip-types src/backend/src/server.ts",
+    "seed": "node --experimental-strip-types scripts/seed.ts",
+    "audit": "node --experimental-strip-types scripts/audit.ts",
+    "db:generate": "npm run -w @adeia/server db:generate"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
