@@ -1,0 +1,712 @@
+<title>Adeia — agents that act, inside a fence you set</title>
+
+<style>
+  :root {
+    --paper: #E9EBEE;
+    --ink: #0B0E14;
+    --ink-soft: #48505E;
+    --rule: #C6CBD2;
+    --rule-soft: #D8DCE1;
+    --surface: #F4F5F7;
+    --held: #B3701C;
+    --held-glow: rgba(217, 138, 43, 0.14);
+    --exec: #3F6A4C;
+    --deny: #97362D;
+
+    --bg: var(--paper);
+    --fg: var(--ink);
+
+    --display: "Avenir Next Condensed", "Helvetica Neue Condensed", "Archivo Narrow", "Roboto Condensed", system-ui, sans-serif;
+    --body: Charter, "Iowan Old Style", "Source Serif 4", Georgia, serif;
+    --data: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+    --measure: 62ch;
+    --gutter: clamp(1.25rem, 5vw, 4rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0B0E14;
+      --fg: #E9EBEE;
+      --ink-soft: #939CAC;
+      --rule: #262E3B;
+      --rule-soft: #1B222D;
+      --surface: #121722;
+      --held: #E2A055;
+      --held-glow: rgba(226, 160, 85, 0.16);
+      --exec: #79A98A;
+      --deny: #D2726A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0B0E14;
+    --fg: #E9EBEE;
+    --ink-soft: #939CAC;
+    --rule: #262E3B;
+    --rule-soft: #1B222D;
+    --surface: #121722;
+    --held: #E2A055;
+    --held-glow: rgba(226, 160, 85, 0.16);
+    --exec: #79A98A;
+    --deny: #D2726A;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #E9EBEE;
+    --fg: #0B0E14;
+    --ink-soft: #48505E;
+    --rule: #C6CBD2;
+    --rule-soft: #D8DCE1;
+    --surface: #F4F5F7;
+    --held: #B3701C;
+    --held-glow: rgba(217, 138, 43, 0.14);
+    --exec: #3F6A4C;
+    --deny: #97362D;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 74rem;
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+  }
+
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--held);
+    outline-offset: 3px;
+  }
+
+  /* ---------- structural device: the limit line ---------- */
+  /* A rule that carries a value. Used as the section divider because
+     in this product the limit is literally what separates one state
+     from another. */
+  .limit-line {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .limit-line::before,
+  .limit-line::after {
+    content: "";
+    height: 1px;
+    background: var(--rule);
+    flex: 1;
+  }
+  .limit-line::before { flex: 0 0 3rem; }
+  .limit-line span {
+    font-family: var(--data);
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* ---------- masthead ---------- */
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-block: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .wordmark {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .wordmark em {
+    font-style: normal;
+    color: var(--held);
+  }
+  .masthead nav {
+    display: flex;
+    gap: 1.75rem;
+    font-family: var(--data);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .masthead nav a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding-block: 0.25rem;
+    border-bottom: 1px solid transparent;
+  }
+  .masthead nav a:hover { color: var(--fg); border-bottom-color: var(--held); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    padding-block: clamp(3rem, 8vw, 5.5rem) clamp(2.5rem, 6vw, 4rem);
+  }
+  @media (min-width: 62rem) {
+    .hero { grid-template-columns: minmax(0, 27rem) minmax(0, 1fr); gap: 4.5rem; align-items: start; }
+  }
+
+  .eyebrow {
+    font-family: var(--data);
+    font-size: 0.6875rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--held);
+    margin: 0 0 1.25rem;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2.75rem, 7vw, 4.25rem);
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 1.5rem;
+  }
+  h1 .stop { color: var(--held); }
+
+  .lede {
+    margin: 0 0 2rem;
+    max-width: var(--measure);
+    color: var(--ink-soft);
+    font-size: 1.1875rem;
+  }
+
+  .actions { display: flex; gap: 0.875rem; flex-wrap: wrap; align-items: center; }
+
+  .btn {
+    font-family: var(--data);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    padding: 0.75rem 1.375rem;
+    border: 1px solid var(--fg);
+    background: var(--fg);
+    color: var(--bg);
+    transition: background 140ms ease, color 140ms ease;
+  }
+  .btn:hover { background: var(--held); border-color: var(--held); color: #0B0E14; }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--rule);
+  }
+  .btn-quiet:hover { background: transparent; border-color: var(--held); color: var(--held); }
+
+  /* ---------- the ledger ---------- */
+  .ledger {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    font-family: var(--data);
+    font-size: 0.8125rem;
+    overflow: hidden;
+  }
+
+  .ledger-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.875rem 1.125rem;
+    border-bottom: 1px solid var(--rule);
+    flex-wrap: wrap;
+  }
+  .ledger-head b {
+    font-weight: 500;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .caps { display: flex; gap: 1.5rem; color: var(--ink-soft); font-size: 0.75rem; }
+  .caps span { white-space: nowrap; }
+  .caps b { color: var(--fg); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
+
+  .ledger-rows { list-style: none; margin: 0; padding: 0; min-height: 15rem; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    gap: 0.875rem;
+    align-items: center;
+    padding: 0.8125rem 1.125rem;
+    border-bottom: 1px solid var(--rule-soft);
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  .row.in { opacity: 1; transform: none; transition: opacity 260ms ease, transform 260ms ease; }
+  .row:last-child { border-bottom: 0; }
+
+  .row .t { color: var(--ink-soft); font-size: 0.75rem; }
+  .row .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .amt {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 5.5rem;
+  }
+
+  .chip {
+    grid-column: 2 / -1;
+    justify-self: start;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.1875rem 0.5rem;
+    border: 1px solid currentColor;
+    margin-top: 0.375rem;
+  }
+  .chip.executed { color: var(--exec); }
+  .chip.denied { color: var(--deny); }
+  .chip.held { color: var(--held); }
+
+  .row.is-held {
+    background: var(--held-glow);
+    border-left: 2px solid var(--held);
+    padding-left: calc(1.125rem - 2px);
+  }
+  .row.is-held .amt { color: var(--held); }
+
+  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  .ledger-foot {
+    padding: 0.8125rem 1.125rem;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 0.75rem;
+    min-height: 2.75rem;
+  }
+  .ledger-foot .approved { color: var(--exec); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row, .row.in { opacity: 1; transform: none; transition: none; }
+    .pulse { animation: none; }
+  }
+
+  /* ---------- generic sections ---------- */
+  .section { padding-block: clamp(3rem, 7vw, 5rem); }
+  .section > .limit-line { margin-bottom: clamp(2rem, 4vw, 3rem); }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+  .section p { max-width: var(--measure); color: var(--ink-soft); margin: 0 0 1rem; }
+
+  .two-col { display: grid; gap: 2.5rem; }
+  @media (min-width: 62rem) {
+    .two-col { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: 4rem; align-items: start; }
+  }
+
+  /* ---------- lifecycle: a real sequence, so it gets ordinals ---------- */
+  .lifecycle { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  .lifecycle li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    padding-block: 1.125rem;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .lifecycle li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--data);
+    font-size: 0.75rem;
+    color: var(--held);
+    padding-top: 0.25rem;
+  }
+  .lifecycle h3 {
+    font-family: var(--display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.375rem;
+  }
+  .lifecycle p { margin: 0; font-size: 0.9375rem; }
+
+  /* ---------- code ---------- */
+  .code {
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  .code-head {
+    font-family: var(--data);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 0.75rem 1.125rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  pre {
+    margin: 0;
+    padding: 1.125rem;
+    font-family: var(--data);
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    overflow-x: auto;
+  }
+  .c-key { color: var(--held); }
+  .c-str { color: var(--exec); }
+  .c-dim { color: var(--ink-soft); }
+
+  /* ---------- policy table ---------- */
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--data);
+    font-size: 0.8125rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.75rem 1rem 0.75rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+    white-space: nowrap;
+  }
+  th {
+    font-weight: 500;
+    font-size: 0.6875rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom-color: var(--rule);
+  }
+  td.num { font-variant-numeric: tabular-nums; }
+  td.verdict { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  td.verdict.allow { color: var(--exec); }
+  td.verdict.hold { color: var(--held); }
+  td.verdict.deny { color: var(--deny); }
+  td.why { white-space: normal; color: var(--ink-soft); font-family: var(--body); font-size: 0.9375rem; }
+
+  /* ---------- footer ---------- */
+  footer {
+    padding-block: 3rem 4rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--data);
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  footer a { text-decoration: none; border-bottom: 1px solid var(--rule); }
+  footer a:hover { color: var(--held); border-bottom-color: var(--held); }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <a class="wordmark" href="#top">Ade<em>i</em>a</a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#policy">Policy</a>
+      <a href="#audit">Audit</a>
+      <a href="#start">Quickstart</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Execution &amp; permissions layer for AI agents</p>
+        <h1>Let the agent execute.<br><span class="stop">Keep the last word.</span></h1>
+        <p class="lede">
+          Adeia sits between your agent and the real world. Actions inside the budget you set
+          run immediately. Anything past it stops, emails a human, and waits.
+        </p>
+        <div class="actions">
+          <a class="btn" href="#start">Read the quickstart</a>
+          <a class="btn btn-quiet" href="#how">See the lifecycle</a>
+        </div>
+      </div>
+
+      <div class="ledger" aria-label="Live example of actions being evaluated against a policy">
+        <div class="ledger-head">
+          <b>Action ledger · demo project</b>
+          <div class="caps">
+            <span>per action <b>$50.00</b></span>
+            <span>daily <b>$2,000.00</b></span>
+            <span>spent today <b id="spent">$0.00</b></span>
+          </div>
+        </div>
+        <ul class="ledger-rows" id="rows"></ul>
+        <div class="ledger-foot" id="foot"></div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="limit-line"><span>the lifecycle of one action</span></div>
+      <div class="two-col">
+        <div>
+          <h2>Four states, and only one of them needs you.</h2>
+          <p>
+            Every action your agent requests walks the same path. Most reach the end without
+            anyone looking. The ones that matter stop at step three.
+          </p>
+        </div>
+        <ol class="lifecycle">
+          <li>
+            <div>
+              <h3>Requested</h3>
+              <p>Your agent calls <code>requestAction</code> with a type, an amount, and a recipient. Nothing has happened yet.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Evaluated</h3>
+              <p>The policy engine checks the amount against your per-action limit, your daily cap, and your recipient allowlist. It returns a decision and the reason for it.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Held</h3>
+              <p>Over the limit means the action stops here. A human gets an email showing the amount, the recipient, and which rule was crossed. The payment processor has not been contacted.</p>
+            </div>
+          </li>
+          <li>
+            <div>
+              <h3>Executed</h3>
+              <p>On approval, or immediately if the action was in bounds, Adeia calls the integration and records the result. Every step above is already in the audit log.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <div class="limit-line"><span>what your agent calls</span></div>
+      <div class="two-col">
+        <div>
+          <h2>One method. Three possible answers.</h2>
+          <p>
+            The SDK returns a decided action, not a promise you have to babysit. If it comes
+            back held, <code>waitForAction</code> blocks until the human decides.
+          </p>
+          <p>
+            Amounts are integer cents. There are no floats anywhere in the money path.
+          </p>
+        </div>
+        <div class="code">
+          <div class="code-head">agent.ts</div>
+<pre><span class="c-dim">import</span> { AdeiaClient } <span class="c-dim">from</span> <span class="c-str">"@adeia/sdk"</span>;
+
+<span class="c-dim">const</span> adeia = <span class="c-dim">new</span> AdeiaClient({ apiKey: process.env.ADEIA_API_KEY });
+
+<span class="c-dim">const</span> action = <span class="c-dim">await</span> adeia.requestAction({
+  <span class="c-key">type</span>: <span class="c-str">"payment"</span>,
+  <span class="c-key">params</span>: {
+    <span class="c-key">amountCents</span>: <span class="c-str">50000</span>,
+    <span class="c-key">currency</span>: <span class="c-str">"usd"</span>,
+    <span class="c-key">recipient</span>: <span class="c-str">"acct_contractor"</span>,
+    <span class="c-key">description</span>: <span class="c-str">"Q3 design work"</span>,
+  },
+});
+
+<span class="c-dim">// "executed" | "pending_approval" | "denied"</span>
+<span class="c-dim">if</span> (action.status === <span class="c-str">"pending_approval"</span>) {
+  <span class="c-dim">const</span> settled = <span class="c-dim">await</span> adeia.waitForAction(action.id);
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="policy">
+      <div class="limit-line"><span>per action $50.00 · daily $2,000.00 · hard stop $1,000.00</span></div>
+      <div class="two-col">
+        <div>
+          <h2>The fence is a few numbers you own.</h2>
+          <p>
+            Set a per-action limit, a daily cap, a hard ceiling, and an optional recipient
+            allowlist. Adeia answers every request against them and tells you which rule decided it.
+          </p>
+          <p>
+            A denial is not an error. It is a policy outcome, returned with the figure that
+            triggered it.
+          </p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Amount</th>
+                <th scope="col">Recipient</th>
+                <th scope="col">Decision</th>
+                <th scope="col">Because</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">$25.00</td>
+                <td>acct_cloudhost</td>
+                <td class="verdict allow">Executed</td>
+                <td class="why">Within policy.</td>
+              </tr>
+              <tr>
+                <td class="num">$50.00</td>
+                <td>acct_cloudhost</td>
+                <td class="verdict allow">Executed</td>
+                <td class="why">Exactly on the per-action limit. The limit is inclusive.</td>
+              </tr>
+              <tr>
+                <td class="num">$500.00</td>
+                <td>acct_contractor</td>
+                <td class="verdict hold">Held</td>
+                <td class="why">Over the $50.00 per-action limit. Waiting on a human.</td>
+              </tr>
+              <tr>
+                <td class="num">$1,200.00</td>
+                <td>acct_contractor</td>
+                <td class="verdict deny">Denied</td>
+                <td class="why">Over the $1,000.00 hard ceiling. No human can approve past this.</td>
+              </tr>
+              <tr>
+                <td class="num">$40.00</td>
+                <td>acct_unknown</td>
+                <td class="verdict hold">Held</td>
+                <td class="why">Inside every limit, but the recipient is not on the allowlist.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="audit">
+      <div class="limit-line"><span>every action, every transition</span></div>
+      <div class="two-col">
+        <div>
+          <h2>You can always answer "who let that through?"</h2>
+          <p>
+            Each state change writes an append-only event. Requests, decisions, the reason
+            behind them, who approved, and what the integration returned.
+          </p>
+          <p>
+            Secrets are stripped at write time, so the log is safe to hand to whoever asks for it.
+          </p>
+        </div>
+        <div class="code">
+          <div class="code-head">npm run audit — act_8Kx2p</div>
+<pre>14:02:11  action.requested         <span class="c-dim">{ type: 'payment', amountCents: 50000 }</span>
+14:02:11  policy.evaluated         <span class="c-dim">{ decision: 'require_approval' }</span>
+14:02:11  action.pending_approval  <span class="c-key">amount 50000 exceeds limit 5000</span>
+14:02:12  approval.sent            <span class="c-dim">{ to: 'you@example.com' }</span>
+14:03:47  approval.granted         <span class="c-dim">{ decidedBy: 'you@example.com' }</span>
+14:03:47  action.executing         <span class="c-dim">{ adapter: 'stripe' }</span>
+14:03:49  action.executed          <span class="c-str">pi_3Q7hK2 · succeeded</span></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Adeia · execution and permissions for AI agents</span>
+    <span>Payments run against <a href="https://stripe.com/docs/testing">Stripe test mode</a> today.</span>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    const rowsEl = document.getElementById("rows");
+    const footEl = document.getElementById("foot");
+    const spentEl = document.getElementById("spent");
+
+    const money = (cents) =>
+      "$" + (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const entries = [
+      { t: "14:01:52", who: "acct_cloudhost · monthly hosting", cents: 2500, state: "executed" },
+      { t: "14:01:58", who: "acct_mailgun · api overage", cents: 1250, state: "executed" },
+      { t: "14:02:11", who: "acct_contractor · Q3 design work", cents: 50000, state: "held" },
+    ];
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let spent = 0;
+
+    function makeRow(e) {
+      const li = document.createElement("li");
+      li.className = "row" + (e.state === "held" ? " is-held" : "");
+      li.innerHTML =
+        '<span class="t">' + e.t + "</span>" +
+        '<span class="who">' + e.who + "</span>" +
+        '<span class="amt">' + money(e.cents) + "</span>";
+      const chip = document.createElement("span");
+      chip.className = "chip " + (e.state === "held" ? "held pulse" : "executed");
+      chip.textContent = e.state === "held" ? "Held · awaiting approval" : "Executed";
+      li.appendChild(chip);
+      return { li, chip };
+    }
+
+    if (reduced) {
+      entries.forEach((e) => {
+        const { li } = makeRow(e);
+        li.classList.add("in");
+        rowsEl.appendChild(li);
+        if (e.state === "executed") spent += e.cents;
+      });
+      spentEl.textContent = money(spent);
+      footEl.textContent = "1 action held. Approve or deny from the email.";
+      return;
+    }
+
+    let heldRow = null;
+    let delay = 400;
+
+    entries.forEach((e) => {
+      setTimeout(() => {
+        const { li, chip } = makeRow(e);
+        rowsEl.appendChild(li);
+        requestAnimationFrame(() => li.classList.add("in"));
+
+        if (e.state === "executed") {
+          spent += e.cents;
+          spentEl.textContent = money(spent);
+        } else {
+          heldRow = { li, chip, cents: e.cents };
+          footEl.innerHTML = "Approval request sent to you@example.com · waiting";
+        }
+      }, delay);
+      delay += 1100;
+    });
+
+    // The pause resolves, the way it does in the product: a human decides.
+    setTimeout(() => {
+      if (!heldRow) return;
+      footEl.innerHTML = '<span class="approved">Approved by you@example.com at 14:03:47</span>';
+      heldRow.li.classList.remove("is-held");
+      heldRow.chip.className = "chip executed";
+      heldRow.chip.textContent = "Executed";
+      spent += heldRow.cents;
+      spentEl.textContent = money(spent);
+    }, delay + 1800);
+  })();
+</script>
