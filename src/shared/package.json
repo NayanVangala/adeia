@@ -1,0 +1,14 @@
+{
+  "name": "@adeia/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./actions": "./src/actions.ts",
+    "./payment": "./src/payment.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}
