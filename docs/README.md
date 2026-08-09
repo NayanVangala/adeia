@@ -17,6 +17,7 @@ want to know how a piece actually behaves.
 | [sdk.md](sdk.md) | `@adeia/sdk` — the client an agent builder actually installs |
 | [payments.md](payments.md) | The Stripe adapter, the `sk_test_` guard, and both idempotency layers |
 | [approvals.md](approvals.md) | Tokens, the GET/POST split, and why approval is never a GET |
+| [demo.md](demo.md) | Click-by-click runbook for the live demo |
 | [schema.md](schema.md) | The five tables, every column, and why the constraints exist |
 | [status-machine.md](status-machine.md) | Action lifecycle and the transitions that are legal |
 | [policy.md](policy.md) | How `evaluate()` decides, in order, with the boundary rules |
@@ -32,18 +33,15 @@ Docs cover the whole design, so each section is tagged with where it stands.
 | **shipped** | Built, tested, and runnable today |
 | **planned (Pn)** | Designed and specified; lands in phase *n* |
 
-Phases 1 through 5 are shipped. The loop is closed end to end: an agent requests
-an action, the policy engine decides, an in-policy request executes against
-Stripe test mode, an over-limit one emails a human and waits, and a click on the
-decision page releases or refuses it.
+**All seven phases are shipped.** An agent requests an action, the policy engine
+decides, an in-policy request executes against Stripe test mode, an over-limit
+one emails a human and waits, a click on the decision page releases or refuses
+it, and the whole trail is queryable over HTTP and readable from a CLI.
 
-Phase 6 turns the audit rows into a product surface — a query API, a readable
-CLI, write-time redaction, and a completeness guarantee. Phase 7 is the demo
-agent.
-
-From Phase 4 the server needs a `sk_test_` Stripe key to start, and from Phase 5
-it also needs the Resend block and a publicly reachable `PUBLIC_BASE_URL` — see
-[payments.md](payments.md) and [approvals.md](approvals.md).
+The server needs a `sk_test_` Stripe key, the Resend block, and a publicly
+reachable `PUBLIC_BASE_URL` to start — see [payments.md](payments.md) and
+[approvals.md](approvals.md). `npm run seed` and `npm run docs:json` need
+neither.
 
 ## Generated files
 
