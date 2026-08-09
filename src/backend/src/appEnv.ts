@@ -1,5 +1,14 @@
 import type { RequestDeps } from "./actions/service.ts";
 
+export interface AppDeps extends RequestDeps {
+  /**
+   * Recorded as `decided_by`. The token is the only authentication on the
+   * approval page, so this is the address the link was *sent* to, not a
+   * verified identity of whoever clicked.
+   */
+  approverEmail?: string;
+}
+
 /**
  * The Hono context shape shared by every middleware and route.
  *
@@ -12,7 +21,7 @@ import type { RequestDeps } from "./actions/service.ts";
  */
 export interface AppEnv {
   Variables: {
-    deps: RequestDeps;
+    deps: AppDeps;
     projectId: string;
   };
 }

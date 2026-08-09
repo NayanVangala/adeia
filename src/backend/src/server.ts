@@ -2,15 +2,19 @@ import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import Stripe from "stripe";
-import type { RequestDeps } from "./actions/service.ts";
 import { createStripeAdapter } from "./adapters/stripe.ts";
 import { createRegistry } from "./adapters/types.ts";
-import type { AppEnv } from "./appEnv.ts";
-import { createDb, migrate } from "./db/client.ts";
-import { env, requireStripeSecretKey } from "./env.ts";
+import type { AppDeps, AppEnv } from "./appEnv.ts";
+import { mintApprovalToken } from "./approvals/token.ts";
+import { appendAudit } from "./audit/log.ts";
+import { createDb, migrate, type Db } from "./db/client.ts";
+import { getAction } from "./db/repo.ts";
+import { env, requireApprovalConfig, requireStripeSecretKey } from "./env.ts";
+import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
 import { createActionRoutes } from "./routes/actions.ts";
+import { createApprovalRoutes } from "./routes/approvals.ts";
 
-export type AppDeps = RequestDeps;
+export type { AppDeps };
 
 export function createApp(deps: AppDeps): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
@@ -23,6 +27,7 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   app.get("/healthz", (c) => c.json({ ok: true }));
 
   app.route("/v1/actions", createActionRoutes());
+  app.route("/approvals", createApprovalRoutes());
 
   app.notFound((c) => c.json({ error: "not_found" }, 404));
 
@@ -34,29 +39,75 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   return app;
 }
 
+/**
+ * Mints a token, emails it, and records that it was sent.
+ *
+ * A send failure is logged and swallowed rather than thrown. The action is
+ * already correctly `pending_approval`, and turning a mail-provider outage into
+ * a 500 would tell the agent its request failed when the request in fact
+ * succeeded and is waiting. The action expires normally if nobody ever decides.
+ *
+ * The plaintext token is never logged, not even on failure. It is a bearer
+ * credential for releasing a payment.
+ */
+export function createApprovalNotifier(
+  db: Db,
+  send: ApprovalSender,
+  approverEmail: string,
+  ttlMs: number,
+): (actionId: string, projectId: string) => Promise<void> {
+  return async (actionId, projectId) => {
+    const action = getAction(db, actionId);
+    if (!action) return;
+
+    try {
+      const { token, expiresAt } = await mintApprovalToken(db, actionId, ttlMs);
+      await send({ to: approverEmail, action, token });
+
+      appendAudit(db, {
+        actionId,
+        projectId,
+        event: "approval.sent",
+        data: { to: approverEmail, expiresAt },
+      });
+    } catch (err) {
+      console.error(
+        `[adeia] FAILED to send the approval request for ${actionId}. ` +
+          `It is waiting and nobody has been told.`,
+        err,
+      );
+    }
+  };
+}
+
 export function boot(): void {
-  // Before anything else. A server that starts and only discovers it has no
-  // usable payment key on the first request is a server that fails in front of
-  // an audience.
+  // Both before anything else. A server that starts and only discovers it
+  // cannot take payments, or cannot ask anyone about them, on the first request
+  // is a server that fails in front of an audience.
   const stripeSecretKey = requireStripeSecretKey();
+  const approval = requireApprovalConfig();
 
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
 
   const adapters = createRegistry([createStripeAdapter(new Stripe(stripeSecretKey))]);
+  const send = createResendSender(
+    { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl },
+    createResendClient(approval.resendApiKey),
+  );
 
-  // Phase 5 replaces this stub with the real approval email;
-  // `actions/service.ts` does not change when it does.
-  const onApprovalNeeded = async (actionId: string): Promise<void> => {
-    console.log(`[adeia] action ${actionId} needs approval — no notifier wired yet (Phase 5)`);
-  };
-
-  const app = createApp({ db, adapters, onApprovalNeeded });
+  const app = createApp({
+    db,
+    adapters,
+    approverEmail: approval.approverEmail,
+    onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
+  });
 
   serve({ fetch: app.fetch, port: env.PORT }, (info) => {
     console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${env.ADEIA_DB_PATH})`);
-    // Names only. The key itself is never logged.
+    // Names and addresses only. No key is ever logged.
     console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}  (stripe test mode)`);
+    console.log(`[adeia] approvals: ${approval.approverEmail} via ${approval.publicBaseUrl}`);
   });
 }
 
