@@ -1,21 +1,23 @@
 import type { ActionRecord, ActionStatus, Decision } from "@adeia/shared";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, sql } from "drizzle-orm";
 import { newId } from "../ids.ts";
 import type { Policy } from "../policy/evaluate.ts";
 import type { Db } from "./client.ts";
 import {
   actions,
+  approvals,
   auditEvents,
   policies,
   projects,
   type ActionRow,
+  type ApprovalRow,
   type AuditRow,
   type PolicyRow,
   type ProjectRow,
 } from "./schema.ts";
 
 export type Project = ProjectRow;
-export type { AuditRow, PolicyRow };
+export type { ApprovalRow, AuditRow, PolicyRow };
 
 const now = (): string => new Date().toISOString();
 
@@ -244,6 +246,63 @@ export function sumSpentTodayCents(db: Db, projectId: string, currency: string):
     )
     .get();
   return Number(row?.total ?? 0);
+}
+
+// --- approvals --------------------------------------------------------------
+
+export interface NewApproval {
+  id?: string;
+  actionId: string;
+  /** sha256 hex. The plaintext token must never reach this function. */
+  tokenHash: string;
+  expiresAt: string;
+}
+
+export function insertApproval(db: Db, a: NewApproval): ApprovalRow {
+  const [row] = db
+    .insert(approvals)
+    .values({
+      id: a.id ?? newId("apr"),
+      actionId: a.actionId,
+      tokenHash: a.tokenHash,
+      expiresAt: a.expiresAt,
+      createdAt: now(),
+    })
+    .returning()
+    .all();
+  return row!;
+}
+
+export function getApprovalByTokenHash(db: Db, tokenHash: string): ApprovalRow | null {
+  return db.select().from(approvals).where(eq(approvals.tokenHash, tokenHash)).get() ?? null;
+}
+
+export function getApprovalByActionId(db: Db, actionId: string): ApprovalRow | null {
+  return db.select().from(approvals).where(eq(approvals.actionId, actionId)).get() ?? null;
+}
+
+export function listApprovals(db: Db): ApprovalRow[] {
+  return db.select().from(approvals).all();
+}
+
+/**
+ * Marks a token spent. Conditional on `decided_at` still being null, so two
+ * concurrent decisions cannot both win — the second updates zero rows and this
+ * returns null.
+ */
+export function markApprovalRowDecided(
+  db: Db,
+  approvalId: string,
+  decision: "approve" | "deny",
+  decidedBy: string,
+): ApprovalRow | null {
+  const [row] = db
+    .update(approvals)
+    .set({ decision, decidedBy, decidedAt: now() })
+    .where(and(eq(approvals.id, approvalId), isNull(approvals.decidedAt)))
+    .returning()
+    .all();
+  return row ?? null;
 }
 
 // --- audit ------------------------------------------------------------------
