@@ -1,5 +1,5 @@
 import type { ActionRecord, ActionStatus, Decision } from "@adeia/shared";
-import { and, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import { newId } from "../ids.ts";
 import type { Policy } from "../policy/evaluate.ts";
 import type { Db } from "./client.ts";
@@ -351,4 +351,48 @@ export function listAudit(db: Db, actionId: string): AuditRow[] {
     .where(eq(auditEvents.actionId, actionId))
     .orderBy(auditEvents.createdAt, sql`rowid`)
     .all();
+}
+
+/**
+ * Project-wide feed, newest first, with keyset pagination.
+ *
+ * The cursor is an event id rather than an offset. Offsets skip or repeat rows
+ * when the table is written to between pages, which for an append-only log is
+ * every page.
+ */
+export function listProjectAudit(
+  db: Db,
+  projectId: string,
+  opts: { limit: number; cursor?: string | undefined },
+): { events: AuditRow[]; nextCursor: string | null } {
+  let before: number | null = null;
+  if (opts.cursor) {
+    const anchor = db
+      .select({ seq: sql<number>`rowid` })
+      .from(auditEvents)
+      .where(and(eq(auditEvents.id, opts.cursor), eq(auditEvents.projectId, projectId)))
+      .get();
+    // An unknown cursor yields an empty page rather than the first page, so a
+    // stale client cannot silently restart from the top.
+    if (!anchor) return { events: [], nextCursor: null };
+    before = anchor.seq;
+  }
+
+  const rows = db
+    .select()
+    .from(auditEvents)
+    .where(
+      and(
+        eq(auditEvents.projectId, projectId),
+        before === null ? undefined : sql`rowid < ${before}`,
+      ),
+    )
+    .orderBy(desc(auditEvents.createdAt), sql`rowid desc`)
+    // One extra row tells us whether another page exists without a count query.
+    .limit(opts.limit + 1)
+    .all();
+
+  const events = rows.slice(0, opts.limit);
+  const nextCursor = rows.length > opts.limit ? (events.at(-1)?.id ?? null) : null;
+  return { events, nextCursor };
 }

@@ -13,6 +13,7 @@ import { env, requireApprovalConfig, requireStripeSecretKey } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
+import { createAuditRoutes } from "./routes/audit.ts";
 
 export type { AppDeps };
 
@@ -27,6 +28,9 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   app.get("/healthz", (c) => c.json({ ok: true }));
 
   app.route("/v1/actions", createActionRoutes());
+  // Mounted after the action routes; `/actions/:id/audit` is two segments and
+  // cannot collide with `/actions/:id`.
+  app.route("/v1", createAuditRoutes());
   app.route("/approvals", createApprovalRoutes());
 
   app.notFound((c) => c.json({ error: "not_found" }, 404));
