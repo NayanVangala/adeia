@@ -16,6 +16,7 @@ want to know how a piece actually behaves.
 | [api.md](api.md) | HTTP surface — endpoints, status codes, error bodies, auth |
 | [sdk.md](sdk.md) | `@adeia/sdk` — the client an agent builder actually installs |
 | [payments.md](payments.md) | The Stripe adapter, the `sk_test_` guard, and both idempotency layers |
+| [approvals.md](approvals.md) | Tokens, the GET/POST split, and why approval is never a GET |
 | [schema.md](schema.md) | The five tables, every column, and why the constraints exist |
 | [status-machine.md](status-machine.md) | Action lifecycle and the transitions that are legal |
 | [policy.md](policy.md) | How `evaluate()` decides, in order, with the boundary rules |
@@ -31,17 +32,18 @@ Docs cover the whole design, so each section is tagged with where it stands.
 | **shipped** | Built, tested, and runnable today |
 | **planned (Pn)** | Designed and specified; lands in phase *n* |
 
-Phases 1 through 4 are shipped: the database, API-key auth, the policy engine,
-the action service, both `/v1/actions` endpoints, the `@adeia/sdk` client, and
-the **real Stripe adapter** in test mode. An in-policy request now produces a
-PaymentIntent visible in the Stripe test dashboard.
+Phases 1 through 5 are shipped. The loop is closed end to end: an agent requests
+an action, the policy engine decides, an in-policy request executes against
+Stripe test mode, an over-limit one emails a human and waits, and a click on the
+decision page releases or refuses it.
 
-Phase 5 is the missing half of the story: an over-limit action correctly reaches
-`pending_approval` and stops there, but nothing yet notifies a human or releases
-it. The approval email, the token, and the decision page are next.
+Phase 6 turns the audit rows into a product surface — a query API, a readable
+CLI, write-time redaction, and a completeness guarantee. Phase 7 is the demo
+agent.
 
-From Phase 4 onward the server needs a `sk_test_` Stripe key to start — see
-[payments.md](payments.md).
+From Phase 4 the server needs a `sk_test_` Stripe key to start, and from Phase 5
+it also needs the Resend block and a publicly reachable `PUBLIC_BASE_URL` — see
+[payments.md](payments.md) and [approvals.md](approvals.md).
 
 ## Generated files
 

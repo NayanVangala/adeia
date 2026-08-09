@@ -1,14 +1,15 @@
 # Audit events
 
 **partly shipped.** The table, the append-only writer
-([`src/backend/src/audit/log.ts`](../src/backend/src/audit/log.ts)), and every
-event the action service writes exist now — the four sequences below for the
-auto-executed, denied, paused, and failed paths are asserted in
-[`tests/backend/actions/service.test.ts`](../tests/backend/actions/service.test.ts).
+([`src/backend/src/audit/log.ts`](../src/backend/src/audit/log.ts)), and **every
+event in the vocabulary below** are written today. All four sequences are
+asserted — the auto-executed, denied and failed paths in
+[`tests/backend/actions/service.test.ts`](../tests/backend/actions/service.test.ts),
+the approved and approval-denied paths in
+[`tests/backend/approvals/routes.test.ts`](../tests/backend/approvals/routes.test.ts).
 
-Still to come: the approval events (P5), and Phase 6's product surface — the
-event name narrows to a union, `data` is redacted at write time, and the query
-API and CLI land.
+Still to come in Phase 6: the product surface — the event name narrows to a
+union, `data` is redacted at write time, and the query API and CLI land.
 
 The audit log is the answer to "what did the agent actually do, and who let it?"
 It is the closing slide of the demo and the reason a builder can put this in
@@ -25,10 +26,10 @@ valid event name.
 | `policy.evaluated` | action service (P3) | `{ decision, reason, spentTodayCents, policyId }` |
 | `action.denied` | action service (P3) | `{ reason }` |
 | `action.pending_approval` | action service (P3) | `{ reason }` |
-| `approval.sent` | notify (P5) | `{ to, expiresAt }` |
-| `approval.granted` | approvals route (P5) | `{ decidedBy }` |
-| `approval.denied` | approvals route (P5) | `{ decidedBy }` |
-| `approval.expired` | approvals token (P5) | `{ expiredAt }` |
+| `approval.sent` | notifier (P5) | `{ to, expiresAt }` |
+| `approval.granted` | `approveAction` (P5) | `{ decidedBy }` |
+| `approval.denied` | `denyAction` (P5) | `{ decidedBy }` |
+| `approval.expired` | `expireAction` (P5) | `{ expiredAt }` |
 | `action.executing` | action service (P3) | `{ adapter }` |
 | `action.executed` | action service (P3) | `{ result }` |
 | `action.failed` | action service (P3) | `{ error }` |

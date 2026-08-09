@@ -25,8 +25,8 @@ project it resolves to, never by anything in the request body or path.
 | `GET` | [`/healthz`](#get-healthz) | no | **shipped** |
 | `GET` | [`/v1/actions/:id`](#get-v1actionsid) | yes | **shipped** |
 | `POST` | [`/v1/actions`](#post-v1actions) | yes | **shipped** |
-| `GET` | [`/approvals/:token`](#get-approvalstoken) | token | planned (P5) |
-| `POST` | [`/approvals/:token`](#post-approvalstoken) | token | planned (P5) |
+| `GET` | [`/approvals/:token`](#get-approvalstoken) | token | **shipped** |
+| `POST` | [`/approvals/:token`](#post-approvalstoken) | token | **shipped** |
 | `GET` | [`/v1/actions/:id/audit`](#get-v1actionsidaudit) | yes | planned (P6) |
 | `GET` | [`/v1/audit`](#get-v1audit) | yes | planned (P6) |
 
@@ -127,18 +127,30 @@ before any side effect, including the audit write.
 
 ### `GET /approvals/:token`
 
-**planned (P5).** Renders the decision page. **Mutates nothing.**
+**shipped.** Renders the decision page. **Mutates nothing.** Full detail in
+[approvals.md](approvals.md).
 
 The token is 32 random bytes, base64url encoded, delivered only by email. Only
 `sha256(token)` is stored, so a leaked `approvals` table is not a set of live
 approve buttons.
 
+| Status | When |
+|---|---|
+| `200` | Live token — renders the page with two POST buttons |
+| `410` | Unknown, spent, or expired token |
+
 ---
 
 ### `POST /approvals/:token`
 
-**planned (P5).** Body `decision=approve|deny`. This is where the decision is
-recorded and the action either executes or is denied.
+**shipped.** Body `decision=approve|deny`, form-encoded. This is where the
+decision is recorded and the action either executes or is denied.
+
+| Status | When |
+|---|---|
+| `200` | Decision recorded and acted on |
+| `400` | `decision` was missing or was not `approve`/`deny`. The token is **not** spent |
+| `410` | Unknown, spent, or expired token |
 
 **Approval is never a GET.** Corporate mail scanners, Slack and iMessage link
 unfurlers, and browser prefetch all issue GET requests against links in email. A
