@@ -203,3 +203,96 @@ export async function executeApproved(deps: RequestDeps, actionId: string): Prom
   }
   return execute(deps, action);
 }
+
+// --- human decisions (Phase 5) ----------------------------------------------
+//
+// These live here, rather than in the approvals route, so that this module
+// stays the only writer of an action status transition. The route decides
+// *whether*; this module performs the change and records it.
+
+export class NotPendingApprovalError extends Error {}
+
+function requirePendingApproval(deps: RequestDeps, actionId: string): ActionRecord {
+  const action = getAction(deps.db, actionId);
+  if (!action) throw new NotPendingApprovalError(`action ${actionId} not found`);
+  if (action.status !== "pending_approval") {
+    throw new NotPendingApprovalError(
+      `action ${actionId} is ${action.status}, not pending_approval`,
+    );
+  }
+  return action;
+}
+
+/** A human said yes: record it, then run the action. */
+export async function approveAction(
+  deps: RequestDeps,
+  actionId: string,
+  decidedBy: string,
+): Promise<ActionRecord> {
+  const pending = requirePendingApproval(deps, actionId);
+
+  const approved = updateActionStatus(deps.db, pending.id, {
+    status: "approved",
+    decidedAt: now(),
+  });
+  appendAudit(deps.db, {
+    actionId: pending.id,
+    projectId: pending.projectId,
+    event: "approval.granted",
+    data: { decidedBy },
+  });
+
+  return execute(deps, approved);
+}
+
+/** A human said no. The adapter is never reached. */
+export async function denyAction(
+  deps: RequestDeps,
+  actionId: string,
+  decidedBy: string,
+): Promise<ActionRecord> {
+  const pending = requirePendingApproval(deps, actionId);
+
+  const denied = updateActionStatus(deps.db, pending.id, {
+    status: "denied",
+    decision: "deny",
+    decisionReason: `denied by ${decidedBy}`,
+    decidedAt: now(),
+  });
+  appendAudit(deps.db, {
+    actionId: pending.id,
+    projectId: pending.projectId,
+    event: "approval.denied",
+    data: { decidedBy },
+  });
+
+  return denied;
+}
+
+/**
+ * Nobody decided in time.
+ *
+ * Without this the action sits in `pending_approval` forever, and the SDK's
+ * `waitForAction` — which polls for a terminal status — hangs until its own
+ * timeout on every ignored email.
+ *
+ * Idempotent: an action already expired is returned unchanged rather than
+ * transitioned twice.
+ */
+export function expireAction(deps: RequestDeps, actionId: string): ActionRecord | null {
+  const action = getAction(deps.db, actionId);
+  if (!action || action.status !== "pending_approval") return action;
+
+  const expired = updateActionStatus(deps.db, action.id, {
+    status: "expired",
+    decidedAt: now(),
+  });
+  appendAudit(deps.db, {
+    actionId: action.id,
+    projectId: action.projectId,
+    event: "approval.expired",
+    data: { expiredAt: expired.decidedAt },
+  });
+
+  return expired;
+}
