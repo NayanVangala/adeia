@@ -82,10 +82,11 @@ Every request an agent has made, and what became of it.
 
 `UNIQUE(project_id, idempotency_key)` · `INDEX(project_id, status, created_at)`
 
-The unique index is the first of two independent idempotency guards. It catches
-a duplicate before any network call happens; [Stripe's own idempotency
-key](payments.md#two-idempotency-guards-both-kept) catches one that got past it.
-They fail differently, so both stay.
+The unique index is the first idempotency guard, and currently the only one that
+does anything: it catches a duplicate before the adapter is reached. The second
+belongs to the payment processor, which is why `idempotencyKey` is still passed
+through on [`AdapterContext`](payments.md#two-idempotency-guards-one-attached)
+with nothing on the other end to use it yet.
 
 Note that `currency` is not a column — it lives inside `params`, and
 `sumSpentTodayCents` reaches it with `json_extract(params, '$.currency')`. The

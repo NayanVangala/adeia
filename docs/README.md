@@ -15,7 +15,7 @@ want to know how a piece actually behaves.
 |---|---|
 | [api.md](api.md) | HTTP surface — endpoints, status codes, error bodies, auth |
 | [sdk.md](sdk.md) | `@adeia/sdk` — the client an agent builder actually installs |
-| [payments.md](payments.md) | The Stripe adapter, the `sk_test_` guard, and both idempotency layers |
+| [payments.md](payments.md) | The ledger adapter, why there is no mock processor, and how to attach a real one |
 | [approvals.md](approvals.md) | Tokens, the GET/POST split, and why approval is never a GET |
 | [demo.md](demo.md) | Click-by-click runbook for the live demo |
 | [schema.md](schema.md) | The five tables, every column, and why the constraints exist |
@@ -34,14 +34,18 @@ Docs cover the whole design, so each section is tagged with where it stands.
 | **planned (Pn)** | Designed and specified; lands in phase *n* |
 
 **All seven phases are shipped.** An agent requests an action, the policy engine
-decides, an in-policy request executes against Stripe test mode, an over-limit
-one emails a human and waits, a click on the decision page releases or refuses
-it, and the whole trail is queryable over HTTP and readable from a CLI.
+decides, an in-policy request executes, an over-limit one emails a human and
+waits, a click on the decision page releases or refuses it, and the whole trail
+is queryable over HTTP and readable from a CLI.
 
-The server needs a `sk_test_` Stripe key, the Resend block, and a publicly
-reachable `PUBLIC_BASE_URL` to start — see [payments.md](payments.md) and
-[approvals.md](approvals.md). `npm run seed` and `npm run docs:json` need
-neither.
+**No payment processor is attached.** Payments are authorised and recorded, and
+stop where settlement would begin — deliberately, and loudly. See
+[payments.md](payments.md) for what that does and does not mean, and for the
+three steps that attach one.
+
+The server needs the Resend block and a publicly reachable `PUBLIC_BASE_URL` to
+start — see [approvals.md](approvals.md). `npm run seed` and `npm run docs:json`
+need neither.
 
 ## Generated files
 

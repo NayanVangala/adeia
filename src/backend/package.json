@@ -16,7 +16,6 @@
     "hono": "^4.6.20",
     "nanoid": "^5.0.9",
     "resend": "^6.18.1",
-    "stripe": "^22.4.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

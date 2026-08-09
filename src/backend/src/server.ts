@@ -1,15 +1,14 @@
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import Stripe from "stripe";
-import { createStripeAdapter } from "./adapters/stripe.ts";
+import { createLedgerAdapter } from "./adapters/ledger.ts";
 import { createRegistry } from "./adapters/types.ts";
 import type { AppDeps, AppEnv } from "./appEnv.ts";
 import { mintApprovalToken } from "./approvals/token.ts";
 import { appendAudit } from "./audit/log.ts";
 import { createDb, migrate, type Db } from "./db/client.ts";
 import { getAction } from "./db/repo.ts";
-import { env, requireApprovalConfig, requireStripeSecretKey } from "./env.ts";
+import { env, requireApprovalConfig } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
@@ -85,16 +84,15 @@ export function createApprovalNotifier(
 }
 
 export function boot(): void {
-  // Both before anything else. A server that starts and only discovers it
-  // cannot take payments, or cannot ask anyone about them, on the first request
-  // is a server that fails in front of an audience.
-  const stripeSecretKey = requireStripeSecretKey();
+  // Before anything else. A server that starts and only discovers it cannot ask
+  // anyone about a payment on the first request is a server that fails in front
+  // of an audience.
   const approval = requireApprovalConfig();
 
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
 
-  const adapters = createRegistry([createStripeAdapter(new Stripe(stripeSecretKey))]);
+  const adapters = createRegistry([createLedgerAdapter()]);
   const send = createResendSender(
     { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl },
     createResendClient(approval.resendApiKey),
@@ -110,7 +108,13 @@ export function boot(): void {
   serve({ fetch: app.fetch, port: env.PORT }, (info) => {
     console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${env.ADEIA_DB_PATH})`);
     // Names and addresses only. No key is ever logged.
-    console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}  (stripe test mode)`);
+    console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}`);
+    // Said out loud, every boot. A permission layer that has quietly stopped
+    // executing anything looks identical, from the outside, to one that is
+    // working — the audit trail fills up either way. The one thing that must
+    // never happen silently is nobody knowing which of the two this is.
+    console.log(`[adeia] NO PAYMENT PROCESSOR ATTACHED — payments are authorised and recorded;`);
+    console.log(`[adeia]   no money moves. Register a processor adapter to change that.`);
     console.log(`[adeia] approvals: ${approval.approverEmail} via ${approval.publicBaseUrl}`);
   });
 }

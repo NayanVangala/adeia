@@ -32,7 +32,7 @@ export interface RequestDeps {
 
 const now = (): string => new Date().toISOString();
 
-/** Stripe and friends put the branchable identifier on `.code`, not the message. */
+/** Payment APIs put the branchable identifier on `.code`, not the message. */
 function errorCode(err: unknown): string {
   if (typeof err === "object" && err !== null && "code" in err) {
     const code = (err as { code: unknown }).code;

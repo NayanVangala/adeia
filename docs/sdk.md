@@ -108,9 +108,9 @@ try {
 
 ## What the SDK does not do
 
-- **It does not talk to Stripe.** The agent only ever sees this client. That
-  separation is the entire pitch — the model cannot reach a payment processor
-  even if it wants to.
+- **It does not talk to a payment processor.** The agent only ever sees this
+  client. That separation is the entire pitch — the model cannot reach whatever
+  executes on the other side, and does not know what it is.
 - **It does not decide anything.** Every limit lives server-side in the policy,
   where the agent cannot edit it.
 - **It does not retry.** See above.

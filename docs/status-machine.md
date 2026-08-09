@@ -51,8 +51,9 @@ Anything not in that table is unreachable by construction.
 
 **Only `approved → executing` reaches an adapter.** There is no edge from
 `pending_approval` to `executing`. That single missing edge is the entire
-product claim: an action awaiting a human cannot touch Stripe, and the tests
-that assert "adapter called zero times" are the ones that prove it.
+product claim: an action awaiting a human cannot reach the outside world at all,
+and the tests that assert "adapter called zero times" are the ones that prove
+it.
 
 **`approved` is a distinct state, not a flag.** The action service refuses to
 execute anything whose status is not exactly `approved`, which is what makes a

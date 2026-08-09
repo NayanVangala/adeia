@@ -159,10 +159,10 @@ describe("no orphan transitions", () => {
 describe("redact", () => {
   it("strips secret-looking keys and keeps everything else", () => {
     expect(
-      redact({ apiKey: "adeia_sk_secret", stripeSecretKey: "sk_test_x", amountCents: 100 }),
+      redact({ apiKey: "adeia_sk_secret", processorSecretKey: "psk_live_x", amountCents: 100 }),
     ).toEqual({
       apiKey: "[redacted]",
-      stripeSecretKey: "[redacted]",
+      processorSecretKey: "[redacted]",
       amountCents: 100,
     });
   });
@@ -200,7 +200,7 @@ describe("appendAudit", () => {
     appendAudit(h.db, {
       projectId: h.projectId,
       event: "policy.evaluated",
-      data: { apiKey: "adeia_sk_secret", stripeSecretKey: "sk_test_x", amountCents: 100 },
+      data: { apiKey: "adeia_sk_secret", processorSecretKey: "psk_live_x", amountCents: 100 },
     });
 
     const stored = h.db.$client.prepare("SELECT data FROM audit_events").all() as Array<{
@@ -210,7 +210,7 @@ describe("appendAudit", () => {
 
     expect(blob).toContain("amountCents");
     expect(blob).not.toContain("adeia_sk_secret");
-    expect(blob).not.toContain("sk_test_x");
+    expect(blob).not.toContain("psk_live_x");
   });
 
   it("caps oversized data rather than letting an adapter bloat the table", () => {

@@ -93,8 +93,9 @@ curl -X POST localhost:3000/v1/actions \
   -d @docs/json/examples/request-under-limit.json
 ```
 
-An allowed request reaches the [Stripe adapter](payments.md) and produces a real
-test-mode PaymentIntent. The server will not start without a `sk_test_` key.
+An allowed request reaches the [ledger adapter](payments.md), which records the
+authorised payment without settling it. No payment processor is attached — see
+[payments.md](payments.md) for what that does and does not mean.
 
 Body: [action-request.schema.json](json/action-request.schema.json). Unknown
 fields are rejected rather than silently dropped, so a misspelled key is a `400`

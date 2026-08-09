@@ -68,8 +68,13 @@ if (action.status === "pending_approval") {
 }
 ```
 
-The server needs a Stripe **test** key (`sk_test_…`) and a Resend account to run
-the full loop — see [docs/demo.md](docs/demo.md) for the complete setup.
+The server needs a Resend account and a publicly reachable `PUBLIC_BASE_URL` to
+run the full loop — see [docs/demo.md](docs/demo.md) for the complete setup.
+
+**No payment processor is attached.** Payments are authorised, recorded, and
+stop where settlement would begin; the server says so on every boot. That is a
+deliberate empty seam, not a mock — see [docs/payments.md](docs/payments.md) for
+why, and for the three steps that fill it.
 
 ---
 
@@ -116,15 +121,15 @@ $ npm run audit -- act_abc123
 act_abc123  payment  executed
   params  { amountCents: 50000, currency: 'usd', recipient: 'acct_contractor' }
   policy  amount 50000 exceeds per-action limit 5000
-  result  { paymentIntentId: 'pi_3Qx...', status: 'succeeded' }
+  result  { ledgerEntryId: 'led_act_abc123', status: 'recorded', settled: false }
 
 14:02:11  action.requested         { type: 'payment', params: {...} }
 14:02:11  policy.evaluated         { decision: 'require_approval', reason: '...' }
 14:02:11  action.pending_approval  { reason: '...' }
 14:02:12  approval.sent            { to: 'you@example.com', expiresAt: '...' }
 14:03:47  approval.granted         { decidedBy: 'you@example.com' }
-14:03:47  action.executing         { adapter: 'stripe' }
-14:03:49  action.executed          { result: { paymentIntentId: 'pi_3Qx...' } }
+14:03:47  action.executing         { adapter: 'ledger' }
+14:03:49  action.executed          { result: { ledgerEntryId: 'led_act_abc123', settled: false } }
 ```
 
 Append-only, secret-free, and reachable over HTTP at
@@ -155,7 +160,7 @@ and the agent picks up where it left off. Click-by-click runbook:
 | [docs/sdk.md](docs/sdk.md) | `@adeia/sdk` reference |
 | [docs/policy.md](docs/policy.md) | How decisions are made, in order |
 | [docs/approvals.md](docs/approvals.md) | Tokens, and why approval is never a GET |
-| [docs/payments.md](docs/payments.md) | The Stripe adapter and both idempotency layers |
+| [docs/payments.md](docs/payments.md) | The ledger adapter, and how to attach a processor |
 | [docs/audit-events.md](docs/audit-events.md) | The event vocabulary |
 | [docs/schema.md](docs/schema.md) | Database schema |
 | [docs/status-machine.md](docs/status-machine.md) | Action lifecycle |
@@ -176,7 +181,7 @@ your agent ──▶ @adeia/sdk ──▶ POST /v1/actions
                                     │            │
                               approve / deny ────┤
                                                  ▼
-                                             adapter ──▶ Stripe
+                                             adapter ──▶ (no processor attached)
 ```
 
 Four rules hold the design together:
@@ -195,10 +200,11 @@ spend while a human is deciding" a structural property rather than a promise.
 
 ## Status
 
-Built for the Lumos Fellows program. Payments via Stripe test mode is the one
-integration that exists; the `Adapter` interface is the pluggability story.
+Built for the Lumos Fellows program. Every layer above the adapter is real:
+policy, approvals, audit, the SDK, the agent. The adapter seam is deliberately
+empty — payments are authorised and recorded, nothing settles.
 
-Known limits, named so they aren't mistaken for oversights: SQLite (no
-concurrent writers), email-only approvals, one approver per deployment, no rate
-limiting on `POST /v1/actions`, no API key rotation, and a daily cap that is
-per-currency and never converts.
+Known limits, named so they aren't mistaken for oversights: **no payment
+processor attached**, SQLite (no concurrent writers), email-only approvals, one
+approver per deployment, no rate limiting on `POST /v1/actions`, no API key
+rotation, and a daily cap that is per-currency and never converts.

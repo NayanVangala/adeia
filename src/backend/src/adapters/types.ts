@@ -21,9 +21,10 @@ export interface Adapter {
   /** Which action type this adapter handles, e.g. "payment". */
   type: string;
   /**
-   * Implementation name, e.g. "stripe" or "fake". Distinct from `type` so the
+   * Implementation name, e.g. "ledger" or "fake". Distinct from `type` so the
    * audit trail can record *which* integration ran, not just what kind of
-   * action it was — swapping Stripe for another processor has to be visible.
+   * action it was — swapping one processor for another has to be visible, and
+   * so does running with none.
    */
   name: string;
   execute(params: unknown, ctx: AdapterContext): Promise<Record<string, unknown>>;

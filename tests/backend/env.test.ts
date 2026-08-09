@@ -1,56 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { loadEnv, requireStripeSecretKey } from "../../src/backend/src/env.ts";
+import { loadEnv, requireApprovalConfig } from "../../src/backend/src/env.ts";
 
-/**
- * The `sk_test_` check is the only thing between a rehearsal and a real charge
- * against a real card. These tests exist to make removing it noisy.
- */
-describe("STRIPE_SECRET_KEY guard", () => {
-  it.each([
-    ["a live secret key", "sk_live_abc123"],
-    ["a live restricted key", "rk_live_abc123"],
-    ["a test restricted key", "rk_test_abc123"],
-    ["a publishable key", "pk_test_abc123"],
-    ["the wrong case", "sk_TEST_abc123"],
-    ["a leading space", " sk_test_abc123"],
-    ["the prefix in the middle", "live_sk_test_abc123"],
-  ])("refuses %s", (_label, value) => {
-    expect(() => loadEnv({ STRIPE_SECRET_KEY: value })).toThrow(/sk_test_/);
-  });
-
-  it("accepts a test-mode secret key", () => {
-    expect(loadEnv({ STRIPE_SECRET_KEY: "sk_test_abc123" }).STRIPE_SECRET_KEY).toBe(
-      "sk_test_abc123",
-    );
-  });
-
-  it("treats unset and empty as the same absent value", () => {
-    expect(loadEnv({}).STRIPE_SECRET_KEY).toBeUndefined();
-    expect(loadEnv({ STRIPE_SECRET_KEY: "" }).STRIPE_SECRET_KEY).toBeUndefined();
-    expect(loadEnv({ STRIPE_SECRET_KEY: "   " }).STRIPE_SECRET_KEY).toBeUndefined();
-  });
-});
-
-describe("requireStripeSecretKey", () => {
-  it("throws with instructions when the key is missing", () => {
-    expect(() => requireStripeSecretKey(loadEnv({}))).toThrow(/STRIPE_SECRET_KEY is not set/);
-    expect(() => requireStripeSecretKey(loadEnv({}))).toThrow(/dashboard\.stripe\.com/);
-  });
-
-  it("returns the key when it is present", () => {
-    expect(requireStripeSecretKey(loadEnv({ STRIPE_SECRET_KEY: "sk_test_ok" }))).toBe("sk_test_ok");
-  });
-
-  it("never leaks the key into the error message", () => {
-    try {
-      requireStripeSecretKey(loadEnv({}));
-    } catch (err) {
-      expect((err as Error).message).not.toMatch(/sk_test_[a-z0-9]{6,}/);
-    }
-  });
-});
-
-describe("the rest of the environment", () => {
+describe("the environment", () => {
   it("defaults everything Phase 1 needs, so importing env never throws", () => {
     expect(loadEnv({})).toMatchObject({
       NODE_ENV: "development",
@@ -63,5 +14,64 @@ describe("the rest of the environment", () => {
     expect(loadEnv({ PORT: "8080" }).PORT).toBe(8080);
     expect(() => loadEnv({ PORT: "not-a-port" })).toThrow(/invalid environment/);
     expect(() => loadEnv({ PORT: "99999" })).toThrow(/invalid environment/);
+  });
+
+  it("treats unset and empty as the same absent value", () => {
+    expect(loadEnv({}).RESEND_API_KEY).toBeUndefined();
+    expect(loadEnv({ RESEND_API_KEY: "" }).RESEND_API_KEY).toBeUndefined();
+    expect(loadEnv({ RESEND_API_KEY: "   " }).RESEND_API_KEY).toBeUndefined();
+  });
+});
+
+/**
+ * Booting without somewhere to send approval requests produces the worst
+ * possible failure: over-limit actions pause correctly and then wait forever,
+ * because nothing ever tells a human they were asked. That is indistinguishable
+ * from a hung agent. These tests exist to make removing the check noisy.
+ */
+describe("requireApprovalConfig", () => {
+  const complete = {
+    RESEND_API_KEY: "re_abc123",
+    APPROVAL_FROM_EMAIL: "approvals@example.com",
+    APPROVER_EMAIL: "you@example.com",
+    PUBLIC_BASE_URL: "https://tunnel.example.com",
+  };
+
+  it("names every missing variable at once", () => {
+    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/RESEND_API_KEY/);
+    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/APPROVAL_FROM_EMAIL/);
+    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/APPROVER_EMAIL/);
+    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/PUBLIC_BASE_URL/);
+  });
+
+  it.each(Object.keys(complete))("refuses when %s alone is missing", (key) => {
+    const partial = { ...complete } as Record<string, string>;
+    delete partial[key];
+    expect(() => requireApprovalConfig(loadEnv(partial))).toThrow(new RegExp(key));
+  });
+
+  it("returns the config when everything is present", () => {
+    expect(requireApprovalConfig(loadEnv(complete))).toMatchObject({
+      resendApiKey: "re_abc123",
+      fromEmail: "approvals@example.com",
+      approverEmail: "you@example.com",
+      publicBaseUrl: "https://tunnel.example.com",
+      tokenTtlMs: 86_400_000,
+    });
+  });
+
+  it("strips a trailing slash from the base url, so approval links never double it", () => {
+    expect(
+      requireApprovalConfig(loadEnv({ ...complete, PUBLIC_BASE_URL: "https://tunnel.example.com/" }))
+        .publicBaseUrl,
+    ).toBe("https://tunnel.example.com");
+  });
+
+  it("never leaks the api key into the error message", () => {
+    try {
+      requireApprovalConfig(loadEnv({ ...complete, RESEND_API_KEY: "" }));
+    } catch (err) {
+      expect((err as Error).message).not.toMatch(/re_[a-z0-9]{6,}/);
+    }
   });
 });

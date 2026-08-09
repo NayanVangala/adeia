@@ -2,7 +2,8 @@ import { z } from "zod";
 
 /**
  * Money is always integer cents. There are no floats anywhere in the money path.
- * `currency` is a separate ISO-4217 code, lowercase (Stripe's convention).
+ * `currency` is a separate ISO-4217 code, lowercase — the convention every
+ * major payment API uses on the wire.
  */
 export const PaymentParamsSchema = z.object({
   amountCents: z

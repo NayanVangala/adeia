@@ -108,15 +108,15 @@ Phase 6 ships `npm run audit -- <actionId>`:
 ```
 act_abc123  payment  executed
   params  { amountCents: 50000, currency: 'usd', recipient: 'acct_contractor' }
-  result  { paymentIntentId: 'pi_3Q...', status: 'succeeded' }
+  result  { ledgerEntryId: 'led_act_abc123', status: 'recorded', settled: false }
 
 14:02:11  action.requested         { type: 'payment', params: {...} }
 14:02:11  policy.evaluated         { decision: 'require_approval', reason: 'amount 50000 exceeds per-action limit 5000' }
 14:02:11  action.pending_approval  { reason: 'amount 50000 exceeds per-action limit 5000' }
 14:02:12  approval.sent            { to: 'you@example.com', expiresAt: '2026-08-09T14:02:12Z' }
 14:03:47  approval.granted         { decidedBy: 'you@example.com' }
-14:03:47  action.executing         { adapter: 'stripe' }
-14:03:49  action.executed          { result: { paymentIntentId: 'pi_3Q...', status: 'succeeded' } }
+14:03:47  action.executing         { adapter: 'ledger' }
+14:03:49  action.executed          { result: { ledgerEntryId: 'led_act_abc123', status: 'recorded', settled: false } }
 ```
 
 The same data is available over HTTP at `GET /v1/actions/:id/audit`, scoped to

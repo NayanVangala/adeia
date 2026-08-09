@@ -47,6 +47,31 @@ Agent requests a payment under the limit → auto-executes → agent requests a 
 | Stack | **TypeScript / Node** | The customer (agent builders) is on TS. SDK ships as an npm package; types double as docs. |
 | Name | **Adeia** | Greek: permission, license to act. |
 
+## Revised 2026-08-09 — Stripe removed, no processor attached
+
+**Phase 4 is reverted and its dependency, adapter, env var and tests are gone
+from the repo.** Not deferred in place; removed. `npm run dev` needs no payment
+credentials and the suite is fully offline.
+
+Why: a Stripe account needs an adult account owner, and chasing one for a
+fellowship project was not worth it. Test mode was never the issue — it moves no
+money — but the signup is gated regardless.
+
+What replaced it: [`adapters/ledger.ts`](src/backend/src/adapters/ledger.ts).
+Payments are validated, evaluated, approved, and **recorded** — `status:
+"recorded"`, `settled: false`, no `pi_` identifier. It does not imitate a
+processor, and a test asserts it never starts to. The boot banner says
+`NO PAYMENT PROCESSOR ATTACHED` on every start.
+
+**Phase 4 below is left intact as written.** It is the spec for putting a
+processor back, and the removal was built to make that a three-step change —
+write the adapter, add its guarded env var, swap one line in `server.ts`. See
+[docs/payments.md](docs/payments.md#attaching-a-processor).
+
+The `Adapter` interface, `AdapterContext.idempotencyKey`, the
+`approved → executing` sole path, and every policy rule are unchanged. Only the
+thing on the far side of the seam is missing.
+
 ---
 
 # Tech Stack (all phases)
@@ -62,7 +87,7 @@ Agent requests a payment under the limit → auto-executes → agent requests a 
 | Validation | `zod` | P1 |
 | IDs | `nanoid` (prefixed: `proj_`, `act_`, `pol_`, `apr_`, `evt_`) | P1 |
 | Tests | `vitest` | P1 |
-| Payments | `stripe` (test mode only) | P4 |
+| Payments | ~~`stripe`~~ — removed 2026-08-09. No processor; `adapters/ledger.ts` records without settling | ~~P4~~ |
 | Email | `resend` | P5 |
 | Demo agent | `@anthropic-ai/sdk`, model `claude-haiku-4-5` | P7 |
 | Tunnel (demo only) | `ngrok` or `cloudflared` | P5 |
@@ -75,7 +100,7 @@ These hold in every phase. Violating one is a bug regardless of which phase intr
 
 - **All money is integer cents.** No floats in the money path anywhere. `currency` is a separate ISO-4217 lowercase string. The single float→cents conversion in the whole system is in the demo agent (Phase 7), because the model talks in dollars.
 - Secrets come from env only. Never logged, never returned in an API response, never written to the audit log.
-- `STRIPE_SECRET_KEY` must start with `sk_test_`. The server refuses to boot otherwise (Phase 4).
+- **No adapter may claim an outcome it did not produce.** The current payment adapter settles nothing, so it reports `status: "recorded"` and `settled: false` rather than borrowing a processor's success vocabulary. When a processor is attached, its test-credential prefix is enforced on environment *parse*, not at charge time.
 - **Approval decisions are POST only.** Never GET. See Phase 5 edge cases — this is the single most likely way to ship an auto-approving payment system.
 - Every action state transition writes an `audit_events` row. A status change with no audit row is a bug.
 - Timestamps are ISO-8601 UTC strings.
@@ -119,7 +144,7 @@ adeia/
 │   │       │   └── service.ts       # the ONLY writer of action status transitions
 │   │       ├── adapters/
 │   │       │   ├── types.ts         # Adapter interface + registry
-│   │       │   └── stripe.ts        # PaymentIntent, test mode
+│   │       │   └── ledger.ts        # records the payment, settles nothing
 │   │       ├── approvals/
 │   │       │   ├── token.ts         # mint + verify (hashed at rest)
 │   │       │   └── page.ts          # server-rendered HTML
@@ -167,7 +192,7 @@ Each phase unlocks the next requirement. Nothing before Phase 4 needs a third-pa
 | `NODE_ENV` | P1 | `development` |
 | `PORT` | P1 | `3000` |
 | `ADEIA_DB_PATH` | P1 | `./adeia.db` (`:memory:` in tests) |
-| `STRIPE_SECRET_KEY` | **P4** | `sk_test_…` — boot fails on any other prefix |
+| ~~`STRIPE_SECRET_KEY`~~ | — | Removed 2026-08-09. No payment credential is read anywhere |
 | `RESEND_API_KEY` | **P5** | `re_…` |
 | `APPROVAL_FROM_EMAIL` | P5 | Must be a Resend-verified sender |
 | `APPROVER_EMAIL` | P5 | Where approval requests go |
@@ -559,6 +584,11 @@ curl … -d '{"type":"payment","idempotencyKey":"k3","params":{"amountCents":500
 
 ## Phase 4 — Payment integration (Stripe test mode)
 
+> **Reverted 2026-08-09. Not in the repo.** Kept verbatim as the spec for
+> attaching a processor later. What actually ships today is
+> [`adapters/ledger.ts`](src/backend/src/adapters/ledger.ts) — no processor, no
+> settlement. See the revision note under Decisions above.
+
 **Goal:** Replace the fake adapter with a real Stripe adapter; an in-policy request through the SDK produces a succeeded PaymentIntent visible in the Stripe test dashboard.
 
 ### Data models
@@ -825,7 +855,7 @@ CLI: `npm run audit -- <actionId>`.
   - approved: `["action.requested", "policy.evaluated", "action.pending_approval", "approval.sent", "approval.granted", "action.executing", "action.executed"]`
   - approval denied: `[..., "action.pending_approval", "approval.sent", "approval.denied"]`
 - **No orphan transitions.** After running every service test, assert every action row's terminal status has a corresponding terminal event. A helper that walks all actions and cross-checks catches a transition someone added without an audit write.
-- **Redaction.** `appendAudit(db, { …, data: { apiKey: "adeia_sk_secret", stripeSecretKey: "sk_test_x", amountCents: 100 } })` → the stored row contains `amountCents` and does **not** contain `adeia_sk_secret` or `sk_test_x`.
+- **Redaction.** `appendAudit(db, { …, data: { apiKey: "adeia_sk_secret", processorSecretKey: "psk_live_x", amountCents: 100 } })` → the stored row contains `amountCents` and does **not** contain `adeia_sk_secret` or `psk_live_x`.
 - **Ordering** is stable when several events share a timestamp.
 - **Scoping.** `GET /v1/actions/:id/audit` with another project's key → `404`.
 
@@ -840,15 +870,15 @@ Expected output for the $500 approved action:
 ```
 act_abc123  payment  executed
   params  { amountCents: 50000, currency: 'usd', recipient: 'acct_contractor' }
-  result  { paymentIntentId: 'pi_3Q...', status: 'succeeded' }
+  result  { ledgerEntryId: 'led_act_abc123', status: 'recorded', settled: false }
 
 14:02:11  action.requested         { type: 'payment', params: {...} }
 14:02:11  policy.evaluated         { decision: 'require_approval', reason: 'amount 50000 exceeds per-action limit 5000' }
 14:02:11  action.pending_approval  { reason: 'amount 50000 exceeds per-action limit 5000' }
 14:02:12  approval.sent            { to: 'you@example.com', expiresAt: '2026-08-05T14:02:12Z' }
 14:03:47  approval.granted         { decidedBy: 'you@example.com' }
-14:03:47  action.executing         { adapter: 'stripe' }
-14:03:49  action.executed          { result: { paymentIntentId: 'pi_3Q...', status: 'succeeded' } }
+14:03:47  action.executing         { adapter: 'ledger' }
+14:03:49  action.executed          { result: { ledgerEntryId: 'led_act_abc123', settled: false } }
 ```
 
 That block is the demo's closing slide. Design the formatting for it.
@@ -964,7 +994,7 @@ const final = await anthropic.beta.messages.toolRunner({
 
 ### Test plan
 
-Full suite first: `npm test` → all green, only the guarded Stripe live test skipped.
+Full suite first: `npm test` → all green, nothing skipped. The suite is fully offline; no test needs a third-party credential.
 
 Then the end-to-end, in order:
 
@@ -977,14 +1007,14 @@ npm run demo
 
 | # | Check | Expected |
 |---|---|---|
-| 1 | $25 invoice | Auto-executes. Succeeded PaymentIntent in Stripe test dashboard. Agent reports it. |
+| 1 | $25 invoice | Auto-executes. Agent reports it. Result carries `settled: false`. |
 | 2 | $500 invoice | Agent prints the waiting message. Approval email arrives. |
 | 3 | Open email link | Page renders. `GET /v1/actions/<id>` still shows `pending_approval`. **Prefetch safety.** |
-| 4 | Click Approve | Executes. Second PaymentIntent appears. Agent resumes and reports both outcomes. |
-| 5 | Reload approval page | Used-token page, `410`. **No third PaymentIntent.** |
+| 4 | Click Approve | Executes. Agent resumes and reports both outcomes. |
+| 5 | Reload approval page | Used-token page, `410`. The action stays `executed`, not run twice. |
 | 6 | `npm run audit -- <id>` | Full trail: requested → policy.evaluated → pending_approval → approval.sent → approval.granted → executing → executed. |
 
-Two PaymentIntents after a full run. Not one, not three.
+Two `executed` actions after a full run. Not one, not three — `sqlite3 adeia.db "SELECT id, status FROM actions;"`.
 
 Rehearse the whole sequence end to end at least twice before presenting.
 
@@ -998,7 +1028,8 @@ Rehearse the whole sequence end to end at least twice before presenting.
 - **`Math.round(amountDollars * 100)`** is the one float boundary. `$0.29 * 100 === 28.999999999999996` — without the round, a payment is a cent short and the demo has a bug on screen.
 - **Live email latency.** Have `npm run audit` and a direct approval URL ready as the fallback if the mail is slow.
 - **Rate limits.** Haiku 4.5 has its own limits; a rehearsal loop can hit them. Rehearse well before the presentation, not five minutes prior.
-- **Don't let the agent talk to Stripe.** The model only sees the Adeia SDK. That separation is the pitch — never shortcut it for the demo.
+- **Don't let the agent talk to whatever executes.** The model only sees the Adeia SDK. That separation is the pitch — never shortcut it for the demo.
+- **Say "nothing settles" before you are asked.** No processor is attached, the boot banner says so, and the audit result reads `settled: false`. Volunteering it costs a sentence; being caught not volunteering it costs the room.
 
 ---
 
@@ -1006,6 +1037,7 @@ Rehearse the whole sequence end to end at least twice before presenting.
 
 Real gaps, named so they are not mistaken for oversights:
 
+- **No payment processor.** The largest gap and the most visible one. Payments are authorised and recorded; nothing settles. Phase 4 above is the spec for reversing this, and [docs/payments.md](docs/payments.md#attaching-a-processor) is the three-step version. Blocked on an account, not on code.
 - **SQLite → Postgres** once concurrent writers exist.
 - **Approval channel is email only.** `onApprovalNeeded` in `actions/service.ts` is the injection point where Slack or a webhook slots in without touching the service.
 - **No rate limiting on `POST /v1/actions`.** Required before any non-demo exposure.

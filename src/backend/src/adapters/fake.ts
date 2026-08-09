@@ -14,8 +14,9 @@ export interface FakeAdapter extends Adapter {
 }
 
 /**
- * Stands in for a real integration until Phase 4 wires up Stripe, and is the
- * test double throughout.
+ * The test double throughout. Distinct from the ledger adapter, which is a
+ * real registration for a deployment with no processor attached; this one
+ * exists only so tests can watch and steer it.
  *
  * The call log is the point. The assertions that matter most in this system are
  * negative ones — a pending or denied action must reach the adapter *zero*

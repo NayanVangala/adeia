@@ -8,10 +8,10 @@ import { z } from "zod";
 /**
  * The demo agent.
  *
- * An LLM is handed two invoices and one tool. It has no Stripe key, no
- * knowledge that Stripe exists, and no way to raise its own spending limit —
- * the only thing it can do is ask Adeia, and Adeia decides. That separation is
- * the entire pitch, so it is never shortcut for the demo.
+ * An LLM is handed two invoices and one tool. It holds no payment credentials,
+ * has no idea what executes on the other side, and has no way to raise its own
+ * spending limit — the only thing it can do is ask Adeia, and Adeia decides.
+ * That separation is the entire pitch, so it is never shortcut for the demo.
  */
 
 /**
