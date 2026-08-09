@@ -1,20 +1,21 @@
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import type { RequestDeps } from "./actions/service.ts";
+import { createFakeAdapter } from "./adapters/fake.ts";
+import { createRegistry } from "./adapters/types.ts";
 import type { AppEnv } from "./appEnv.ts";
-import { createDb, migrate, type Db } from "./db/client.ts";
+import { createDb, migrate } from "./db/client.ts";
 import { env } from "./env.ts";
 import { createActionRoutes } from "./routes/actions.ts";
 
-export interface AppDeps {
-  db: Db;
-}
+export type AppDeps = RequestDeps;
 
 export function createApp(deps: AppDeps): Hono<AppEnv> {
   const app = new Hono<AppEnv>();
 
   app.use("*", async (c, next) => {
-    c.set("db", deps.db);
+    c.set("deps", deps);
     await next();
   });
 
@@ -35,10 +36,19 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
 export function boot(): void {
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
-  const app = createApp({ db });
+
+  // Phase 4 swaps the fake adapter for Stripe. Phase 5 replaces this stub with
+  // the real approval email; `actions/service.ts` does not change for either.
+  const adapters = createRegistry([createFakeAdapter()]);
+  const onApprovalNeeded = async (actionId: string): Promise<void> => {
+    console.log(`[adeia] action ${actionId} needs approval — no notifier wired yet (Phase 5)`);
+  };
+
+  const app = createApp({ db, adapters, onApprovalNeeded });
 
   serve({ fetch: app.fetch, port: env.PORT }, (info) => {
     console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${env.ADEIA_DB_PATH})`);
+    console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}`);
   });
 }
 
