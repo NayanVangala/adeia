@@ -161,10 +161,14 @@ describe("requestAction — audit trail", () => {
 
   it("records the paused path, with no executing event", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
+    // `approval.sent` comes from the notifier the harness injects, which since
+    // Phase 5 mints a real token. The point of the assertion is unchanged:
+    // nothing here executes.
     expect(events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
+      "approval.sent",
     ]);
   });
 

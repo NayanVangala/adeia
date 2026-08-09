@@ -1,12 +1,29 @@
 import type { Hono } from "hono";
+import type { ActionRecord } from "@adeia/shared";
 import { createFakeAdapter, type FakeAdapter } from "../../src/backend/src/adapters/fake.ts";
 import { createRegistry } from "../../src/backend/src/adapters/types.ts";
-import type { RequestDeps } from "../../src/backend/src/actions/service.ts";
-import type { AppEnv } from "../../src/backend/src/appEnv.ts";
+import type { AppDeps, AppEnv } from "../../src/backend/src/appEnv.ts";
+import { mintApprovalToken } from "../../src/backend/src/approvals/token.ts";
+import { appendAudit } from "../../src/backend/src/audit/log.ts";
 import { generateApiKey, hashApiKey } from "../../src/backend/src/auth/apiKey.ts";
 import { createDb, migrate, type Db } from "../../src/backend/src/db/client.ts";
-import { insertPolicy, insertProject, type NewPolicy } from "../../src/backend/src/db/repo.ts";
+import {
+  getAction,
+  insertPolicy,
+  insertProject,
+  type NewPolicy,
+} from "../../src/backend/src/db/repo.ts";
 import { createApp } from "../../src/backend/src/server.ts";
+
+export const APPROVER_EMAIL = "approver@example.test";
+
+export interface SentApproval {
+  actionId: string;
+  /** Plaintext, as the email would have carried it. */
+  token: string;
+  expiresAt: string;
+  action: ActionRecord;
+}
 
 /**
  * An in-memory Adeia: migrated database, one project with a real API key, the
@@ -18,11 +35,13 @@ import { createApp } from "../../src/backend/src/server.ts";
 export interface Harness {
   db: Db;
   app: Hono<AppEnv>;
-  deps: RequestDeps;
+  deps: AppDeps;
   adapter: FakeAdapter;
   apiKey: string;
   projectId: string;
   approvalCalls: Array<{ actionId: string; projectId: string }>;
+  /** Approval requests the fake transport "delivered", newest last. */
+  sentEmails: SentApproval[];
   /** A second project, for cross-tenant scoping assertions. */
   other: { apiKey: string; projectId: string };
 }
@@ -30,6 +49,10 @@ export interface Harness {
 export interface HarnessOptions {
   /** Overrides merged onto the default demo policy. */
   policy?: Partial<NewPolicy> | null;
+  /** TTL for tokens minted by the notifier. Negative mints an already-dead one. */
+  tokenTtlMs?: number;
+  /** Set false to pause actions without minting a token, as Phase 3 did. */
+  mintApprovals?: boolean;
 }
 
 const DEMO_POLICY = {
@@ -59,12 +82,26 @@ export function createHarness(opts: HarnessOptions = {}): Harness {
 
   const adapter = createFakeAdapter();
   const approvalCalls: Array<{ actionId: string; projectId: string }> = [];
+  const sentEmails: SentApproval[] = [];
 
-  const deps: RequestDeps = {
+  const deps: AppDeps = {
     db,
     adapters: createRegistry([adapter]),
+    approverEmail: APPROVER_EMAIL,
     onApprovalNeeded: async (actionId, projectId) => {
       approvalCalls.push({ actionId, projectId });
+      if (opts.mintApprovals === false) return;
+
+      // Exercises the real token module; only the transport is faked.
+      const action = getAction(db, actionId)!;
+      const { token, expiresAt } = await mintApprovalToken(db, actionId, opts.tokenTtlMs ?? 60_000);
+      sentEmails.push({ actionId, token, expiresAt, action });
+      appendAudit(db, {
+        actionId,
+        projectId,
+        event: "approval.sent",
+        data: { to: APPROVER_EMAIL, expiresAt },
+      });
     },
   };
 
@@ -76,6 +113,7 @@ export function createHarness(opts: HarnessOptions = {}): Harness {
     apiKey,
     projectId: project.id,
     approvalCalls,
+    sentEmails,
     other: { apiKey: otherKey, projectId: otherProject.id },
   };
 }
