@@ -1,10 +1,14 @@
 # Audit events
 
-**partly shipped.** The table and the append-only writer
-([`src/backend/src/audit/log.ts`](../src/backend/src/audit/log.ts)) exist now;
-each phase writes its own events as it builds. Phase 6 turns those rows into the
-product surface — the event name narrows to a union, `data` is redacted at write
-time, and the query API and CLI land.
+**partly shipped.** The table, the append-only writer
+([`src/backend/src/audit/log.ts`](../src/backend/src/audit/log.ts)), and every
+event the action service writes exist now — the four sequences below for the
+auto-executed, denied, paused, and failed paths are asserted in
+[`tests/backend/actions/service.test.ts`](../tests/backend/actions/service.test.ts).
+
+Still to come: the approval events (P5), and Phase 6's product surface — the
+event name narrows to a union, `data` is redacted at write time, and the query
+API and CLI land.
 
 The audit log is the answer to "what did the agent actually do, and who let it?"
 It is the closing slide of the demo and the reason a builder can put this in
@@ -87,9 +91,11 @@ is not putting secrets in `data`; redaction is the backstop, not the plan.
 already moved. Log the failure loudly and continue — losing the record is bad,
 unwinding a real transaction over a logging error is worse.
 
-**Ordering is `(created_at, id)`.** SQLite writes several events inside the same
-millisecond routinely; sorting by timestamp alone reshuffles the trail on every
-read.
+**Ordering is `(created_at, rowid)`.** SQLite writes several events inside the
+same millisecond routinely, so timestamps alone are not a total order. The
+tiebreak must be insertion order — tying on the random `id` produces a stable
+but arbitrary sequence, which shows up as `action.executed` appearing before
+`action.executing`.
 
 **`data` has a size cap.** A few KB, so an adapter returning a large object
 cannot bloat the table.

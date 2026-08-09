@@ -24,7 +24,7 @@ project it resolves to, never by anything in the request body or path.
 |---|---|---|---|
 | `GET` | [`/healthz`](#get-healthz) | no | **shipped** |
 | `GET` | [`/v1/actions/:id`](#get-v1actionsid) | yes | **shipped** |
-| `POST` | [`/v1/actions`](#post-v1actions) | yes | planned (P3) |
+| `POST` | [`/v1/actions`](#post-v1actions) | yes | **shipped** |
 | `GET` | [`/approvals/:token`](#get-approvalstoken) | token | planned (P5) |
 | `POST` | [`/approvals/:token`](#post-approvalstoken) | token | planned (P5) |
 | `GET` | [`/v1/actions/:id/audit`](#get-v1actionsidaudit) | yes | planned (P6) |
@@ -85,7 +85,17 @@ returns the one that leaks nothing.
 
 ### `POST /v1/actions`
 
-**planned (P3).** The endpoint an agent calls to request an action.
+**shipped.** The endpoint an agent calls to request an action.
+
+```bash
+curl -X POST localhost:3000/v1/actions \
+  -H "authorization: Bearer $ADEIA_API_KEY" -H "content-type: application/json" \
+  -d @docs/json/examples/request-under-limit.json
+```
+
+Until Phase 4 lands, the registered adapter is a fake that records its calls and
+returns a synthetic `fakePaymentId` — the full request path works with no
+third-party account.
 
 Body: [action-request.schema.json](json/action-request.schema.json). Unknown
 fields are rejected rather than silently dropped, so a misspelled key is a `400`

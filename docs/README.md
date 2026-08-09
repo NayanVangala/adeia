@@ -14,6 +14,7 @@ want to know how a piece actually behaves.
 | Document | What it covers |
 |---|---|
 | [api.md](api.md) | HTTP surface — endpoints, status codes, error bodies, auth |
+| [sdk.md](sdk.md) | `@adeia/sdk` — the client an agent builder actually installs |
 | [schema.md](schema.md) | The five tables, every column, and why the constraints exist |
 | [status-machine.md](status-machine.md) | Action lifecycle and the transitions that are legal |
 | [policy.md](policy.md) | How `evaluate()` decides, in order, with the boundary rules |
@@ -29,10 +30,13 @@ Docs cover the whole design, so each section is tagged with where it stands.
 | **shipped** | Built, tested, and runnable today |
 | **planned (Pn)** | Designed and specified; lands in phase *n* |
 
-Right now Phases 1 and 2 are shipped: the database, API-key auth,
-`GET /v1/actions/:id`, and the policy engine. Everything that actually moves
-money — the action service, the Stripe adapter, the approval flow — is Phase 3
-onward.
+Phases 1 through 3 are shipped: the database, API-key auth, the policy engine,
+the action service, both `/v1/actions` endpoints, and the `@adeia/sdk` client.
+The full request path runs end to end today against a **fake adapter** — the
+real Stripe integration is Phase 4, and the approval flow that a paused action
+waits on is Phase 5. Until then an over-limit action correctly reaches
+`pending_approval` and stops there, with nothing to release it but a direct
+status change.
 
 ## Generated files
 

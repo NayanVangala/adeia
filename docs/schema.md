@@ -127,9 +127,16 @@ another event.
 
 `INDEX(action_id, created_at)`
 
-Reads sort by `(created_at, id)`, not `created_at` alone. SQLite routinely writes
-several events inside the same millisecond, and the tiebreak on `id` is what
-keeps a trail in stable order across reads.
+Reads sort by `(created_at, rowid)`, not `created_at` alone. SQLite routinely
+writes several events inside the same millisecond, so timestamps are not a total
+order.
+
+The tiebreak has to be *insertion* order, and `id` cannot supply it — ids are
+random nanoids, so tying on them yields a stable but arbitrary sequence, which
+is how a trail ends up reading `action.executed` before `action.executing`.
+SQLite's implicit `rowid` increments per insert, and this table is append-only
+(no DELETE, so no rowid reuse), which makes it the monotonic counter the
+ordering needs.
 
 ---
 
