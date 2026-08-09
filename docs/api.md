@@ -93,9 +93,8 @@ curl -X POST localhost:3000/v1/actions \
   -d @docs/json/examples/request-under-limit.json
 ```
 
-Until Phase 4 lands, the registered adapter is a fake that records its calls and
-returns a synthetic `fakePaymentId` — the full request path works with no
-third-party account.
+An allowed request reaches the [Stripe adapter](payments.md) and produces a real
+test-mode PaymentIntent. The server will not start without a `sk_test_` key.
 
 Body: [action-request.schema.json](json/action-request.schema.json). Unknown
 fields are rejected rather than silently dropped, so a misspelled key is a `400`

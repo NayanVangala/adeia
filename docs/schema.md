@@ -83,8 +83,9 @@ Every request an agent has made, and what became of it.
 `UNIQUE(project_id, idempotency_key)` · `INDEX(project_id, status, created_at)`
 
 The unique index is the first of two independent idempotency guards. It catches
-a duplicate before any network call happens. Stripe's own idempotency key
-(Phase 4) catches one that got past it. They fail differently, so both stay.
+a duplicate before any network call happens; [Stripe's own idempotency
+key](payments.md#two-idempotency-guards-both-kept) catches one that got past it.
+They fail differently, so both stay.
 
 Note that `currency` is not a column — it lives inside `params`, and
 `sumSpentTodayCents` reaches it with `json_extract(params, '$.currency')`. The
