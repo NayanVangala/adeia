@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { ActionRequestSchema, PaymentParamsSchema } from "@adeia/shared";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import { DEMO_POLICY } from "./seed.ts";
 
 /**
@@ -34,7 +34,7 @@ export function generate(): GeneratedFile[] {
         $id: "https://adeia.dev/schemas/action-request.json",
         title: "ActionRequest",
         description: "Body of POST /v1/actions. Generated from ActionRequestSchema.",
-        ...zodToJsonSchema(ActionRequestSchema, { target: "jsonSchema7" }),
+        ...z.toJSONSchema(ActionRequestSchema, { target: "draft-7" }),
       }),
     },
     {
@@ -45,7 +45,7 @@ export function generate(): GeneratedFile[] {
         description:
           "Params for a payment action. Amounts are integer cents; currency is a " +
           "lowercase ISO-4217 code. Generated from PaymentParamsSchema.",
-        ...zodToJsonSchema(PaymentParamsSchema, { target: "jsonSchema7" }),
+        ...z.toJSONSchema(PaymentParamsSchema, { target: "draft-7" }),
       }),
     },
     {
