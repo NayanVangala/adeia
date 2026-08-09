@@ -1,0 +1,9 @@
+{
+  "_comment": "The policy `npm run seed` installs. Generated from DEMO_POLICY in scripts/seed.ts — edit that constant, not this file.",
+  "actionType": "payment",
+  "maxAmountCents": 5000,
+  "hardMaxAmountCents": 100000,
+  "dailyCapCents": 200000,
+  "allowedRecipients": null,
+  "requiresApproval": false
+}

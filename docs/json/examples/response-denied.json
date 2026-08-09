@@ -1,0 +1,20 @@
+{
+  "id": "act_z1x2c3v4b5n6m7k8j9h0g",
+  "projectId": "proj_lxvktwnj3wfu1vki0cem3",
+  "type": "payment",
+  "params": {
+    "amountCents": 500000,
+    "currency": "usd",
+    "recipient": "acct_contractor",
+    "description": "annual retainer, paid up front"
+  },
+  "status": "denied",
+  "decision": "deny",
+  "decisionReason": "amount 500000 exceeds hard maximum 100000",
+  "idempotencyKey": "invoice-acquisition-1",
+  "result": null,
+  "error": null,
+  "createdAt": "2026-08-08T14:04:55.010Z",
+  "decidedAt": "2026-08-08T14:04:55.014Z",
+  "executedAt": null
+}

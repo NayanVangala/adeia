@@ -1,0 +1,20 @@
+{
+  "id": "act_q7w2e9r4t1y6u3i8o5p0a",
+  "projectId": "proj_lxvktwnj3wfu1vki0cem3",
+  "type": "payment",
+  "params": {
+    "amountCents": 50000,
+    "currency": "usd",
+    "recipient": "acct_contractor",
+    "description": "Q3 design work"
+  },
+  "status": "pending_approval",
+  "decision": "require_approval",
+  "decisionReason": "amount 50000 exceeds per-action limit 5000",
+  "idempotencyKey": "invoice-contractor-q3",
+  "result": null,
+  "error": null,
+  "createdAt": "2026-08-08T14:02:13.117Z",
+  "decidedAt": "2026-08-08T14:02:13.121Z",
+  "executedAt": null
+}

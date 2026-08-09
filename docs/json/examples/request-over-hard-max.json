@@ -1,0 +1,10 @@
+{
+  "type": "payment",
+  "idempotencyKey": "invoice-acquisition-1",
+  "params": {
+    "amountCents": 500000,
+    "currency": "usd",
+    "recipient": "acct_contractor",
+    "description": "annual retainer, paid up front"
+  }
+}

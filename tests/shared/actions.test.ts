@@ -50,6 +50,19 @@ describe("ActionRequestSchema", () => {
   it("rejects an unknown action type", () => {
     expect(ActionRequestSchema.safeParse({ ...base, type: "email" }).success).toBe(false);
   });
+
+  it("rejects unknown fields rather than silently dropping them", () => {
+    // A misspelled key should be a visible 400, not a setting that never took
+    // effect. This is also what keeps the published JSON Schema's
+    // `additionalProperties: false` honest.
+    expect(ActionRequestSchema.safeParse({ ...base, currency: "usd" }).success).toBe(false);
+    expect(
+      ActionRequestSchema.safeParse({
+        ...base,
+        params: { ...base.params, descrption: "typo" },
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("PaymentParamsSchema", () => {

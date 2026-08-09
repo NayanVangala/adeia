@@ -64,11 +64,16 @@ export type Decision = (typeof DECISIONS)[number];
  * `payment` is the only action type in the MVP. A second type slots in here as
  * another discriminated-union member, with its own params schema.
  */
-export const ActionRequestSchema = z.object({
-  type: z.literal("payment"),
-  idempotencyKey: z.string().min(1).max(255),
-  params: PaymentParamsSchema,
-});
+export const ActionRequestSchema = z
+  .object({
+    type: z.literal("payment"),
+    idempotencyKey: z.string().min(1).max(255),
+    params: PaymentParamsSchema,
+  })
+  // Strict, not stripping. A misspelled field is a 400 the builder can see,
+  // rather than a silently dropped key. It also keeps the published JSON
+  // Schema (`additionalProperties: false`) honest about runtime behaviour.
+  .strict();
 
 export type ActionRequest = z.infer<typeof ActionRequestSchema>;
 

@@ -1,0 +1,10 @@
+{
+  "type": "payment",
+  "idempotencyKey": "invoice-cloudhost-2026-08",
+  "params": {
+    "amountCents": 2500,
+    "currency": "usd",
+    "recipient": "acct_cloudhost",
+    "description": "monthly hosting"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "act_8xk2m4pq7vn3jd6wztc0b",
+  "projectId": "proj_lxvktwnj3wfu1vki0cem3",
+  "type": "payment",
+  "params": {
+    "amountCents": 2500,
+    "currency": "usd",
+    "recipient": "acct_cloudhost",
+    "description": "monthly hosting"
+  },
+  "status": "executed",
+  "decision": "allow",
+  "decisionReason": "within policy",
+  "idempotencyKey": "invoice-cloudhost-2026-08",
+  "result": {
+    "paymentIntentId": "pi_3QxK2mBlxYzAbCdE1fGhIjKl",
+    "status": "succeeded",
+    "amountCents": 2500,
+    "currency": "usd"
+  },
+  "error": null,
+  "createdAt": "2026-08-08T14:02:11.204Z",
+  "decidedAt": "2026-08-08T14:02:11.209Z",
+  "executedAt": "2026-08-08T14:02:12.881Z"
+}

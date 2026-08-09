@@ -15,6 +15,6 @@ export const PaymentParamsSchema = z.object({
     .regex(/^[a-z]{3}$/, "currency must be lowercase, e.g. \"usd\""),
   recipient: z.string().min(1, "recipient is required"),
   description: z.string().max(500).optional(),
-});
+}).strict();
 
 export type PaymentParams = z.infer<typeof PaymentParamsSchema>;

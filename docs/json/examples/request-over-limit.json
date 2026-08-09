@@ -1,0 +1,10 @@
+{
+  "type": "payment",
+  "idempotencyKey": "invoice-contractor-q3",
+  "params": {
+    "amountCents": 50000,
+    "currency": "usd",
+    "recipient": "acct_contractor",
+    "description": "Q3 design work"
+  }
+}

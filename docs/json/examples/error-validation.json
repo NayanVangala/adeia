@@ -1,0 +1,12 @@
+{
+  "error": "invalid_request",
+  "issues": [
+    {
+      "code": "invalid_type",
+      "expected": "integer",
+      "received": "float",
+      "path": ["params", "amountCents"],
+      "message": "amountCents must be an integer number of cents"
+    }
+  ]
+}

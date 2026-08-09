@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { generateApiKey, hashApiKey } from "../src/backend/src/auth/apiKey.ts";
 import { createDb, migrate } from "../src/backend/src/db/client.ts";
 import { insertPolicy, insertProject } from "../src/backend/src/db/repo.ts";
@@ -16,7 +17,7 @@ import { env } from "../src/backend/src/env.ts";
  * and the approval flow — the entire point of the demo — would never fire.
  * Change one of these and re-check the other three.
  */
-const DEMO_POLICY = {
+export const DEMO_POLICY = {
   actionType: "payment",
   maxAmountCents: 5_000, // $50   → above this, ask a human
   hardMaxAmountCents: 100_000, // $1,000 → above this, refuse outright
@@ -51,4 +52,6 @@ function main(): void {
   console.log(`    export ADEIA_URL=http://localhost:${env.PORT}\n`);
 }
 
-main();
+// Guarded so DEMO_POLICY can be imported (by the docs generator, by tests)
+// without seeding a database as a side effect of the import.
+if (process.argv[1] === fileURLToPath(import.meta.url)) main();
