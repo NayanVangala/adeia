@@ -6,8 +6,10 @@ import {
   getPolicy,
   getProjectByKeyHash,
   insertAction,
+  insertAuditEvent,
   insertPolicy,
   insertProject,
+  listAudit,
   sumSpentTodayCents,
   toPolicy,
   updateActionStatus,
@@ -256,6 +258,44 @@ describe("projects and policies", () => {
 
   it("returns null when no policy is configured", () => {
     expect(getPolicy(db, projectId, "payment")).toBeNull();
+  });
+});
+
+describe("listAudit ordering", () => {
+  it("returns events in insertion order even when they share a millisecond", () => {
+    const action = insertAction(db, {
+      projectId,
+      type: "payment",
+      params: payment(2500),
+      status: "pending_policy",
+      idempotencyKey: "k1",
+    });
+
+    // Written in a tight loop, so many of these land on the same timestamp.
+    // Tying on the random nanoid id would shuffle them; the tiebreak has to be
+    // insertion order.
+    const written = Array.from({ length: 50 }, (_, i) => `evt.${i}`);
+    for (const event of written) {
+      insertAuditEvent(db, { actionId: action.id, projectId, event });
+    }
+
+    expect(listAudit(db, action.id).map((e) => e.event)).toEqual(written);
+  });
+
+  it("is stable across repeated reads", () => {
+    const action = insertAction(db, {
+      projectId,
+      type: "payment",
+      params: payment(2500),
+      status: "pending_policy",
+      idempotencyKey: "k1",
+    });
+    for (let i = 0; i < 20; i++) {
+      insertAuditEvent(db, { actionId: action.id, projectId, event: `evt.${i}` });
+    }
+
+    const first = listAudit(db, action.id).map((e) => e.id);
+    expect(listAudit(db, action.id).map((e) => e.id)).toEqual(first);
   });
 });
 

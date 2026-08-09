@@ -272,12 +272,24 @@ export function insertAuditEvent(db: Db, e: NewAuditEvent): AuditRow {
   return row!;
 }
 
-/** Ordered by (created_at, id) — several events routinely share a millisecond. */
+/**
+ * Ordered by `(created_at, rowid)`.
+ *
+ * SQLite routinely writes several audit events inside the same millisecond, so
+ * `created_at` alone is not a total order. The tiebreak has to be *insertion*
+ * order, and `id` cannot provide it — ids are random nanoids, so tying on them
+ * returns a stable but arbitrary sequence, which is how a trail ends up
+ * reading `action.executed` before `action.executing`.
+ *
+ * SQLite's implicit `rowid` increments per insert, and this table is
+ * append-only (no DELETE, so no rowid reuse), which makes it exactly the
+ * monotonic counter needed here.
+ */
 export function listAudit(db: Db, actionId: string): AuditRow[] {
   return db
     .select()
     .from(auditEvents)
     .where(eq(auditEvents.actionId, actionId))
-    .orderBy(auditEvents.createdAt, auditEvents.id)
+    .orderBy(auditEvents.createdAt, sql`rowid`)
     .all();
 }
