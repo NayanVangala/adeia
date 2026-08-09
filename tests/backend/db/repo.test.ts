@@ -9,6 +9,7 @@ import {
   insertPolicy,
   insertProject,
   sumSpentTodayCents,
+  toPolicy,
   updateActionStatus,
   utcMidnightIso,
 } from "../../../src/backend/src/db/repo.ts";
@@ -255,5 +256,70 @@ describe("projects and policies", () => {
 
   it("returns null when no policy is configured", () => {
     expect(getPolicy(db, projectId, "payment")).toBeNull();
+  });
+});
+
+describe("toPolicy", () => {
+  it("maps a stored row into the shape evaluate() expects", () => {
+    insertPolicy(db, {
+      projectId,
+      actionType: "payment",
+      maxAmountCents: 5000,
+      hardMaxAmountCents: 100000,
+      dailyCapCents: 200000,
+      allowedRecipients: ["acct_a", "acct_b"],
+      requiresApproval: true,
+    });
+
+    expect(toPolicy(getPolicy(db, projectId, "payment")!)).toEqual({
+      actionType: "payment",
+      maxAmountCents: 5000,
+      hardMaxAmountCents: 100000,
+      dailyCapCents: 200000,
+      allowedRecipients: ["acct_a", "acct_b"],
+      requiresApproval: true,
+    });
+  });
+
+  it("keeps an absent limit as null rather than collapsing it to 0", () => {
+    insertPolicy(db, { projectId, actionType: "payment" });
+    const policy = toPolicy(getPolicy(db, projectId, "payment")!);
+
+    expect(policy.maxAmountCents).toBeNull();
+    expect(policy.hardMaxAmountCents).toBeNull();
+    expect(policy.dailyCapCents).toBeNull();
+    expect(policy.allowedRecipients).toBeNull();
+    expect(policy.requiresApproval).toBe(false);
+  });
+
+  it("preserves a 0 limit, which means nothing is allowed", () => {
+    insertPolicy(db, {
+      projectId,
+      actionType: "payment",
+      maxAmountCents: 0,
+      hardMaxAmountCents: 0,
+      dailyCapCents: 0,
+    });
+    const policy = toPolicy(getPolicy(db, projectId, "payment")!);
+
+    expect(policy.maxAmountCents).toBe(0);
+    expect(policy.hardMaxAmountCents).toBe(0);
+    expect(policy.dailyCapCents).toBe(0);
+  });
+
+  it("distinguishes an empty allowlist from no allowlist", () => {
+    insertPolicy(db, { projectId, actionType: "payment", allowedRecipients: [] });
+    expect(toPolicy(getPolicy(db, projectId, "payment")!).allowedRecipients).toEqual([]);
+  });
+
+  it("rejects a corrupted allowed_recipients column", () => {
+    const row = insertPolicy(db, { projectId, actionType: "payment" });
+    db.$client
+      .prepare("UPDATE policies SET allowed_recipients = ? WHERE id = ?")
+      .run('{"not":"an array"}', row.id);
+
+    expect(() => toPolicy(getPolicy(db, projectId, "payment")!)).toThrow(
+      /not a JSON array of strings/i,
+    );
   });
 });

@@ -1,6 +1,7 @@
 import type { ActionRecord, ActionStatus, Decision } from "@adeia/shared";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { newId } from "../ids.ts";
+import type { Policy } from "../policy/evaluate.ts";
 import type { Db } from "./client.ts";
 import {
   actions,
@@ -88,6 +89,31 @@ export function insertPolicy(db: Db, p: NewPolicy): PolicyRow {
     .returning()
     .all();
   return row!;
+}
+
+/**
+ * Maps a stored row into the shape `evaluate()` expects: JSON parsed, 0/1
+ * coerced to boolean, and absent limits left as `null` rather than collapsed
+ * to `0` — the two mean opposite things to the policy engine.
+ */
+export function toPolicy(row: PolicyRow): Policy {
+  let allowedRecipients: string[] | null = null;
+  if (row.allowedRecipients !== null) {
+    const parsed: unknown = JSON.parse(row.allowedRecipients);
+    if (!Array.isArray(parsed) || parsed.some((r) => typeof r !== "string")) {
+      throw new Error(`policy ${row.id}: allowed_recipients is not a JSON array of strings`);
+    }
+    allowedRecipients = parsed as string[];
+  }
+
+  return {
+    actionType: row.actionType,
+    maxAmountCents: row.maxAmountCents ?? null,
+    hardMaxAmountCents: row.hardMaxAmountCents ?? null,
+    dailyCapCents: row.dailyCapCents ?? null,
+    allowedRecipients,
+    requiresApproval: row.requiresApproval === 1,
+  };
 }
 
 export function getPolicy(db: Db, projectId: string, actionType: string): PolicyRow | null {
