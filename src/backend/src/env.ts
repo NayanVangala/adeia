@@ -47,6 +47,29 @@ export const EnvSchema = z.object({
         'refusing a Stripe key that is not test mode — it must start with "sk_test_"',
       ),
   ),
+
+  // --- Phase 5: approvals ---
+  // Optional here for the same reason as the Stripe key: the seed and docs
+  // scripts import this module. `requireApprovalConfig()` is the server's hard
+  // requirement.
+
+  /** Resend API key. Looks like `re_…`; the prefix is not enforced. */
+  RESEND_API_KEY: optional(z.string().min(1)),
+  /** Must be a sender Resend has verified for your domain. */
+  APPROVAL_FROM_EMAIL: optional(z.string().email()),
+  /** Where approval requests land. One approver per deployment in the MVP. */
+  APPROVER_EMAIL: optional(z.string().email()),
+  /**
+   * Must be publicly reachable — a tunnel URL in development. A `localhost`
+   * link in an email is useless on the phone the approver is holding.
+   */
+  PUBLIC_BASE_URL: optional(
+    z
+      .string()
+      .url()
+      .transform((u) => u.replace(/\/+$/, "")),
+  ),
+  APPROVAL_TOKEN_TTL_MS: z.coerce.number().int().positive().default(86_400_000),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -77,6 +100,51 @@ export function requireStripeSecretKey(e: Env = env): string {
     );
   }
   return e.STRIPE_SECRET_KEY;
+}
+
+export interface ApprovalConfig {
+  resendApiKey: string;
+  fromEmail: string;
+  approverEmail: string;
+  publicBaseUrl: string;
+  tokenTtlMs: number;
+}
+
+/**
+ * The server will not start without somewhere to send approval requests.
+ *
+ * Booting without this produces the worst possible failure: over-limit actions
+ * pause correctly and then wait forever, because nothing ever tells a human
+ * they were asked. That looks identical to a hung agent.
+ */
+export function requireApprovalConfig(e: Env = env): ApprovalConfig {
+  const missing = (
+    [
+      ["RESEND_API_KEY", e.RESEND_API_KEY],
+      ["APPROVAL_FROM_EMAIL", e.APPROVAL_FROM_EMAIL],
+      ["APPROVER_EMAIL", e.APPROVER_EMAIL],
+      ["PUBLIC_BASE_URL", e.PUBLIC_BASE_URL],
+    ] as const
+  )
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `the approval flow is not configured. Missing: ${missing.join(", ")}\n` +
+        "  PUBLIC_BASE_URL must be publicly reachable — use a tunnel in development:\n" +
+        "    ngrok http 3000\n" +
+        "  and re-set it every time the tunnel restarts, or emailed links point at a dead host.",
+    );
+  }
+
+  return {
+    resendApiKey: e.RESEND_API_KEY!,
+    fromEmail: e.APPROVAL_FROM_EMAIL!,
+    approverEmail: e.APPROVER_EMAIL!,
+    publicBaseUrl: e.PUBLIC_BASE_URL!,
+    tokenTtlMs: e.APPROVAL_TOKEN_TTL_MS,
+  };
 }
 
 loadDotEnv();
