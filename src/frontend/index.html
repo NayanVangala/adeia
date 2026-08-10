@@ -621,8 +621,8 @@
 14:02:11  action.pending_approval  <span class="c-key">amount 50000 exceeds limit 5000</span>
 14:02:12  approval.sent            <span class="c-dim">{ to: 'you@example.com' }</span>
 14:03:47  approval.granted         <span class="c-dim">{ decidedBy: 'you@example.com' }</span>
-14:03:47  action.executing         <span class="c-dim">{ adapter: 'stripe' }</span>
-14:03:49  action.executed          <span class="c-str">pi_3Q7hK2 · succeeded</span></pre>
+14:03:47  action.executing         <span class="c-dim">{ adapter: 'ledger' }</span>
+14:03:49  action.executed          <span class="c-str">{ ledgerEntryId: 'led_act_8Kx2p', status: 'recorded', settled: false }</span></pre>
         </div>
       </div>
     </section>
@@ -630,7 +630,7 @@
 
   <footer>
     <span>Adeia · execution and permissions for AI agents</span>
-    <span>Payments run against <a href="https://stripe.com/docs/testing">Stripe test mode</a> today.</span>
+    <span>No payment processor attached — payments are authorised and recorded, nothing settles.</span>
   </footer>
 </div>
 
