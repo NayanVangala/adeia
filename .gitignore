@@ -7,3 +7,7 @@ dist/
 *.db-wal
 *.db-shm
 .DS_Store
+
+# playwright mcp scratch output
+.playwright-mcp/
+.claude/settings.local.json
