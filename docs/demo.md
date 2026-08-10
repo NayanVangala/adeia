@@ -24,8 +24,11 @@ click, the resume, the trail. What is absent is one adapter behind all of it.
 
 | | Needed for | Watch out for |
 |---|---|---|
-| Resend account + **verified sender domain** | Approval email | **Verification is not instant. Do this days ahead.** |
+| A Gmail account with 2-Step Verification on | Approval email | You need an **app password**, not the account password — [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
 | Anthropic API key | The demo agent only | The Adeia server never calls a model |
+
+Resend works too (`RESEND_API_KEY` instead of the SMTP pair) but needs an
+account and a verified sender domain, and that verification is not instant.
 
 ### 2. `.env` at the repo root
 
@@ -36,12 +39,16 @@ cp config/.env.example .env
 Fill in:
 
 ```
-RESEND_API_KEY=re_...
-APPROVAL_FROM_EMAIL=approvals@yourdomain.com
-APPROVER_EMAIL=you@example.com
-PUBLIC_BASE_URL=            # left blank for now — see step 3 on the day
+SMTP_USER=you@gmail.com
+SMTP_PASSWORD=xxxxxxxxxxxxxxxx    # the 16-character app password
+APPROVAL_FROM_EMAIL=you@gmail.com # must match SMTP_USER or a verified alias
+APPROVER_EMAIL=you@gmail.com
+PUBLIC_BASE_URL=                  # left blank for now — see step 3 on the day
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+Send yourself a test the moment this is filled in — starting the server now
+verifies the credentials before anything depends on them.
 
 ### 3. Rehearse the whole sequence end to end, twice
 
@@ -95,14 +102,17 @@ refuses to start rather than run half-configured:
 [adeia] adapters: ledger
 [adeia] NO PAYMENT PROCESSOR ATTACHED — payments are authorised and recorded;
 [adeia]   no money moves. Register a processor adapter to change that.
-[adeia] approvals: you@example.com via https://your-tunnel.ngrok-free.app
+[adeia] approvals: you@gmail.com via https://your-tunnel.ngrok-free.app
+[adeia]   sending as you@gmail.com over smtp smtp.gmail.com:465 as you@gmail.com
 ```
 
-One caveat the boot check cannot cover: it catches *missing* configuration, not
-*placeholder* configuration. A `.env` still holding `re_...` and
-`https://your-tunnel.ngrok-free.app` boots perfectly and fails at the first
-email. Check the printed approval line names your real address and your real
-tunnel.
+Reaching that point means the SMTP credentials were accepted — the server logs
+in before it listens, so a wrong app password is a startup error and not a
+payment that pauses and reaches nobody.
+
+The one placeholder it cannot catch is `PUBLIC_BASE_URL`. Any valid URL passes,
+including the example one. Read the printed approval line and confirm it names
+your live tunnel.
 
 ### 4. Open these before you start talking
 
@@ -141,8 +151,10 @@ sqlite3 adeia.db "SELECT id, status FROM actions;"
 
 | Symptom | Cause | Do this |
 |---|---|---|
-| Server won't start, names `PUBLIC_BASE_URL` etc. | Approval flow unconfigured | Fill in the Resend block. It is refusing on purpose. |
-| Server starts but the email never sends | `.env` still holds placeholders | The boot check catches missing values, not `re_...`. Check the printed approval line. |
+| Server won't start, names `PUBLIC_BASE_URL` etc. | Approval flow unconfigured | Fill in the approval block. It is refusing on purpose. |
+| Server won't start, `535 Username and Password not accepted` | Wrong app password, or 2-Step Verification is off | Regenerate the app password. Not the account password. |
+| Server won't start, `SMTP_PASSWORD is missing` | Half-filled SMTP block | Set both or neither. It will not silently use Resend instead. |
+| Email arrives from the wrong address | Gmail rewrote a `From` it does not own | `APPROVAL_FROM_EMAIL` must be `SMTP_USER` or a verified alias. |
 | Email never arrives | Slow, spam, or unverified sender | **Don't wait on stage.** Use the fallback below. |
 | Approval link 404s or hangs | Tunnel restarted; `PUBLIC_BASE_URL` is stale | Update `.env`, restart the server, re-run. |
 | Agent hangs after the pause | Nobody approved within 5 minutes | `waitForAction` times out; the agent reports it as still waiting. |

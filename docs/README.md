@@ -43,9 +43,10 @@ stop where settlement would begin — deliberately, and loudly. See
 [payments.md](payments.md) for what that does and does not mean, and for the
 three steps that attach one.
 
-The server needs the Resend block and a publicly reachable `PUBLIC_BASE_URL` to
-start — see [approvals.md](approvals.md). `npm run seed` and `npm run docs:json`
-need neither.
+The server needs one email transport — SMTP (a Gmail app password) or Resend —
+and a publicly reachable `PUBLIC_BASE_URL` to start. See
+[approvals.md](approvals.md). `npm run seed` and `npm run docs:json` need
+neither.
 
 ## Generated files
 

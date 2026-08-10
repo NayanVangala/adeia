@@ -30,48 +30,102 @@ describe("the environment", () => {
  * from a hung agent. These tests exist to make removing the check noisy.
  */
 describe("requireApprovalConfig", () => {
-  const complete = {
-    RESEND_API_KEY: "re_abc123",
+  const addressing = {
     APPROVAL_FROM_EMAIL: "approvals@example.com",
     APPROVER_EMAIL: "you@example.com",
     PUBLIC_BASE_URL: "https://tunnel.example.com",
   };
+  const smtp = { SMTP_USER: "me@gmail.test", SMTP_PASSWORD: "app-password" };
+  const resend = { RESEND_API_KEY: "re_abc123" };
 
-  it("names every missing variable at once", () => {
-    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/RESEND_API_KEY/);
-    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/APPROVAL_FROM_EMAIL/);
-    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/APPROVER_EMAIL/);
-    expect(() => requireApprovalConfig(loadEnv({}))).toThrow(/PUBLIC_BASE_URL/);
+  it("names every missing address variable at once", () => {
+    const noAddressing = () => requireApprovalConfig(loadEnv(resend));
+    expect(noAddressing).toThrow(/APPROVAL_FROM_EMAIL/);
+    expect(noAddressing).toThrow(/APPROVER_EMAIL/);
+    expect(noAddressing).toThrow(/PUBLIC_BASE_URL/);
   });
 
-  it.each(Object.keys(complete))("refuses when %s alone is missing", (key) => {
-    const partial = { ...complete } as Record<string, string>;
+  it.each(Object.keys(addressing))("refuses when %s alone is missing", (key) => {
+    const partial = { ...addressing, ...resend } as Record<string, string>;
     delete partial[key];
     expect(() => requireApprovalConfig(loadEnv(partial))).toThrow(new RegExp(key));
   });
 
-  it("returns the config when everything is present", () => {
-    expect(requireApprovalConfig(loadEnv(complete))).toMatchObject({
-      resendApiKey: "re_abc123",
-      fromEmail: "approvals@example.com",
-      approverEmail: "you@example.com",
-      publicBaseUrl: "https://tunnel.example.com",
-      tokenTtlMs: 86_400_000,
-    });
-  });
-
   it("strips a trailing slash from the base url, so approval links never double it", () => {
     expect(
-      requireApprovalConfig(loadEnv({ ...complete, PUBLIC_BASE_URL: "https://tunnel.example.com/" }))
-        .publicBaseUrl,
+      requireApprovalConfig(
+        loadEnv({ ...addressing, ...resend, PUBLIC_BASE_URL: "https://tunnel.example.com/" }),
+      ).publicBaseUrl,
     ).toBe("https://tunnel.example.com");
   });
 
-  it("never leaks the api key into the error message", () => {
-    try {
-      requireApprovalConfig(loadEnv({ ...complete, RESEND_API_KEY: "" }));
-    } catch (err) {
-      expect((err as Error).message).not.toMatch(/re_[a-z0-9]{6,}/);
+  describe("choosing a transport", () => {
+    it("uses SMTP when a user and password are set, defaulting to Gmail", () => {
+      expect(requireApprovalConfig(loadEnv({ ...addressing, ...smtp })).transport).toEqual({
+        kind: "smtp",
+        host: "smtp.gmail.com",
+        port: 465,
+        user: "me@gmail.test",
+        password: "app-password",
+      });
+    });
+
+    it("honours an explicit host and port", () => {
+      expect(
+        requireApprovalConfig(
+          loadEnv({ ...addressing, ...smtp, SMTP_HOST: "smtp.fastmail.test", SMTP_PORT: "587" }),
+        ).transport,
+      ).toMatchObject({ kind: "smtp", host: "smtp.fastmail.test", port: 587 });
+    });
+
+    it("uses Resend when no SMTP credentials are set", () => {
+      expect(requireApprovalConfig(loadEnv({ ...addressing, ...resend })).transport).toEqual({
+        kind: "resend",
+        apiKey: "re_abc123",
+      });
+    });
+
+    it("prefers SMTP when both are configured", () => {
+      expect(
+        requireApprovalConfig(loadEnv({ ...addressing, ...smtp, ...resend })).transport,
+      ).toMatchObject({ kind: "smtp" });
+    });
+
+    /**
+     * The important one. A typo in SMTP_PASSWORD must not silently reroute
+     * approval mail through a different provider — the channel a human is
+     * watching is not something to change by accident.
+     */
+    it("refuses a half-configured SMTP block rather than falling back to Resend", () => {
+      expect(() =>
+        requireApprovalConfig(loadEnv({ ...addressing, ...resend, SMTP_USER: "me@gmail.test" })),
+      ).toThrow(/SMTP_PASSWORD/);
+
+      expect(() =>
+        requireApprovalConfig(loadEnv({ ...addressing, ...resend, SMTP_PASSWORD: "app-password" })),
+      ).toThrow(/SMTP_USER/);
+    });
+
+    it("refuses when no transport is configured at all, naming both options", () => {
+      const noTransport = () => requireApprovalConfig(loadEnv(addressing));
+      expect(noTransport).toThrow(/SMTP_USER/);
+      expect(noTransport).toThrow(/RESEND_API_KEY/);
+    });
+  });
+
+  it("never leaks a credential into an error message", () => {
+    for (const source of [
+      { ...addressing, SMTP_USER: "me@gmail.test" },
+      { ...addressing, SMTP_PASSWORD: "hunter2-app-password" },
+      addressing,
+    ]) {
+      try {
+        requireApprovalConfig(loadEnv(source));
+        expect.unreachable("expected a throw");
+      } catch (err) {
+        expect((err as Error).message).not.toContain("hunter2-app-password");
+        expect((err as Error).message).not.toMatch(/re_[a-z0-9]{6,}/);
+      }
     }
   });
 });

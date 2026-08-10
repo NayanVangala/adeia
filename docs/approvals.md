@@ -110,15 +110,35 @@ of `acct" onload="alert(1)` and assert neither survives as markup.
 
 | Variable | |
 |---|---|
-| `RESEND_API_KEY` | Resend key |
-| `APPROVAL_FROM_EMAIL` | Must be a **Resend-verified** sender. Verification is not instant |
+| `APPROVAL_FROM_EMAIL` | The From address |
 | `APPROVER_EMAIL` | Where requests land. One approver per deployment |
 | `PUBLIC_BASE_URL` | Must be publicly reachable |
 | `APPROVAL_TOKEN_TTL_MS` | Default `86400000` (24h) |
 
-The server refuses to boot without the first four. Booting without them gives
-the worst failure available: actions pause correctly and then wait forever
-because nobody was told, which looks exactly like a hung agent.
+Plus exactly one transport:
+
+| Transport | Variables | Notes |
+|---|---|---|
+| **SMTP** | `SMTP_USER`, `SMTP_PASSWORD` | `SMTP_HOST`/`SMTP_PORT` default to `smtp.gmail.com:465`. The password is an **app password** — Gmail needs 2-Step Verification on, then one from [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
+| **Resend** | `RESEND_API_KEY` | Needs an account and a **verified sender domain**. Verification is not instant |
+
+The server refuses to boot without the addressing variables, and without a
+transport. Booting without them gives the worst failure available: actions pause
+correctly and then wait forever because nobody was told, which looks exactly like
+a hung agent.
+
+**Half an SMTP block is an error, not a fallback.** `SMTP_USER` without
+`SMTP_PASSWORD` refuses to boot rather than quietly sending through Resend
+instead. The channel a human is watching must not change because of a typo.
+
+**SMTP credentials are verified at boot**, not on first use — `transporter.verify()`
+runs before the server listens, so a wrong app password is a startup error
+rather than a payment that pauses and never reaches anyone. It is also the only
+check that catches a `.env` full of plausible-looking placeholders.
+
+On Gmail, `APPROVAL_FROM_EMAIL` must be the `SMTP_USER` mailbox or one of its
+verified aliases. Gmail rewrites anything else, so a mismatch does not error —
+it silently sends from the wrong address.
 
 **`PUBLIC_BASE_URL` is the single most likely live-demo failure.** A `localhost`
 link is useless on the phone the approver is holding, so development needs a

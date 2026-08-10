@@ -68,8 +68,9 @@ if (action.status === "pending_approval") {
 }
 ```
 
-The server needs a Resend account and a publicly reachable `PUBLIC_BASE_URL` to
-run the full loop — see [docs/demo.md](docs/demo.md) for the complete setup.
+The server needs somewhere to send approval mail — a Gmail app password
+(`SMTP_USER` + `SMTP_PASSWORD`) or a Resend key — and a publicly reachable
+`PUBLIC_BASE_URL`. See [docs/demo.md](docs/demo.md) for the complete setup.
 
 **No payment processor is attached.** Payments are authorised, recorded, and
 stop where settlement would begin; the server says so on every boot. That is a

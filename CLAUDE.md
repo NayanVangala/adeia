@@ -72,6 +72,30 @@ The `Adapter` interface, `AdapterContext.idempotencyKey`, the
 `approved → executing` sole path, and every policy rule are unchanged. Only the
 thing on the far side of the seam is missing.
 
+## Revised 2026-08-09 — SMTP alongside Resend
+
+Resend's terms of service are 18+ with no guardian carve-out, so it is not a
+transport this project can rely on yet. `notify/smtp.ts` adds SMTP delivery
+through `nodemailer`; a Gmail app password is enough and no domain verification
+is involved.
+
+Both transports ship. `requireApprovalConfig()` picks exactly one at boot: SMTP
+if `SMTP_USER` and `SMTP_PASSWORD` are both set, Resend if `RESEND_API_KEY` is,
+and it **refuses to start** on half an SMTP pair rather than falling back —
+rerouting the channel a human is watching because of a typo is the failure this
+check exists to prevent.
+
+SMTP credentials are verified with `transporter.verify()` before the server
+listens, for the same reason the config check exists at all: a wrong password
+discovered by the first over-limit action means a payment paused correctly and
+nobody was told, which is indistinguishable from a hung agent. It also catches
+a `.env` full of plausible placeholders, which the missing-variable check
+cannot.
+
+`ApprovalSender` in `notify/email.ts` was already the seam. The subject, HTML,
+text, escaping and link are shared; only the transport differs. Phase 5 below
+predates this and describes Resend alone.
+
 ---
 
 # Tech Stack (all phases)
@@ -88,7 +112,7 @@ thing on the far side of the seam is missing.
 | IDs | `nanoid` (prefixed: `proj_`, `act_`, `pol_`, `apr_`, `evt_`) | P1 |
 | Tests | `vitest` | P1 |
 | Payments | ~~`stripe`~~ — removed 2026-08-09. No processor; `adapters/ledger.ts` records without settling | ~~P4~~ |
-| Email | `resend` | P5 |
+| Email | `nodemailer` (SMTP, default transport) or `resend` — exactly one, chosen at boot | P5 |
 | Demo agent | `@anthropic-ai/sdk`, model `claude-haiku-4-5` | P7 |
 | Tunnel (demo only) | `ngrok` or `cloudflared` | P5 |
 
@@ -149,7 +173,8 @@ adeia/
 │   │       │   ├── token.ts         # mint + verify (hashed at rest)
 │   │       │   └── page.ts          # server-rendered HTML
 │   │       ├── notify/
-│   │       │   └── email.ts         # Resend sender + template
+│   │       │   ├── email.ts         # template + Resend sender
+│   │       │   └── smtp.ts          # SMTP sender, verified at boot
 │   │       ├── audit/
 │   │       │   └── log.ts           # append-only writer + redaction
 │   │       └── routes/
@@ -193,8 +218,10 @@ Each phase unlocks the next requirement. Nothing before Phase 4 needs a third-pa
 | `PORT` | P1 | `3000` |
 | `ADEIA_DB_PATH` | P1 | `./adeia.db` (`:memory:` in tests) |
 | ~~`STRIPE_SECRET_KEY`~~ | — | Removed 2026-08-09. No payment credential is read anywhere |
-| `RESEND_API_KEY` | **P5** | `re_…` |
-| `APPROVAL_FROM_EMAIL` | P5 | Must be a Resend-verified sender |
+| `SMTP_USER` + `SMTP_PASSWORD` | **P5** | One of the two transports. App password, not an account password. Verified at boot |
+| `SMTP_HOST` / `SMTP_PORT` | P5 | Default `smtp.gmail.com` / `465`. Port 465 is implicit TLS, 587 is STARTTLS |
+| `RESEND_API_KEY` | **P5** | The other transport. `re_…`, needs a verified sender domain. Setting half an SMTP pair is an error, never a fallback to this |
+| `APPROVAL_FROM_EMAIL` | P5 | On Gmail SMTP, must be `SMTP_USER` or a verified alias — Gmail silently rewrites anything else |
 | `APPROVER_EMAIL` | P5 | Where approval requests go |
 | `PUBLIC_BASE_URL` | P5 | Must be publicly reachable — tunnel URL in dev |
 | `APPROVAL_TOKEN_TTL_MS` | P5 | Default `86400000` (24h) |

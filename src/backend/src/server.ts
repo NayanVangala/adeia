@@ -10,6 +10,7 @@ import { createDb, migrate, type Db } from "./db/client.ts";
 import { getAction } from "./db/repo.ts";
 import { env, requireApprovalConfig } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
+import { createSmtpSender, createSmtpTransport, verifySmtp } from "./notify/smtp.ts";
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
 import { createAuditRoutes } from "./routes/audit.ts";
@@ -83,7 +84,7 @@ export function createApprovalNotifier(
   };
 }
 
-export function boot(): void {
+export async function boot(): Promise<void> {
   // Before anything else. A server that starts and only discovers it cannot ask
   // anyone about a payment on the first request is a server that fails in front
   // of an audience.
@@ -93,10 +94,36 @@ export function boot(): void {
   migrate(db);
 
   const adapters = createRegistry([createLedgerAdapter()]);
-  const send = createResendSender(
-    { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl },
-    createResendClient(approval.resendApiKey),
-  );
+  const emailConfig = { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl };
+
+  let send: ApprovalSender;
+  let transportLine: string;
+
+  if (approval.transport.kind === "smtp") {
+    const { host, port, user } = approval.transport;
+    const smtp = createSmtpTransport(approval.transport);
+
+    // Checked here, where the failure is loud and fixable, rather than
+    // discovered by the first over-limit action — at which point the payment is
+    // correctly paused and nobody has been told. This also catches the case the
+    // missing-variable check cannot: credentials that are present but wrong.
+    try {
+      await verifySmtp(smtp);
+    } catch (err) {
+      throw new Error(
+        `SMTP refused the connection or the credentials (${host}:${port} as ${user}).\n` +
+          `  ${err instanceof Error ? err.message : String(err)}\n` +
+          "  For Gmail: 2-Step Verification must be on, and SMTP_PASSWORD must be a\n" +
+          "  16-character app password — not the account password.",
+      );
+    }
+
+    send = createSmtpSender(emailConfig, smtp);
+    transportLine = `smtp ${host}:${port} as ${user}`;
+  } else {
+    send = createResendSender(emailConfig, createResendClient(approval.transport.apiKey));
+    transportLine = "resend";
+  }
 
   const app = createApp({
     db,
@@ -116,9 +143,11 @@ export function boot(): void {
     console.log(`[adeia] NO PAYMENT PROCESSOR ATTACHED — payments are authorised and recorded;`);
     console.log(`[adeia]   no money moves. Register a processor adapter to change that.`);
     console.log(`[adeia] approvals: ${approval.approverEmail} via ${approval.publicBaseUrl}`);
+    // The transport and the sending identity, never the credential.
+    console.log(`[adeia]   sending as ${approval.fromEmail} over ${transportLine}`);
   });
 }
 
 // `import.meta.main` only exists on Node 24+; argv works on every supported version.
 const isEntrypoint = process.argv[1] === fileURLToPath(import.meta.url);
-if (isEntrypoint) boot();
+if (isEntrypoint) await boot();
