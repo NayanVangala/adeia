@@ -1,0 +1,21 @@
+node_modules
+**/node_modules
+
+# Never bake a database or a credential into an image.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.env.local
+
+.git
+.github
+.claude
+.playwright-mcp
+v-*.png
+
+tests
+**/*.test.ts
+docs
+README.md
