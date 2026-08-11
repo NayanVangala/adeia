@@ -1,0 +1,229 @@
+<!-- ===========================================================
+     Section 3 — Capability
+     A row of vertical colour bands. Hover, focus or click expands
+     one into a dark panel. Markup is the resting state: band one
+     is already open, so the section reads correctly with no JS.
+     =========================================================== -->
+<section class="ground ground--bone section capability" id="capability">
+  <div class="container">
+    <header class="capability__head">
+      <p class="label quiet">Capability</p>
+      <h2 class="h3 capability__title">Four parts. Each does one thing.</h2>
+      <p class="label quiet capability__hint">
+        Hover a band, or tab through them
+      </p>
+    </header>
+
+    <div
+      class="capability__accordion"
+      role="group"
+      aria-label="What Adeia is made of"
+    >
+      <!-- 01 -->
+      <div
+        class="capability__band capability__band--policy"
+        data-cap-band
+        data-open="true"
+      >
+        <button
+          type="button"
+          class="capability__trigger"
+          data-cap-trigger
+          id="cap-trigger-policy"
+          aria-expanded="true"
+          aria-controls="cap-panel-policy"
+        >
+          <span class="plus-link__box capability__mark" aria-hidden="true">
+            <span class="capability__glyph">+</span>
+          </span>
+          <span class="label capability__label">Policy engine</span>
+        </button>
+        <div
+          class="capability__panel"
+          data-cap-panel
+          id="cap-panel-policy"
+          role="region"
+          aria-labelledby="cap-trigger-policy"
+        >
+          <div class="capability__body">
+            <p class="capability__copy">
+              It takes an action request and the day's spend and hands back one
+              of three words — allow, hold, deny — with the figure that produced
+              it. It reads no clock, no database and no network, so every rule
+              in it can be tested on its own.
+            </p>
+            <p class="capability__note mono">pure function &middot; no i/o</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 02 -->
+      <div
+        class="capability__band capability__band--approval"
+        data-cap-band
+        data-open="false"
+      >
+        <button
+          type="button"
+          class="capability__trigger"
+          data-cap-trigger
+          id="cap-trigger-approval"
+          aria-expanded="false"
+          aria-controls="cap-panel-approval"
+        >
+          <span class="plus-link__box capability__mark" aria-hidden="true">
+            <span class="capability__glyph">+</span>
+          </span>
+          <span class="label capability__label">Approval flow</span>
+        </button>
+        <div
+          class="capability__panel"
+          data-cap-panel
+          id="cap-panel-approval"
+          role="region"
+          aria-labelledby="cap-trigger-approval"
+          aria-hidden="true"
+        >
+          <div class="capability__body">
+            <p class="capability__copy">
+              An action over the limit stops where it stands, emails a named
+              human, and waits. The decision is a POST from a page whose token
+              is single-use and stored only as a hash, and nothing downstream is
+              contacted until someone says yes.
+            </p>
+            <p class="capability__note mono">
+              post only &middot; single-use token
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 03 -->
+      <div
+        class="capability__band capability__band--audit"
+        data-cap-band
+        data-open="false"
+      >
+        <button
+          type="button"
+          class="capability__trigger"
+          data-cap-trigger
+          id="cap-trigger-audit"
+          aria-expanded="false"
+          aria-controls="cap-panel-audit"
+        >
+          <span class="plus-link__box capability__mark" aria-hidden="true">
+            <span class="capability__glyph">+</span>
+          </span>
+          <span class="label capability__label">Audit log</span>
+        </button>
+        <div
+          class="capability__panel"
+          data-cap-panel
+          id="cap-panel-audit"
+          role="region"
+          aria-labelledby="cap-trigger-audit"
+          aria-hidden="true"
+        >
+          <div class="capability__body">
+            <p class="capability__copy">
+              Every state change appends an event — requested, evaluated, held,
+              approved, executed — and nothing is ever edited or removed. Keys
+              and tokens are stripped as the row is written, not as it is read.
+            </p>
+            <p class="capability__note mono">
+              append-only &middot; redacted at write
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 04 -->
+      <div
+        class="capability__band capability__band--sdk"
+        data-cap-band
+        data-open="false"
+      >
+        <button
+          type="button"
+          class="capability__trigger"
+          data-cap-trigger
+          id="cap-trigger-sdk"
+          aria-expanded="false"
+          aria-controls="cap-panel-sdk"
+        >
+          <span class="plus-link__box capability__mark" aria-hidden="true">
+            <span class="capability__glyph">+</span>
+          </span>
+          <span class="label capability__label">The SDK</span>
+        </button>
+        <div
+          class="capability__panel"
+          data-cap-panel
+          id="cap-panel-sdk"
+          role="region"
+          aria-labelledby="cap-trigger-sdk"
+          aria-hidden="true"
+        >
+          <div class="capability__body">
+            <p class="capability__copy">
+              One call to requestAction returns an action that has already been
+              decided, so the agent is never left guessing. If it comes back
+              held, waitForAction blocks until the human answers and then
+              returns the outcome.
+            </p>
+            <p class="capability__note mono">
+              requestAction() &middot; waitForAction()
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===========================================================
+     Section 4 — Approach
+     Three steps, in the order an action actually travels through
+     them. The numbers are the sequence, not decoration.
+     =========================================================== -->
+<section class="ground ground--bone section approach" id="approach">
+  <div class="container">
+    <header class="approach__head">
+      <p class="label quiet">Approach</p>
+      <h2 class="h1 approach__title">How an action moves</h2>
+    </header>
+
+    <ol class="approach__steps">
+      <li class="approach__step">
+        <span class="mono approach__ordinal" aria-hidden="true">01</span>
+        <h3 class="h3 approach__step-title">Request</h3>
+        <p class="body quiet approach__copy">
+          The agent calls requestAction with a type, an amount and a recipient.
+          Nothing has moved yet — the call asks for permission, it does not give
+          an instruction.
+        </p>
+      </li>
+
+      <li class="approach__step">
+        <span class="mono approach__ordinal" aria-hidden="true">02</span>
+        <h3 class="h3 approach__step-title">Evaluate</h3>
+        <p class="body quiet approach__copy">
+          The policy engine measures the amount against the $50.00 per-action
+          limit, the $2,000.00 daily cap and the recipient allowlist. It returns
+          a single decision together with the reason that produced it.
+        </p>
+      </li>
+
+      <li class="approach__step">
+        <span class="mono approach__ordinal" aria-hidden="true">03</span>
+        <h3 class="h3 approach__step-title">Settle</h3>
+        <p class="body quiet approach__copy">
+          In bounds it executes at once and the result is recorded. Over the
+          limit it holds for a human; past the $1,000.00 ceiling it is denied,
+          and no approval can move it.
+        </p>
+      </li>
+    </ol>
+  </div>
+</section>

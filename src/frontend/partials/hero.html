@@ -1,0 +1,104 @@
+<!-- ---------------------------------------------------------------
+     Adeia — hero
+
+     Fragment. Pasted straight inside <main>: no <html>, no <head>,
+     no stylesheet links, no <script>. Styling comes from
+     styles/hero.css; the canvas is driven by particles.js.
+
+     The masthead sits inside <main> because that is where this
+     fragment lands. It is a <header> scoped to <main> rather than a
+     page banner landmark, which is the correct mapping for that
+     position — the site header proper is a later pass's problem.
+     --------------------------------------------------------------- -->
+
+<header class="masthead">
+  <a class="masthead__mark" href="#hero">Adeia</a>
+
+  <button
+    class="plus-link masthead__menu"
+    type="button"
+    id="menu-button"
+    aria-expanded="false"
+    aria-controls="menu-panel"
+  >
+    <span class="masthead__menu-label" data-menu-label>Menu</span>
+    <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
+  </button>
+</header>
+
+<!-- Every entry points at a section that exists on this page. Nothing here
+     links to a page we have not built. -->
+<div class="menu ground ground--ink" id="menu-panel" data-menu-panel hidden>
+  <nav class="container menu__nav" aria-label="Sections">
+    <ol class="menu__list">
+      <li class="menu__item">
+        <a class="menu__link" href="#capability"
+          ><span class="label menu__num">01</span
+          ><span class="display menu__word">Capability</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="#approach"
+          ><span class="label menu__num">02</span
+          ><span class="display menu__word">Approach</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="#proof"
+          ><span class="label menu__num">03</span
+          ><span class="display menu__word">Proof</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="#policy"
+          ><span class="label menu__num">04</span
+          ><span class="display menu__word">Policy</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="#contact"
+          ><span class="label menu__num">05</span
+          ><span class="display menu__word">Contact</span></a
+        >
+      </li>
+    </ol>
+
+    <p class="label quiet menu__note">
+      No payment processor is attached &middot; nothing settles
+    </p>
+  </nav>
+</div>
+
+<section class="hero ground ground--ink" id="hero">
+  <canvas class="hero__canvas" id="particles" aria-hidden="true"></canvas>
+
+  <!-- One heading, two blocks. The sentence stays whole for a screen
+       reader; the gap between the blocks is where the body shows through.
+       Sentence case in the source, uppercased by .display — screen
+       readers mispronounce runs of capitals. -->
+  <h1 class="display hero__title">
+    <span class="hero__title-block hero__title-block--start">
+      <span class="hero__title-line">Agents</span>
+      <span class="hero__title-line">that act</span>
+    </span>
+    <span class="hero__title-block hero__title-block--end">
+      <span class="hero__title-line">inside a</span>
+      <span class="hero__title-line">fence</span>
+    </span>
+  </h1>
+
+  <div class="hero__readout">
+    <div class="hero__readout-main">
+      <span class="label hero__readout-label">Policy check</span>
+      <p class="hero__figures">
+        <span class="mono hero__amount" id="ro-amount">$0.00</span>
+        <span class="hero__verdict" id="ro-verdict" data-state="executed">Executed</span>
+      </p>
+    </div>
+
+    <p class="body hero__hint">
+      Distance from the centre is the amount requested. The per-action
+      limit is $50.00; the hard ceiling is $1,000.00.
+    </p>
+  </div>
+</section>

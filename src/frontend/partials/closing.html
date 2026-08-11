@@ -1,0 +1,62 @@
+<!-- ---------------------------------------------------------------
+     Closing CTA + footer. Both sit on the deep green ground, the last
+     of the four the page moves through. The dot bowl behind the CTA is
+     drawn by dither.js into [data-dither]; the veil above it keeps the
+     text at full contrast no matter how dense the dots get.
+     --------------------------------------------------------------- -->
+
+<section class="ground ground--forest closing" id="contact">
+  <canvas class="closing__field" data-dither aria-hidden="true"></canvas>
+  <div class="closing__veil" aria-hidden="true"></div>
+
+  <div class="container closing__inner">
+    <p class="label closing__eyebrow js-reveal">Start here</p>
+
+    <h2 class="display closing__title js-split">Give your agent hands</h2>
+
+    <p class="lead closing__body js-reveal" data-delay="120">
+      Adeia is developer infrastructure for teams shipping agents — spend
+      limits, a human approval step and an append-only audit trail, so the
+      guardrails are not yours to build. Tell us what you are shipping.
+    </p>
+
+    <p class="closing__cta js-reveal" data-delay="240">
+      <!-- Needs an inbox behind it before launch: hello@adeia.xyz has to
+           forward somewhere real, or this is a link that silently fails. -->
+      <a class="plus-link" href="mailto:hello@adeia.xyz">
+        <span class="plus-link__box" aria-hidden="true">+</span>
+        <span>GET IN TOUCH</span>
+      </a>
+    </p>
+  </div>
+</section>
+
+<footer class="ground ground--forest site-footer">
+  <div class="container">
+    <div class="site-footer__inner">
+      <!-- Four links, four destinations. These were href="#" placeholders,
+           then anchors on this page while the pages were being written; now
+           each one has a page of its own. -->
+      <nav class="site-footer__nav" aria-label="Documentation">
+        <a class="site-footer__link" href="quickstart.html">Quickstart</a>
+        <a class="site-footer__link" href="sdk.html">SDK</a>
+        <a class="site-footer__link" href="policy.html">Policy</a>
+        <a class="site-footer__link" href="audit.html">Audit</a>
+      </nav>
+
+      <p class="label site-footer__meta">
+        Adeia &middot; agent execution &amp; permissions layer &middot; 2026
+        <!-- Hidden until the backend answers. A visit counter that invents a
+             number when it cannot reach its source is worse than no counter. -->
+        <span class="site-footer__visits" data-visits hidden>
+          &middot; <span class="mono" data-visits-total>—</span> visits
+        </span>
+      </p>
+
+      <p class="site-footer__note">
+        No payment processor is attached. Payments are authorised and recorded;
+        nothing settles.
+      </p>
+    </div>
+  </div>
+</footer>

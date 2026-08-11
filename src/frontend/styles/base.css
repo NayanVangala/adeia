@@ -1,0 +1,215 @@
+/* ---------------------------------------------------------------
+   Adeia — base layer
+
+   Reset, grounds, container, and the shared type and control classes
+   every section builds on. Section-specific layout lives in its own
+   file; nothing here uses element selectors that could collide with it.
+   --------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--sans);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* ---------- grounds ----------
+   The page steps through these in order. Each sets its own text colours
+   so nested type never has to know which ground it is sitting on. */
+.ground {
+  position: relative;
+}
+
+.ground--ink {
+  background: var(--ink);
+  color: var(--on-ink);
+  --quiet: var(--on-ink-quiet);
+  --rule: var(--rule-on-ink);
+  --display-mark: var(--orchid);
+}
+
+.ground--bone {
+  background: var(--bone);
+  color: var(--on-bone);
+  --quiet: var(--on-bone-quiet);
+  --rule: var(--rule-on-bone);
+  --display-mark: var(--on-bone);
+}
+
+.ground--paper {
+  background: var(--paper);
+  color: var(--on-paper);
+  --quiet: var(--on-paper-quiet);
+  --rule: var(--rule-on-paper);
+  --display-mark: var(--on-paper);
+}
+
+.ground--forest {
+  background: var(--forest);
+  color: var(--on-forest);
+  --quiet: var(--on-forest-quiet);
+  --rule: var(--rule-on-forest);
+  --display-mark: var(--orchid);
+}
+
+/* ---------- container ---------- */
+.container {
+  width: 100%;
+  padding-inline: var(--pad-x);
+}
+
+.section {
+  padding-block: var(--sec-y);
+}
+
+/* ---------- type ---------- */
+.display,
+.h1,
+.h2,
+.h3 {
+  font-family: var(--sans);
+  font-weight: 500;
+  letter-spacing: normal;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.display {
+  font-size: var(--t-display);
+  line-height: var(--lh-display);
+  text-transform: uppercase;
+  color: var(--display-mark);
+}
+
+.h1 {
+  font-size: var(--t-h1);
+  line-height: var(--lh-h1);
+  text-transform: uppercase;
+}
+
+.h2 {
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+}
+
+.h3 {
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+}
+
+.lead {
+  font-size: var(--t-lead);
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.body {
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  margin: 0;
+}
+
+.quiet {
+  color: var(--quiet);
+}
+
+/* The mono eyebrow that sits above every section title. */
+.label {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--t-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- the one control shape ----------
+   A 32px bordered square holding a plus, followed by a label. Every
+   link-out and expander on the page uses it; there is no second button. */
+.plus-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: inherit;
+}
+
+.plus-link__box {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--rule);
+  color: var(--orchid);
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    background-color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out),
+    color var(--d-hover) var(--ease-out);
+}
+
+.plus-link:hover .plus-link__box {
+  background: var(--orchid);
+  border-color: var(--orchid);
+  color: var(--ink);
+}
+
+.hairline {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,94 @@
+/* ---------------------------------------------------------------
+   Adeia — design tokens
+
+   Colour, type scale, spacing and easing. Values measured from a
+   reference site at 1440 / 1024 / 600px; the type scale is linear in
+   viewport width, so every size below is a two-term calc rather than a
+   clamp with breakpoint steps.
+   --------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Geist";
+  src: url("../fonts/geist-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../fonts/geistmono-var.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---- grounds, in the order the page moves through them ---- */
+  --ink: #222222;
+  --bone: #ede8da;
+  --paper: #ffffff;
+  --forest: #1f2d1d;
+
+  /* ---- marks ---- */
+  --orchid: #cd8dbd;
+  --mist: #eddfee;
+  --clay: #b7b39c;
+
+  /* ---- readable inks per ground (all verified >= WCAG AA) ----
+     --orchid on --ink is 6.4:1, fine at any size.
+     --orchid on --bone is 1.9:1 — display use only on dark grounds. */
+  --on-ink: var(--mist);
+  --on-ink-quiet: #a99aab;
+  --on-bone: #2a2a24;
+  --on-bone-quiet: #57564c;
+  --on-paper: #222222;
+  --on-paper-quiet: #5c5c5c;
+  --on-forest: #e4ecdf;
+  --on-forest-quiet: #a9b8a4;
+
+  /* ---- hairlines ---- */
+  --rule-on-ink: rgba(237, 223, 238, 0.16);
+  --rule-on-bone: rgba(34, 34, 34, 0.16);
+  --rule-on-paper: rgba(34, 34, 34, 0.14);
+  --rule-on-forest: rgba(228, 236, 223, 0.18);
+
+  /* ---- type ---- */
+  --sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --t-display: calc(2.25rem + 3.05vw); /* 79.9px @1440 */
+  --t-h1: calc(1.659rem + 2.25vw); /* 58.9px @1440 */
+  --t-h2: calc(1.229rem + 1.69vw); /* 44.0px @1440 */
+  --t-h3: calc(0.942rem + 1.31vw); /* 33.9px @1440 */
+  --t-lead: calc(0.9rem + 0.42vw); /* 22.0px @1440 */
+  --t-body: calc(0.76rem + 0.33vw); /* 15.8px @1440 */
+  --t-small: 0.75rem; /* 12px */
+  --t-label: 0.625rem; /* 10px, mono */
+
+  --lh-display: 1;
+  --lh-h1: 1.1;
+  --lh-h2: 1.2;
+  --lh-h3: 1.2;
+  --lh-body: 1.5;
+
+  /* ---- space ---- */
+  --pad-x: 3rem; /* 48px */
+  --sec-y: clamp(4rem, 8vw, 7.5rem);
+  --gap: clamp(1.25rem, 2vw, 2rem);
+
+  /* ---- motion ---- */
+  --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
+  --d-hover: 300ms;
+  --d-reveal: 700ms;
+  --d-large: 1500ms;
+  --d-ambient: 3000ms;
+  --stagger: 0.3s;
+}
+
+@media (max-width: 37.5rem) {
+  :root {
+    --pad-x: 1.25rem; /* 20px */
+  }
+}

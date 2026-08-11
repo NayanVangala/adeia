@@ -1,0 +1,269 @@
+/* ---------------------------------------------------------------
+   Adeia — hero
+
+   Layout for partials/hero.html only: the fixed masthead, the split
+   display heading, the particle canvas behind it, and the policy
+   readout at the foot.
+
+   Every selector is scoped to .masthead or .hero. Colour, type,
+   spacing and easing come from tokens.css; .display, .label, .mono,
+   .body and .plus-link come from base.css and are not restated here.
+   --------------------------------------------------------------- */
+
+/* ---------- masthead ----------
+   Fixed, so it floats over grounds this file does not own. It carries
+   its own hairline token because it sits outside any .ground element. */
+.masthead {
+  --rule: var(--rule-on-ink);
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 1.375rem var(--pad-x);
+  color: var(--mist);
+}
+
+/* An ink scrim under the bar. Against the hero it is invisible; over
+   the pale grounds further down the page it is the thing keeping the
+   wordmark and the Menu label above 4.5:1. */
+.masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(34, 34, 34, 0.92),
+    rgba(34, 34, 34, 0.62) 55%,
+    rgba(34, 34, 34, 0)
+  );
+  pointer-events: none;
+}
+
+.masthead__mark {
+  font-size: var(--t-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--mist);
+}
+
+/* A <button> needs its own reset before .plus-link's flexbox applies. */
+.masthead__menu {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--sans);
+  color: var(--mist);
+  cursor: pointer;
+}
+
+.masthead__menu-label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* ---------- hero ----------
+   Exactly one viewport tall. svh so mobile browser chrome collapsing
+   does not resize the section mid-scroll; vh first as the fallback. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(6rem, 13vh, 9rem) var(--pad-x) clamp(1.75rem, 5vh, 3.25rem);
+}
+
+@media (max-height: 38rem) {
+  .hero {
+    padding-block-start: 4.75rem;
+  }
+}
+
+.hero__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  /* The field is drawn full-bleed so its stragglers drift naturally, then
+     faded out toward the edges. Without this the dot cloud sits behind the
+     display type and drops it to ~1.3:1 in the worst patches. The mask is
+     cheaper and truer than dimming the whole body. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 34% 62% at 50% 50%,
+    #000 40%,
+    rgba(0, 0, 0, 0.55) 68%,
+    transparent 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 34% 62% at 50% 50%,
+    #000 40%,
+    rgba(0, 0, 0, 0.55) 68%,
+    transparent 92%
+  );
+}
+
+@media (max-width: 60rem) {
+  /* Stacked layout puts type over the middle, so pull the field back further. */
+  .hero__canvas {
+    -webkit-mask-image: radial-gradient(ellipse 52% 40% at 50% 50%, #000 30%, transparent 85%);
+    mask-image: radial-gradient(ellipse 52% 40% at 50% 50%, #000 30%, transparent 85%);
+    opacity: 0.7;
+  }
+}
+
+/* ---------- the split heading ----------
+   Two blocks pushed to the edges; the wide gap between them is the
+   composition, not a spacer — the particle body sits in it. */
+.hero__title {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1.5rem, 14vw, 20rem);
+  width: 100%;
+  margin-block: auto;
+}
+
+.hero__title-block {
+  display: block;
+  min-width: 0;
+}
+
+/* The right block drops a line, so the two never read as one banner
+   split down the middle. */
+.hero__title-block--end {
+  text-align: right;
+  margin-block-start: 1.15em;
+}
+
+.hero__title-line {
+  display: block;
+  white-space: nowrap;
+}
+
+/* ---------- readout ---------- */
+.hero__readout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem var(--gap);
+  padding-block-start: 1.125rem;
+  border-top: 1px solid var(--rule);
+}
+
+.hero__readout-label {
+  color: var(--quiet);
+  margin-block-end: 0.625rem;
+}
+
+.hero__figures {
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  margin: 0;
+}
+
+.hero__amount {
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--mist);
+}
+
+/* Three states, three inks, all measured against --ink: mist 12.4:1,
+   orchid 6.2:1, quiet 6.0:1. The word carries the verdict on its own,
+   so none of them may lean on colour alone. */
+.hero__verdict {
+  font-size: var(--t-lead);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--mist);
+  transition: color var(--d-hover) var(--ease-out);
+}
+
+.hero__verdict[data-state="executed"] {
+  color: var(--mist);
+}
+
+.hero__verdict[data-state="held"] {
+  color: var(--orchid);
+}
+
+.hero__verdict[data-state="denied"] {
+  color: var(--quiet);
+}
+
+.hero__hint {
+  max-width: 34ch;
+  text-align: right;
+  color: var(--quiet);
+  margin: 0;
+}
+
+/* ---------- stacked ----------
+   Below ~60rem the two blocks centre and the heading rises to the top
+   of the hero. That is not decoration: particles.js measures the space
+   the type leaves and puts the body in it, so pinning the heading up
+   here is what gives the field somewhere to go that is not behind
+   80px display type. */
+@media (max-width: 59.99rem) {
+  .hero__title {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+    margin-block: 0 auto;
+  }
+
+  .hero__title-block--end {
+    text-align: center;
+    margin-block-start: 0.35em;
+  }
+
+  /* Let the lines flow and balance instead of holding the desktop
+     breaks — four wrapped lines instead of six hard ones. */
+  .hero__title-line {
+    display: inline;
+    white-space: normal;
+  }
+
+  .hero__readout {
+    align-items: flex-start;
+  }
+
+  .hero__hint {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__verdict,
+  .masthead .plus-link__box {
+    transition: none;
+  }
+}
