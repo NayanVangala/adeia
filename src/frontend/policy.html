@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Policy — Adeia</title>
+    <meta
+      name="description"
+      content="A policy in Adeia is four numbers a person sets: a per-action limit, a hard ceiling, a daily cap and an optional recipient allowlist. Every request an agent makes is answered against them before anything happens."
+    />
+
+    <link rel="stylesheet" href="styles/tokens.css?v=1786405918" />
+    <link rel="stylesheet" href="styles/base.css?v=1786405962" />
+    <link rel="stylesheet" href="styles/menu.css?v=1786427058" />
+    <link rel="stylesheet" href="styles/motion.css?v=1786406965" />
+    <link rel="stylesheet" href="styles/page-policy.css?v=1786430000" />
+  </head>
+
+  <body>
+    <main class="page-policy">
+      <!-- ===========================================================
+           Masthead. Same markup as the landing page; the wordmark
+           goes home rather than to an anchor, because this is not
+           the landing page.
+           =========================================================== -->
+      <header class="masthead">
+        <a class="masthead__mark" href="index.html">Adeia</a>
+
+        <button
+          class="plus-link masthead__menu"
+          type="button"
+          id="menu-button"
+          aria-expanded="false"
+          aria-controls="menu-panel"
+        >
+          <span class="masthead__menu-label" data-menu-label>Menu</span>
+          <span class="plus-link__box" aria-hidden="true"
+            ><span data-menu-glyph>+</span></span
+          >
+        </button>
+      </header>
+
+      <!-- The same five entries as the landing page. Four of them point
+           back at sections that exist there; Policy is where you already
+           are, so it points at this page's first content section. -->
+      <div
+        class="menu ground ground--ink"
+        id="menu-panel"
+        data-menu-panel
+        hidden
+      >
+        <nav class="container menu__nav" aria-label="Sections">
+          <ol class="menu__list">
+            <li class="menu__item">
+              <a class="menu__link" href="index.html#capability"
+                ><span class="label menu__num">01</span
+                ><span class="display menu__word">Capability</span></a
+              >
+            </li>
+            <li class="menu__item">
+              <a class="menu__link" href="index.html#approach"
+                ><span class="label menu__num">02</span
+                ><span class="display menu__word">Approach</span></a
+              >
+            </li>
+            <li class="menu__item">
+              <a class="menu__link" href="index.html#proof"
+                ><span class="label menu__num">03</span
+                ><span class="display menu__word">Proof</span></a
+              >
+            </li>
+            <li class="menu__item">
+              <a class="menu__link" href="#rules" aria-current="page"
+                ><span class="label menu__num">04</span
+                ><span class="display menu__word">Policy</span></a
+              >
+            </li>
+            <li class="menu__item">
+              <a class="menu__link" href="index.html#contact"
+                ><span class="label menu__num">05</span
+                ><span class="display menu__word">Contact</span></a
+              >
+            </li>
+          </ol>
+
+          <p class="label quiet menu__note">
+            No payment processor is attached &middot; nothing settles
+          </p>
+        </nav>
+      </div>
+
+      <!-- ===========================================================
+           1 — Hero, on the ink ground
+           =========================================================== -->
+      <section
+        class="pol-hero ground ground--ink"
+        id="top"
+        aria-labelledby="pol-hero-title"
+      >
+        <div class="container pol-hero__inner">
+          <p class="label quiet pol-hero__eyebrow">Policy</p>
+
+          <h1 class="display pol-hero__title" id="pol-hero-title">
+            The fence, written down
+          </h1>
+
+          <p class="lead pol-hero__body">
+            A policy here is not a document, and it is not an instruction in a
+            prompt the agent can talk its way around. It is a few numbers a
+            person sets once — a per-action limit, a hard ceiling, a daily cap
+            and an optional list of recipients — and every request the agent
+            makes is answered against them before anything happens. One
+            function answers all of them, and it hands back one of three words
+            with the figure that produced it.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           2 — The four rules, on the bone ground
+           =========================================================== -->
+      <section
+        class="pol-rules ground ground--bone section"
+        id="rules"
+        aria-labelledby="pol-rules-title"
+      >
+        <div class="container">
+          <header class="pol-rules__head">
+            <p class="label quiet">The rules</p>
+            <h2 class="h2 pol-rules__title" id="pol-rules-title">
+              Four numbers, and what happens when one is crossed.
+            </h2>
+            <p class="body quiet pol-rules__intro">
+              The figures below are the ones a seeded project starts with. Two
+              of them stop an action and ask a person. Two of them end it. Which
+              is which is the whole of the design.
+            </p>
+          </header>
+
+          <ul class="pol-rules__grid">
+            <li class="pol-rules__card">
+              <p class="mono pol-rules__num">$50.00</p>
+              <h3 class="lead pol-rules__name">Per-action limit</h3>
+              <p class="body quiet pol-rules__what">
+                The most a single request may spend without a person seeing it.
+                Set it to nothing at all and there is no per-action limit; set
+                it to zero and every payment, down to one cent, needs a human.
+              </p>
+              <p class="pol-rules__cross">
+                <span class="pol-tag" data-decision="require_approval"
+                  >require_approval</span
+                >
+                <span class="pol-rules__crosstext"
+                  >Over it, the action stops where it stands, emails a named
+                  human and waits for their answer.</span
+                >
+              </p>
+            </li>
+
+            <li class="pol-rules__card">
+              <p class="mono pol-rules__num">$1,000.00</p>
+              <h3 class="lead pol-rules__name">Hard ceiling</h3>
+              <p class="body quiet pol-rules__what">
+                The most any single request may ask for, full stop. It is
+                checked before any of the rules that ask a person, so it can
+                never be reached by way of an approval page.
+              </p>
+              <p class="pol-rules__cross">
+                <span class="pol-tag" data-decision="deny">deny</span>
+                <span class="pol-rules__crosstext"
+                  >Over it, the action is refused. No approval request is sent,
+                  and no person can approve past it.</span
+                >
+              </p>
+            </li>
+
+            <li class="pol-rules__card">
+              <p class="mono pol-rules__num">$2,000.00</p>
+              <h3 class="lead pol-rules__name">Daily cap</h3>
+              <p class="body quiet pol-rules__what">
+                Measured against what has already executed today plus the amount
+                being asked for now — never against the running total on its
+                own. Summed per currency, per UTC day, and never converted.
+              </p>
+              <p class="pol-rules__cross">
+                <span class="pol-tag" data-decision="deny">deny</span>
+                <span class="pol-rules__crosstext"
+                  >If this request would carry the day past the cap, it is
+                  refused rather than held.</span
+                >
+              </p>
+            </li>
+
+            <li class="pol-rules__card">
+              <p class="mono pol-rules__num pol-rules__num--word">optional</p>
+              <h3 class="lead pol-rules__name">Recipient allowlist</h3>
+              <p class="body quiet pol-rules__what">
+                A list of accounts the agent may pay without asking. Leave it
+                unset and every recipient is in scope. An empty list is not the
+                same thing — it allows nobody.
+              </p>
+              <p class="pol-rules__cross">
+                <span class="pol-tag" data-decision="require_approval"
+                  >require_approval</span
+                >
+                <span class="pol-rules__crosstext"
+                  >A recipient off the list holds the action for a person. It is
+                  never a refusal on its own.</span
+                >
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           3 — Evaluation order, on the bone ground
+           =========================================================== -->
+      <section
+        class="pol-order ground ground--bone section"
+        id="order"
+        aria-labelledby="pol-order-title"
+      >
+        <div class="container">
+          <header class="pol-order__head">
+            <p class="label quiet">Order of evaluation</p>
+            <h2 class="h2 pol-order__title" id="pol-order-title">
+              Every deny rule runs before any approval rule.
+            </h2>
+            <p class="body pol-order__intro">
+              The order below is not a convenience. It is the enforcement. If a
+              $12,000.00 payment to an account nobody recognises came back as
+              <em>needs approval</em>, the hard ceiling would be worth exactly
+              as much as the attention of the most tired person on the team at
+              four in the afternoon — and a ceiling exists precisely so that
+              nobody, tired or not, gets to move it. A hold is a question. A
+              denial is an answer. Running all four denials first is what keeps
+              the two apart.
+            </p>
+          </header>
+
+          <div class="pol-order__groups">
+            <div class="pol-order__group">
+              <h3 class="label pol-order__grouphead">
+                <span class="pol-tag" data-decision="deny">deny</span>
+                <span>rules — all four run first</span>
+              </h3>
+
+              <ol class="pol-order__list">
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">01</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Is there a policy for this action type at all?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      no policy configured for action type "payment"
+                    </p>
+                  </div>
+                </li>
+
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">02</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Is the policy that was found for this action type?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      policy is for "payment", not "email"
+                    </p>
+                  </div>
+                </li>
+
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">03</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Is the amount over the hard ceiling?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      amount 120000 exceeds hard maximum 100000
+                    </p>
+                  </div>
+                </li>
+
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">04</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Would today's spend plus this amount pass the daily cap?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      daily cap 200000 would be exceeded (195000 already spent
+                      today)
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <div class="pol-order__group">
+              <h3 class="label pol-order__grouphead">
+                <span class="pol-tag" data-decision="require_approval"
+                  >require_approval</span
+                >
+                <span>rules — reached only if nothing denied</span>
+              </h3>
+
+              <ol class="pol-order__list" start="5">
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">05</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Does the policy ask for approval on every action of this
+                      type?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      policy requires approval for all actions of this type
+                    </p>
+                  </div>
+                </li>
+
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">06</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">
+                      Is the amount over the per-action limit?
+                    </p>
+                    <p class="mono pol-order__reason">
+                      amount 50000 exceeds per-action limit 5000
+                    </p>
+                  </div>
+                </li>
+
+                <li class="pol-order__step">
+                  <span class="mono pol-order__ord" aria-hidden="true">07</span>
+                  <div class="pol-order__body">
+                    <p class="pol-order__q">Is the recipient off the allowlist?</p>
+                    <p class="mono pol-order__reason">
+                      recipient "acct_unknown" is not on the allowlist
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <p class="pol-order__fall">
+            <span class="pol-tag" data-decision="allow">allow</span>
+            <span class="pol-order__falltext"
+              >Nothing fired. The action executes immediately, and the reason
+              recorded against it is
+              <code class="pol-code">within policy</code>.</span
+            >
+          </p>
+
+          <p class="body quiet pol-order__note">
+            Reasons are written in integer cents, because that is what the money
+            path carries end to end — <code class="pol-code">50000</code> is
+            $500.00. There is exactly one place in the whole system where
+            dollars become cents, and it is in the demo agent, because the model
+            talks in dollars.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           4 — The calculator, on the paper ground
+
+           The first row of the table is live: its amount input and
+           recipient select run the same rules the server runs, ported
+           below. The rows under it are worked examples, and each one
+           loads itself into the live row.
+           =========================================================== -->
+      <section
+        class="pol-calc ground ground--paper section"
+        id="try"
+        aria-labelledby="pol-calc-title"
+      >
+        <div class="container">
+          <header class="pol-calc__head">
+            <p class="label quiet">Try it</p>
+            <h2 class="h2 pol-calc__title" id="pol-calc-title">
+              Ask for an amount. Watch which rule answers.
+            </h2>
+            <p class="body quiet pol-calc__intro">
+              Every verdict on this page is computed in your browser by a port
+              of the policy engine — same order, same comparisons, same reason
+              strings. Nothing is sent anywhere, and no payment exists.
+            </p>
+          </header>
+
+          <ul class="pol-calc__fixture" aria-label="The policy these rows run against">
+            <li class="pol-calc__fixitem">
+              <span class="label quiet">Per action</span>
+              <span class="mono pol-calc__fixval">$50.00</span>
+            </li>
+            <li class="pol-calc__fixitem">
+              <span class="label quiet">Hard ceiling</span>
+              <span class="mono pol-calc__fixval">$1,000.00</span>
+            </li>
+            <li class="pol-calc__fixitem">
+              <span class="label quiet">Daily cap</span>
+              <span class="mono pol-calc__fixval">$2,000.00</span>
+            </li>
+            <li class="pol-calc__fixitem">
+              <span class="label quiet">Spent today</span>
+              <span class="mono pol-calc__fixval">$37.50</span>
+            </li>
+            <li class="pol-calc__fixitem pol-calc__fixitem--wide">
+              <span class="label quiet">Allowlist</span>
+              <span class="mono pol-calc__fixval pol-calc__fixval--small"
+                >acct_cloudhost, acct_mailgun</span
+              >
+            </li>
+          </ul>
+
+          <div
+            class="pol-calc__scroll"
+            role="region"
+            aria-label="Verdicts, horizontally scrollable"
+            tabindex="0"
+          >
+            <table class="pol-table" role="table">
+              <caption class="visually-hidden">
+                A live request in the first row, then worked examples. Each row
+                shows the decision the policy engine returns and the reason it
+                returns with it.
+              </caption>
+
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th role="columnheader" scope="col" class="pol-table__h">
+                    Amount
+                  </th>
+                  <th role="columnheader" scope="col" class="pol-table__h">
+                    Recipient
+                  </th>
+                  <th role="columnheader" scope="col" class="pol-table__h">
+                    Decision
+                  </th>
+                  <th role="columnheader" scope="col" class="pol-table__h">
+                    Reason
+                  </th>
+                  <th role="columnheader" scope="col" class="pol-table__h">
+                    <span class="visually-hidden">Load into the live row</span>
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody role="rowgroup" class="pol-table__live">
+                <tr
+                  class="pol-table__row pol-table__row--live"
+                  role="row"
+                  data-decision="allow"
+                  data-live-row
+                >
+                  <td role="cell" class="pol-table__cell" data-col="Amount">
+                    <label class="label pol-field__label" for="calc-amount"
+                      >Your amount, in dollars</label
+                    >
+                    <span class="pol-field">
+                      <span class="pol-field__prefix" aria-hidden="true">$</span>
+                      <input
+                        class="mono pol-field__input"
+                        id="calc-amount"
+                        type="number"
+                        min="0"
+                        max="99999999"
+                        step="0.01"
+                        value="25.00"
+                        inputmode="decimal"
+                        autocomplete="off"
+                        data-amount
+                      />
+                    </span>
+                  </td>
+
+                  <td role="cell" class="pol-table__cell" data-col="Recipient">
+                    <label class="label pol-field__label" for="calc-recipient"
+                      >Your recipient account</label
+                    >
+                    <select
+                      class="mono pol-field__select"
+                      id="calc-recipient"
+                      data-recipient
+                    >
+                      <option value="acct_cloudhost">
+                        acct_cloudhost — on the allowlist
+                      </option>
+                      <option value="acct_mailgun">
+                        acct_mailgun — on the allowlist
+                      </option>
+                      <option value="acct_contractor">
+                        acct_contractor — off the allowlist
+                      </option>
+                      <option value="acct_unknown">
+                        acct_unknown — off the allowlist
+                      </option>
+                    </select>
+                  </td>
+
+                  <td role="cell" class="pol-table__cell" data-col="Decision">
+                    <span class="pol-tag" data-decision="allow" data-live-tag
+                      >allow</span
+                    >
+                  </td>
+
+                  <td
+                    role="cell"
+                    class="pol-table__cell pol-table__cell--reason mono"
+                    data-col="Reason"
+                    data-live-reason
+                  >
+                    within policy
+                  </td>
+
+                  <td role="cell" class="pol-table__cell pol-table__cell--act">
+                    <span class="label quiet pol-table__livemark">live</span>
+                  </td>
+                </tr>
+              </tbody>
+
+              <tbody role="rowgroup" data-example-rows></tbody>
+            </table>
+          </div>
+
+          <!-- The live row again, at a size you can read across a room, with
+               the consequence spelled out. -->
+          <aside
+            class="pol-verdict"
+            data-verdict
+            data-decision="allow"
+            aria-labelledby="pol-verdict-label"
+          >
+            <p class="label pol-verdict__label" id="pol-verdict-label">
+              Verdict
+            </p>
+
+            <div aria-live="polite">
+              <p class="mono pol-verdict__amt" data-verdict-amt>
+                $25.00 → acct_cloudhost
+              </p>
+              <p class="pol-verdict__word" data-verdict-word>allow</p>
+              <p class="mono pol-verdict__reason" data-verdict-reason>
+                within policy
+              </p>
+              <p class="pol-verdict__what" data-verdict-what>
+                Inside every rule, so it executes immediately and the result is
+                appended to the audit log.
+              </p>
+            </div>
+
+            <p class="pol-verdict__note">
+              Nothing settles. Adeia has no payment processor attached, so an
+              executed payment is recorded rather than charged.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           5 — Boundaries, on the paper ground
+           =========================================================== -->
+      <section
+        class="pol-edge ground ground--paper section"
+        id="edges"
+        aria-labelledby="pol-edge-title"
+      >
+        <div class="container">
+          <header class="pol-edge__head">
+            <p class="label quiet">Boundaries</p>
+            <h2 class="h2 pol-edge__title" id="pol-edge-title">
+              The four that are easy to get wrong.
+            </h2>
+          </header>
+
+          <ol class="pol-edge__list">
+            <li class="pol-edge__item">
+              <span class="mono pol-edge__ord" aria-hidden="true">01</span>
+              <div class="pol-edge__body">
+                <h3 class="lead pol-edge__name">The limit is inclusive</h3>
+                <p class="body pol-edge__copy">
+                  Exactly $50.00 executes. Every comparison in the engine is a
+                  greater-than, never a greater-than-or-equal, so an amount that
+                  lands on a limit is inside it. $50.01 is the first amount that
+                  holds. The ceiling behaves the same way: exactly $1,000.00 is
+                  not denied — it is over the per-action limit, so it stops for
+                  a person, and $1,000.01 is the first amount refused.
+                </p>
+              </div>
+            </li>
+
+            <li class="pol-edge__item">
+              <span class="mono pol-edge__ord" aria-hidden="true">02</span>
+              <div class="pol-edge__body">
+                <h3 class="lead pol-edge__name">
+                  Nothing set is not the same as zero
+                </h3>
+                <p class="body pol-edge__copy">
+                  A limit left unset means <em>no limit</em>. A limit of
+                  <code class="pol-code">0</code> means <em>nothing is
+                  allowed</em>. A per-action limit of zero holds every payment
+                  including a single cent; a hard ceiling of zero denies every
+                  one of them. The same trap sits in the allowlist: unset lets
+                  anyone through, and an empty list lets nobody through. Every
+                  check compares against null explicitly, because a plain
+                  truthiness test would read a zero as absent and quietly take
+                  the fence down.
+                </p>
+              </div>
+            </li>
+
+            <li class="pol-edge__item">
+              <span class="mono pol-edge__ord" aria-hidden="true">03</span>
+              <div class="pol-edge__body">
+                <h3 class="lead pol-edge__name">
+                  The cap is tested on spent plus this amount
+                </h3>
+                <p class="body pol-edge__copy">
+                  Checking the running total on its own would let one request
+                  walk straight through a cap it started the day under. So the
+                  test is what the day would come to if this action executed.
+                  With $1,950.00 already executed today, a $75.00 request is
+                  refused outright — not held, because the cap is a deny rule
+                  and deny rules run first:
+                </p>
+                <p class="mono pol-edge__reason" data-cap-example></p>
+              </div>
+            </li>
+
+            <li class="pol-edge__item">
+              <span class="mono pol-edge__ord" aria-hidden="true">04</span>
+              <div class="pol-edge__body">
+                <h3 class="lead pol-edge__name">
+                  The cap is per currency and never converts
+                </h3>
+                <p class="body pol-edge__copy">
+                  Today's spend is summed for the currency in the request, so a
+                  project with a $2,000.00 cap has one cap in US dollars and
+                  another, independent one in euros. Two currencies mean two
+                  fences, not one shared between them. That is a known
+                  limitation of this build, written down here so it is not
+                  mistaken for a bug and quietly fixed into something the daily
+                  cap was never measured against.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           6 — Closing and footer, on the forest ground
+           =========================================================== -->
+      <section
+        class="pol-close ground ground--forest"
+        id="close"
+        aria-labelledby="pol-close-title"
+      >
+        <div class="container pol-close__inner">
+          <p class="label pol-close__eyebrow">Why it is testable</p>
+
+          <h2 class="display pol-close__title" id="pol-close-title">
+            One function, no I/O
+          </h2>
+
+          <p class="lead pol-close__body">
+            The engine takes the request, the policy and the day's spend as
+            arguments. It reads no clock, no database and no network, and it
+            mutates nothing it is given. That is why the suite behind it can be
+            exhaustive rather than representative — every rule, every boundary
+            and every reason string is pinned by a test, with no fixtures and no
+            fake timers.
+          </p>
+
+          <p class="pol-close__cta">
+            <a class="plus-link" href="index.html#proof">
+              <span class="plus-link__box" aria-hidden="true">+</span>
+              <span>SEE IT RUN</span>
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <footer class="ground ground--forest site-footer">
+        <div class="container">
+          <div class="site-footer__inner">
+            <nav class="site-footer__nav" aria-label="Sections">
+              <a class="site-footer__link" href="index.html#approach"
+                >How it works</a
+              >
+              <a
+                class="site-footer__link"
+                href="index.html#capability"
+                data-open-band="sdk"
+                >SDK</a
+              >
+              <a class="site-footer__link" href="#rules">Policy</a>
+              <a
+                class="site-footer__link"
+                href="index.html#capability"
+                data-open-band="audit"
+                >Audit</a
+              >
+            </nav>
+
+            <p class="label site-footer__meta">
+              Adeia &middot; agent execution &amp; permissions layer &middot;
+              2026
+            </p>
+
+            <p class="site-footer__note">
+              No payment processor is attached. Payments are authorised and
+              recorded; nothing settles.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script src="nav.js?v=1786427150"></script>
+
+    <script>
+      /* ---------------------------------------------------------------
+         The policy engine, ported.
+
+         A line-for-line port of src/backend/src/policy/evaluate.ts: same
+         rule order, same inclusive comparisons, same reason strings. The
+         self-check at the foot of this file runs the cases from
+         tests/backend/policy/ against it, so a drift between the two is
+         visible rather than silent.
+
+         All money here is integer cents. The only place dollars appear is
+         at the two edges — parsing what was typed, and printing what to
+         show — and both of those are done with integer arithmetic on the
+         digits, never by multiplying a float by a hundred.
+         --------------------------------------------------------------- */
+      (function () {
+        "use strict";
+
+        /* ---------- the engine ---------- */
+
+        function evaluate(input) {
+          var actionType = input.actionType;
+          var params = input.params;
+          var policy = input.policy;
+          var spentTodayCents = input.spentTodayCents;
+
+          /* --- deny rules (run first, in this order) --- */
+
+          if (!policy) {
+            return {
+              decision: "deny",
+              reason:
+                'no policy configured for action type "' + actionType + '"',
+            };
+          }
+
+          if (policy.actionType !== actionType) {
+            return {
+              decision: "deny",
+              reason:
+                'policy is for "' +
+                policy.actionType +
+                '", not "' +
+                actionType +
+                '"',
+            };
+          }
+
+          if (
+            policy.hardMaxAmountCents !== null &&
+            params.amountCents > policy.hardMaxAmountCents
+          ) {
+            return {
+              decision: "deny",
+              reason:
+                "amount " +
+                params.amountCents +
+                " exceeds hard maximum " +
+                policy.hardMaxAmountCents,
+            };
+          }
+
+          if (
+            policy.dailyCapCents !== null &&
+            spentTodayCents + params.amountCents > policy.dailyCapCents
+          ) {
+            return {
+              decision: "deny",
+              reason:
+                "daily cap " +
+                policy.dailyCapCents +
+                " would be exceeded (" +
+                spentTodayCents +
+                " already spent today)",
+            };
+          }
+
+          /* --- approval rules --- */
+
+          if (policy.requiresApproval) {
+            return {
+              decision: "require_approval",
+              reason: "policy requires approval for all actions of this type",
+            };
+          }
+
+          if (
+            policy.maxAmountCents !== null &&
+            params.amountCents > policy.maxAmountCents
+          ) {
+            return {
+              decision: "require_approval",
+              reason:
+                "amount " +
+                params.amountCents +
+                " exceeds per-action limit " +
+                policy.maxAmountCents,
+            };
+          }
+
+          if (
+            policy.allowedRecipients !== null &&
+            policy.allowedRecipients.indexOf(params.recipient) === -1
+          ) {
+            return {
+              decision: "require_approval",
+              reason:
+                'recipient "' + params.recipient + '" is not on the allowlist',
+            };
+          }
+
+          return { decision: "allow", reason: "within policy" };
+        }
+
+        /* ---------- the fixture this page runs against ---------- */
+
+        var POLICY = {
+          actionType: "payment",
+          maxAmountCents: 5000 /*     $50.00 */,
+          hardMaxAmountCents: 100000 /* $1,000.00 */,
+          dailyCapCents: 200000 /*    $2,000.00 */,
+          allowedRecipients: ["acct_cloudhost", "acct_mailgun"],
+          requiresApproval: false,
+        };
+
+        var SPENT_TODAY_CENTS = 3750; /* $37.50 */
+
+        function decide(amountCents, recipient, spentTodayCents) {
+          return evaluate({
+            actionType: "payment",
+            params: {
+              amountCents: amountCents,
+              currency: "usd",
+              recipient: recipient,
+            },
+            policy: POLICY,
+            spentTodayCents:
+              spentTodayCents === undefined
+                ? SPENT_TODAY_CENTS
+                : spentTodayCents,
+          });
+        }
+
+        /* ---------- money, at the two edges only ---------- */
+
+        /**
+         * Digits in, integer cents out. Splits the string on the point and
+         * does the arithmetic on the two halves separately, so no dollar
+         * value is ever held in a float — $0.29 times a hundred is
+         * 28.999999999999996, and a payment a cent short is a bug on screen.
+         * Returns null for anything that is not a plain amount.
+         */
+        function centsFromText(raw) {
+          var text = String(raw).trim().replace(/[$,\s]/g, "");
+          if (text === "") return null;
+          if (!/^\d{1,12}(\.\d*)?$|^\.\d+$/.test(text)) return null;
+
+          var parts = text.split(".");
+          var whole = parts[0] === "" ? "0" : parts[0];
+          var frac = (parts[1] || "").slice(0, 3);
+          while (frac.length < 3) frac += "0";
+
+          var cents = Number(whole) * 100 + Number(frac.slice(0, 2));
+          if (Number(frac.charAt(2)) >= 5) cents += 1;
+          return cents;
+        }
+
+        /** Integer cents in, a display string out. */
+        function formatCents(cents) {
+          var dollars = Math.floor(cents / 100);
+          var rest = cents % 100;
+          return (
+            "$" +
+            String(dollars).replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
+            "." +
+            (rest < 10 ? "0" + rest : String(rest))
+          );
+        }
+
+        /* ---------- what each decision means next ---------- */
+
+        var CONSEQUENCE = {
+          allow:
+            "Inside every rule, so it executes immediately and the result is " +
+            "appended to the audit log.",
+          require_approval:
+            "Stops here. A named human is emailed a single-use link and the " +
+            "action waits for their decision. Nothing downstream is called " +
+            "until they answer.",
+          deny:
+            "Refused. No approval request is sent, and there is no page " +
+            "anywhere that lets a person approve past it.",
+        };
+
+        /* ---------- the worked examples under the live row ---------- */
+
+        var EXAMPLES = [
+          { cents: 2500, recipient: "acct_cloudhost" },
+          { cents: 5000, recipient: "acct_cloudhost" },
+          { cents: 5001, recipient: "acct_cloudhost" },
+          { cents: 4000, recipient: "acct_unknown" },
+          { cents: 50000, recipient: "acct_contractor" },
+          { cents: 100000, recipient: "acct_mailgun" },
+          { cents: 100001, recipient: "acct_mailgun" },
+          { cents: 120000, recipient: "acct_contractor" },
+        ];
+
+        /* ---------- elements ---------- */
+
+        var amountEl = document.querySelector("[data-amount]");
+        var recipientEl = document.querySelector("[data-recipient]");
+        var rowEl = document.querySelector("[data-live-row]");
+        var tagEl = document.querySelector("[data-live-tag]");
+        var reasonEl = document.querySelector("[data-live-reason]");
+        var verdictEl = document.querySelector("[data-verdict]");
+        var verdictAmtEl = document.querySelector("[data-verdict-amt]");
+        var verdictWordEl = document.querySelector("[data-verdict-word]");
+        var verdictReasonEl = document.querySelector("[data-verdict-reason]");
+        var verdictWhatEl = document.querySelector("[data-verdict-what]");
+        var exampleBody = document.querySelector("[data-example-rows]");
+        var capExampleEl = document.querySelector("[data-cap-example]");
+
+        /* ---------- the live row ---------- */
+
+        function refresh() {
+          if (!amountEl || !recipientEl) return;
+
+          var recipient = recipientEl.value;
+          var cents = centsFromText(amountEl.value);
+
+          if (cents === null) {
+            rowEl.setAttribute("data-decision", "none");
+            tagEl.setAttribute("data-decision", "none");
+            tagEl.textContent = "waiting";
+            reasonEl.textContent = "enter an amount";
+            verdictEl.setAttribute("data-decision", "none");
+            verdictAmtEl.textContent = "— → " + recipient;
+            verdictWordEl.textContent = "waiting";
+            verdictReasonEl.textContent = "enter an amount";
+            verdictWhatEl.textContent =
+              "Type an amount in dollars and the rules answer it as you go.";
+            return;
+          }
+
+          var result = decide(cents, recipient);
+          var money = formatCents(cents);
+
+          rowEl.setAttribute("data-decision", result.decision);
+          tagEl.setAttribute("data-decision", result.decision);
+          tagEl.textContent = result.decision;
+          reasonEl.textContent = result.reason;
+
+          verdictEl.setAttribute("data-decision", result.decision);
+          verdictAmtEl.textContent = money + " → " + recipient;
+          verdictWordEl.textContent = result.decision;
+          verdictReasonEl.textContent = result.reason;
+          verdictWhatEl.textContent = CONSEQUENCE[result.decision];
+        }
+
+        if (amountEl && recipientEl) {
+          amountEl.addEventListener("input", refresh);
+          recipientEl.addEventListener("change", refresh);
+        }
+
+        /* ---------- the worked example rows ---------- */
+
+        function buildExampleRow(example) {
+          var result = decide(example.cents, example.recipient);
+          var money = formatCents(example.cents);
+
+          var tr = document.createElement("tr");
+          tr.className = "pol-table__row";
+          tr.setAttribute("role", "row");
+          tr.setAttribute("data-decision", result.decision);
+
+          var amount = document.createElement("td");
+          amount.setAttribute("role", "cell");
+          amount.className = "pol-table__cell pol-table__cell--amt mono";
+          amount.setAttribute("data-col", "Amount");
+          amount.textContent = money;
+
+          var who = document.createElement("td");
+          who.setAttribute("role", "cell");
+          who.className = "pol-table__cell mono";
+          who.setAttribute("data-col", "Recipient");
+          who.textContent = example.recipient;
+
+          var decision = document.createElement("td");
+          decision.setAttribute("role", "cell");
+          decision.className = "pol-table__cell";
+          decision.setAttribute("data-col", "Decision");
+          var tag = document.createElement("span");
+          tag.className = "pol-tag";
+          tag.setAttribute("data-decision", result.decision);
+          tag.textContent = result.decision;
+          decision.appendChild(tag);
+
+          var reason = document.createElement("td");
+          reason.setAttribute("role", "cell");
+          reason.className = "pol-table__cell pol-table__cell--reason mono";
+          reason.setAttribute("data-col", "Reason");
+          reason.textContent = result.reason;
+
+          var action = document.createElement("td");
+          action.setAttribute("role", "cell");
+          action.className = "pol-table__cell pol-table__cell--act";
+
+          var button = document.createElement("button");
+          button.type = "button";
+          button.className = "plus-link pol-table__load";
+          button.setAttribute(
+            "aria-label",
+            "Load " + money + " to " + example.recipient + " into the live row",
+          );
+          var box = document.createElement("span");
+          box.className = "plus-link__box";
+          box.setAttribute("aria-hidden", "true");
+          box.textContent = "+";
+          button.appendChild(box);
+
+          button.addEventListener("click", function () {
+            /* Integer cents to a two-decimal string, again without a float:
+               the whole part and the remainder are formatted separately. */
+            var rest = example.cents % 100;
+            amountEl.value =
+              String(Math.floor(example.cents / 100)) +
+              "." +
+              (rest < 10 ? "0" + rest : String(rest));
+            recipientEl.value = example.recipient;
+            refresh();
+            amountEl.focus();
+          });
+
+          action.appendChild(button);
+
+          tr.appendChild(amount);
+          tr.appendChild(who);
+          tr.appendChild(decision);
+          tr.appendChild(reason);
+          tr.appendChild(action);
+          return tr;
+        }
+
+        if (exampleBody) {
+          for (var i = 0; i < EXAMPLES.length; i++) {
+            exampleBody.appendChild(buildExampleRow(EXAMPLES[i]));
+          }
+        }
+
+        /* ---------- the daily-cap example, which needs its own day ---------- */
+
+        if (capExampleEl) {
+          /* $1,950.00 already executed today, and a $75.00 request on top. */
+          capExampleEl.textContent = decide(7500, "acct_cloudhost", 195000).reason;
+        }
+
+        refresh();
+
+        /* ---------------------------------------------------------------
+           Self-check.
+
+           The cases below are the ones pinned in tests/backend/policy/. If
+           the port above ever drifts from evaluate.ts, this says so in the
+           console and marks the document, rather than quietly showing a
+           wrong verdict to somebody reading the page to learn the rules.
+           --------------------------------------------------------------- */
+        (function selfCheck() {
+          var FIXTURE = {
+            actionType: "payment",
+            maxAmountCents: 5000,
+            hardMaxAmountCents: 100000,
+            dailyCapCents: 20000,
+            allowedRecipients: null,
+            requiresApproval: false,
+          };
+
+          function withPolicy(overrides) {
+            var p = {
+              actionType: FIXTURE.actionType,
+              maxAmountCents: FIXTURE.maxAmountCents,
+              hardMaxAmountCents: FIXTURE.hardMaxAmountCents,
+              dailyCapCents: FIXTURE.dailyCapCents,
+              allowedRecipients: FIXTURE.allowedRecipients,
+              requiresApproval: FIXTURE.requiresApproval,
+            };
+            for (var key in overrides) {
+              if (Object.prototype.hasOwnProperty.call(overrides, key)) {
+                p[key] = overrides[key];
+              }
+            }
+            return p;
+          }
+
+          var NO_CAP = withPolicy({ dailyCapCents: null });
+          var SEED = withPolicy({ dailyCapCents: 200000 });
+
+          /* [label, amount, options, expected decision, expected reason?] */
+          var cases = [
+            ["in policy", 1000, {}, "allow", "within policy"],
+            ["no policy at all", 1000, { policy: null }, "deny"],
+            ["over the per-action limit", 5001, {}, "require_approval"],
+            ["exactly on the per-action limit", 5000, {}, "allow"],
+            ["over the hard maximum", 100001, {}, "deny"],
+            [
+              "exactly on the hard maximum",
+              100000,
+              { policy: NO_CAP },
+              "require_approval",
+            ],
+            ["over the daily cap", 1000, { spent: 19500 }, "deny"],
+            ["exactly on the daily cap", 500, { spent: 19500 }, "allow"],
+            [
+              "off the allowlist",
+              1000,
+              { policy: withPolicy({ allowedRecipients: ["acct_known"] }) },
+              "require_approval",
+            ],
+            [
+              "on the allowlist",
+              1000,
+              {
+                policy: withPolicy({ allowedRecipients: ["acct_known"] }),
+                recipient: "acct_known",
+              },
+              "allow",
+            ],
+            [
+              "approval forced, small amount",
+              1,
+              { policy: withPolicy({ requiresApproval: true }) },
+              "require_approval",
+            ],
+            [
+              "deny wins when both apply",
+              100001,
+              {
+                policy: withPolicy({
+                  requiresApproval: true,
+                  allowedRecipients: ["acct_known"],
+                  dailyCapCents: null,
+                }),
+              },
+              "deny",
+            ],
+            ["wrong action type", 1000, { actionType: "email" }, "deny"],
+            [
+              "hard maximum beats forced approval",
+              100001,
+              {
+                policy: withPolicy({
+                  dailyCapCents: null,
+                  requiresApproval: true,
+                }),
+              },
+              "deny",
+              "amount 100001 exceeds hard maximum 100000",
+            ],
+            [
+              "daily cap beats forced approval",
+              1000,
+              { policy: withPolicy({ requiresApproval: true }), spent: 19500 },
+              "deny",
+            ],
+            [
+              "daily cap beats an under-limit amount",
+              600,
+              { spent: 19500 },
+              "deny",
+            ],
+            ["cap inclusive, landing on it", 1, { spent: 19999 }, "allow"],
+            ["cap inclusive, one cent past", 2, { spent: 19999 }, "deny"],
+            [
+              "no per-action limit when unset",
+              99999,
+              {
+                policy: withPolicy({
+                  maxAmountCents: null,
+                  dailyCapCents: null,
+                }),
+              },
+              "allow",
+            ],
+            [
+              "a per-action limit of zero holds everything",
+              1,
+              { policy: withPolicy({ maxAmountCents: 0 }) },
+              "require_approval",
+            ],
+            [
+              "a hard maximum of zero denies everything",
+              1,
+              { policy: withPolicy({ hardMaxAmountCents: 0 }) },
+              "deny",
+            ],
+            [
+              "a daily cap of zero denies everything",
+              1,
+              { policy: withPolicy({ dailyCapCents: 0 }) },
+              "deny",
+            ],
+            [
+              "nothing set anywhere",
+              500000000,
+              {
+                policy: withPolicy({
+                  hardMaxAmountCents: null,
+                  dailyCapCents: null,
+                  maxAmountCents: null,
+                }),
+                spent: 500000000,
+              },
+              "allow",
+            ],
+            [
+              "an empty allowlist allows nobody",
+              1000,
+              { policy: withPolicy({ allowedRecipients: [] }) },
+              "require_approval",
+            ],
+            [
+              "hard maximum reason",
+              100001,
+              {},
+              "deny",
+              "amount 100001 exceeds hard maximum 100000",
+            ],
+            [
+              "daily cap reason",
+              1000,
+              { spent: 19500 },
+              "deny",
+              "daily cap 20000 would be exceeded (19500 already spent today)",
+            ],
+            [
+              "per-action limit reason",
+              5001,
+              {},
+              "require_approval",
+              "amount 5001 exceeds per-action limit 5000",
+            ],
+            [
+              "allowlist reason",
+              1000,
+              {
+                policy: withPolicy({ allowedRecipients: ["acct_known"] }),
+                recipient: "acct_stranger",
+              },
+              "require_approval",
+              'recipient "acct_stranger" is not on the allowlist',
+            ],
+            /* The seed policy the demo script depends on. */
+            [
+              "seed: the $25 hosting invoice",
+              2500,
+              { policy: SEED, recipient: "acct_cloudhost" },
+              "allow",
+              "within policy",
+            ],
+            [
+              "seed: the $500 design invoice",
+              50000,
+              { policy: SEED, recipient: "acct_contractor" },
+              "require_approval",
+              "amount 50000 exceeds per-action limit 5000",
+            ],
+            [
+              "seed: the $500 invoice after the $25 one",
+              50000,
+              { policy: SEED, recipient: "acct_contractor", spent: 2500 },
+              "require_approval",
+            ],
+          ];
+
+          var failures = [];
+
+          for (var i = 0; i < cases.length; i++) {
+            var name = cases[i][0];
+            var amount = cases[i][1];
+            var opts = cases[i][2];
+            var wantDecision = cases[i][3];
+            var wantReason = cases[i][4];
+
+            var result = evaluate({
+              actionType: opts.actionType || "payment",
+              params: {
+                amountCents: amount,
+                currency: "usd",
+                recipient: opts.recipient || "acct_demo",
+              },
+              policy:
+                opts.policy === undefined
+                  ? FIXTURE
+                  : opts.policy,
+              spentTodayCents: opts.spent || 0,
+            });
+
+            if (result.decision !== wantDecision) {
+              failures.push(
+                name +
+                  ": expected " +
+                  wantDecision +
+                  ", got " +
+                  result.decision,
+              );
+            } else if (wantReason && result.reason !== wantReason) {
+              failures.push(
+                name +
+                  ': expected reason "' +
+                  wantReason +
+                  '", got "' +
+                  result.reason +
+                  '"',
+              );
+            }
+          }
+
+          document.documentElement.setAttribute(
+            "data-policy-port",
+            failures.length === 0 ? "agrees" : "drifted",
+          );
+
+          if (failures.length > 0) {
+            window.console.error(
+              "The policy port on this page disagrees with evaluate.ts:",
+              failures,
+            );
+          }
+        })();
+      })();
+    </script>
+  </body>
+</html>

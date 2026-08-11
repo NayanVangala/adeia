@@ -1,0 +1,987 @@
+/* ---------------------------------------------------------------
+   Adeia — the Policy page
+
+   Layout for policy.html only. Every selector is scoped under
+   .page-policy, which sits on the page's <main>, so nothing here can
+   reach any other page's markup. Colour, type, spacing and easing come
+   from tokens.css; .display, .h2, .lead, .body, .label, .mono, .quiet,
+   .plus-link and .visually-hidden come from base.css and are not
+   restated.
+
+   The masthead and the footer are the two exceptions. Their rules live
+   in styles/hero.css and styles/closing.css, which this page does not
+   load, so the parts of them this page needs are restated here under
+   the page scope rather than pulled in wholesale.
+
+   Contrast, measured against the ground each element sits on:
+     hero          --orchid on --ink        6.40:1   display heading
+                   --mist on --ink         11.90:1   lead copy
+                   --on-ink-quiet on --ink  5.77:1   10px eyebrow
+     rules/order   --on-bone on --bone     11.79:1   body and headings
+                   --on-bone-quiet          6.04:1   secondary copy
+     calculator    --on-paper on --paper   15.35:1   table text
+                   --on-paper on --mist    11.98:1   verdict card
+                   --on-paper-quiet         6.69:1   12px labels
+     closing       --orchid on --forest     5.61:1   display heading
+                   --on-forest             11.96:1   body copy
+                   --on-forest-quiet        7.08:1   10px meta
+   Every one clears WCAG AA at the size it is used.
+
+   The three verdicts never rely on hue to be told apart. They differ by
+   the word itself, by the weight it is set in, by the fill behind it
+   (none, then white against a tinted row, then solid ink reversed out),
+   and by the marker down the left edge of the row (absent, solid,
+   hatched). Printed in greyscale, all three are still distinct.
+   --------------------------------------------------------------- */
+
+/* =====================================================================
+   Masthead — restated, scoped. See the note at the top of this file.
+   ===================================================================== */
+
+.page-policy .masthead {
+  --rule: var(--rule-on-ink);
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 1.375rem var(--pad-x);
+  color: var(--mist);
+}
+
+/* An ink scrim under the bar. Invisible over the hero; over the pale
+   grounds further down it is what keeps the wordmark above 4.5:1. */
+.page-policy .masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(34, 34, 34, 0.92),
+    rgba(34, 34, 34, 0.62) 55%,
+    rgba(34, 34, 34, 0)
+  );
+  pointer-events: none;
+}
+
+.page-policy .masthead__mark {
+  font-size: var(--t-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--mist);
+}
+
+/* A <button> needs its own reset before .plus-link's flexbox applies. */
+.page-policy .masthead__menu {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--sans);
+  color: var(--mist);
+  cursor: pointer;
+}
+
+.page-policy .masthead__menu-label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* =====================================================================
+   Shared marks — the decision tag and the inline code chip
+   ===================================================================== */
+
+/* The one shape that carries a decision. Three states, told apart by
+   fill, weight and the word, never by colour alone. */
+.page-policy .pol-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: var(--t-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: lowercase;
+  white-space: nowrap;
+  padding: 0.5em 0.7em;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: inherit;
+}
+
+/* allow — the quiet baseline. No fill, hairline frame, regular weight. */
+.page-policy .pol-tag[data-decision="allow"] {
+  font-weight: 400;
+  color: var(--quiet, inherit);
+}
+
+/* require_approval — a white chip inside a tinted row, so it stays
+   legible whichever of the two grounds it lands on. */
+.page-policy .pol-tag[data-decision="require_approval"] {
+  border-color: currentColor;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* deny — reversed out. The heaviest mark on the page. */
+.page-policy .pol-tag[data-decision="deny"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+}
+
+/* Nothing to say yet: the amount field is empty or unreadable. */
+.page-policy .pol-tag[data-decision="none"] {
+  font-weight: 400;
+  border-style: dashed;
+  color: var(--quiet, inherit);
+}
+
+.page-policy .pol-code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 0.1em 0.4em;
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================================
+   1 — Hero
+   ===================================================================== */
+
+.page-policy .pol-hero {
+  padding-block: clamp(8rem, 20vh, 13rem) clamp(4rem, 10vh, 8rem);
+}
+
+.page-policy .pol-hero__inner {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.page-policy .pol-hero__eyebrow {
+  margin: 0;
+}
+
+.page-policy .pol-hero__title {
+  max-width: 14ch;
+}
+
+.page-policy .pol-hero__body {
+  max-width: 56ch;
+  color: var(--on-ink);
+}
+
+/* =====================================================================
+   2 — The four rules
+   ===================================================================== */
+
+.page-policy .pol-rules__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  padding-bottom: clamp(2rem, 4.5vw, 3.5rem);
+}
+
+.page-policy .pol-rules__title {
+  max-width: 22ch;
+}
+
+.page-policy .pol-rules__intro {
+  max-width: 62ch;
+}
+
+/* One-pixel grid gaps over a rule-coloured ground give hairlines that
+   survive every reflow — the same device the landing page uses. */
+.page-policy .pol-rules__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.page-policy .pol-rules__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: var(--bone);
+  padding: clamp(1.5rem, 2.6vw, 2.25rem) clamp(1rem, 1.8vw, 1.6rem);
+}
+
+.page-policy .pol-rules__num {
+  margin: 0;
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-policy .pol-rules__num--word {
+  color: var(--quiet);
+  text-transform: lowercase;
+}
+
+.page-policy .pol-rules__name {
+  margin: 0;
+}
+
+.page-policy .pol-rules__what {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.page-policy .pol-rules__cross {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0.4rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .pol-rules__crosstext {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* =====================================================================
+   3 — Order of evaluation
+   ===================================================================== */
+
+.page-policy .pol-order {
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .pol-order__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  padding-bottom: clamp(2rem, 4.5vw, 3.5rem);
+}
+
+.page-policy .pol-order__title {
+  max-width: 20ch;
+}
+
+.page-policy .pol-order__intro {
+  max-width: 64ch;
+}
+
+.page-policy .pol-order__groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.5rem, 3.5vw, 3.5rem);
+}
+
+.page-policy .pol-order__grouphead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.25rem;
+  color: var(--quiet);
+}
+
+.page-policy .pol-order__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .pol-order__step {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0 clamp(0.75rem, 1.5vw, 1.25rem);
+  padding: clamp(0.9rem, 1.8vw, 1.35rem) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-policy .pol-order__ord {
+  font-size: var(--t-small);
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--quiet);
+}
+
+.page-policy .pol-order__body {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.page-policy .pol-order__q {
+  margin: 0;
+  font-size: var(--t-body);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.page-policy .pol-order__reason {
+  margin: 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--quiet);
+  overflow-wrap: anywhere;
+}
+
+.page-policy .pol-order__fall {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+  padding: clamp(1rem, 2vw, 1.5rem) 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-policy .pol-order__falltext {
+  font-size: var(--t-body);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.page-policy .pol-order__note {
+  max-width: 64ch;
+  margin: clamp(1.25rem, 2.5vw, 2rem) 0 0;
+}
+
+/* =====================================================================
+   4 — The calculator
+   ===================================================================== */
+
+.page-policy .pol-calc__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  padding-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.page-policy .pol-calc__title {
+  max-width: 22ch;
+}
+
+.page-policy .pol-calc__intro {
+  max-width: 60ch;
+}
+
+.page-policy .pol-calc__fixture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem clamp(1.25rem, 3vw, 3rem);
+  list-style: none;
+  margin: 0 0 clamp(1.5rem, 3vw, 2.25rem);
+  padding: clamp(1rem, 2vw, 1.5rem) 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-policy .pol-calc__fixitem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.page-policy .pol-calc__fixval {
+  font-size: var(--t-lead);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.page-policy .pol-calc__fixval--small {
+  font-size: var(--t-body);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* The table can be wider than a phone. The wrapper scrolls and is
+   focusable, so it can be reached and moved by keyboard alone. */
+.page-policy .pol-calc__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+}
+
+/* ---------- the table ---------- */
+
+.page-policy .pol-table {
+  width: 100%;
+  min-width: 54rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.page-policy .pol-table__h {
+  font-family: var(--mono);
+  font-size: var(--t-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--quiet);
+  padding: clamp(0.8rem, 1.5vw, 1.1rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.page-policy .pol-table__cell {
+  position: relative;
+  vertical-align: top;
+  padding: clamp(0.85rem, 1.6vw, 1.15rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--t-body);
+  line-height: 1.45;
+}
+
+.page-policy .pol-table__row:last-child .pol-table__cell {
+  border-bottom: 0;
+}
+
+.page-policy .pol-table__cell--amt {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.page-policy .pol-table__cell--reason {
+  font-size: var(--t-small);
+  line-height: 1.5;
+  min-width: 18rem;
+  overflow-wrap: anywhere;
+}
+
+.page-policy .pol-table__cell--act {
+  width: 3.5rem;
+  text-align: right;
+}
+
+.page-policy .pol-table__livemark {
+  color: var(--quiet);
+}
+
+/* The edge marker: absent for allow, solid for a held row, hatched for
+   a denied one. Position and pattern, not colour, is the signal. */
+.page-policy .pol-table__cell:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+}
+
+.page-policy .pol-table__row[data-decision="require_approval"] {
+  background: var(--mist);
+}
+
+.page-policy
+  .pol-table__row[data-decision="require_approval"]
+  .pol-table__cell:first-child::after {
+  background: var(--ink);
+}
+
+.page-policy
+  .pol-table__row[data-decision="deny"]
+  .pol-table__cell:first-child::after {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--ink) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+/* A denied amount is struck through — a fourth signal, still no hue. */
+.page-policy .pol-table__row[data-decision="deny"] .pol-table__cell--amt {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0;
+}
+
+/* ---------- the live row ---------- */
+
+.page-policy .pol-table__row--live .pol-table__cell {
+  padding-block: clamp(1.1rem, 2vw, 1.6rem);
+}
+
+.page-policy .pol-field__label {
+  margin: 0 0 0.5rem;
+  color: var(--quiet);
+}
+
+.page-policy .pol-field {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--on-paper);
+  background: var(--paper);
+}
+
+.page-policy .pol-field__prefix {
+  display: flex;
+  align-items: center;
+  padding-inline: 0.6rem;
+  border-right: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: var(--t-body);
+  color: var(--quiet);
+}
+
+.page-policy .pol-field__input,
+.page-policy .pol-field__select {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--mono);
+  font-size: var(--t-body);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  color: var(--on-paper);
+  background: var(--paper);
+  border: 0;
+  border-radius: 0;
+  padding: 0.6rem 0.7rem;
+}
+
+.page-policy .pol-field__input {
+  width: 8.5rem;
+}
+
+/* The number spinners are the one native affordance worth keeping —
+   they make the boundary cases reachable a cent at a time. */
+.page-policy .pol-field__input {
+  -moz-appearance: textfield;
+  appearance: auto;
+}
+
+.page-policy .pol-field__select {
+  min-width: 17rem;
+  max-width: 100%;
+  border: 1px solid var(--on-paper);
+  padding-right: 2.25rem;
+  cursor: pointer;
+  /* A chevron drawn in the ink, inlined so the page fetches nothing. */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23222222' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.625rem 0.375rem;
+}
+
+.page-policy .pol-field__input:focus-visible,
+.page-policy .pol-field__select:focus-visible {
+  outline: 2px solid var(--on-paper);
+  outline-offset: 2px;
+}
+
+/* The load button reuses the one control shape. A <button> needs its
+   own reset first. */
+.page-policy .pol-table__load {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.page-policy .pol-table__load .plus-link__box {
+  border-color: var(--on-paper);
+  color: var(--on-paper);
+}
+
+.page-policy .pol-table__load:hover .plus-link__box,
+.page-policy .pol-table__load:focus-visible .plus-link__box {
+  background: var(--on-paper);
+  border-color: var(--on-paper);
+  color: var(--paper);
+}
+
+/* ---------- the verdict card ---------- */
+
+.page-policy .pol-verdict {
+  max-width: 44rem;
+  margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+  padding: clamp(1.25rem, 2.4vw, 2rem);
+  background: var(--mist);
+  border: 1px solid var(--rule);
+  color: var(--on-paper);
+}
+
+.page-policy .pol-verdict__label {
+  margin: 0;
+}
+
+.page-policy .pol-verdict__amt {
+  margin: 0.85rem 0 0;
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.page-policy .pol-verdict__word {
+  margin: 0.6rem 0 0;
+  font-family: var(--mono);
+  font-size: var(--t-lead);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+/* The three states of the card, again without leaning on hue: a bar
+   down the left edge that is absent, solid, or hatched. */
+.page-policy .pol-verdict__word {
+  display: inline-block;
+  padding-left: 0.75rem;
+  border-left: 3px solid transparent;
+}
+
+.page-policy .pol-verdict[data-decision="require_approval"] .pol-verdict__word {
+  border-left-color: var(--ink);
+}
+
+.page-policy .pol-verdict[data-decision="deny"] .pol-verdict__word {
+  border-left-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.2em 0.5em 0.2em 0.5em;
+  border-left-width: 0;
+}
+
+.page-policy .pol-verdict[data-decision="allow"] .pol-verdict__word {
+  font-weight: 500;
+}
+
+.page-policy .pol-verdict__reason {
+  margin: 0.75rem 0 0;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.page-policy .pol-verdict__what {
+  margin: 0.75rem 0 0;
+  max-width: 52ch;
+  font-size: var(--t-body);
+  line-height: 1.5;
+}
+
+.page-policy .pol-verdict__note {
+  margin: 1.1rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--rule);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--on-paper-quiet);
+}
+
+/* =====================================================================
+   5 — Boundaries
+   ===================================================================== */
+
+.page-policy .pol-edge {
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .pol-edge__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  padding-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.page-policy .pol-edge__title {
+  max-width: 20ch;
+}
+
+.page-policy .pol-edge__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .pol-edge__item {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0 clamp(0.75rem, 2vw, 2rem);
+  padding: clamp(1.25rem, 2.6vw, 2rem) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-policy .pol-edge__ord {
+  font-size: var(--t-small);
+  font-weight: 600;
+  line-height: 1.9;
+  color: var(--quiet);
+}
+
+.page-policy .pol-edge__body {
+  display: grid;
+  gap: 0.65rem;
+  max-width: 68ch;
+}
+
+.page-policy .pol-edge__name {
+  margin: 0;
+}
+
+.page-policy .pol-edge__copy {
+  margin: 0;
+}
+
+.page-policy .pol-edge__reason {
+  margin: 0.25rem 0 0;
+  padding: 0.7rem 0.9rem;
+  background: var(--bone);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================================
+   6 — Closing and footer
+   ===================================================================== */
+
+.page-policy .pol-close {
+  padding: clamp(5rem, 12vw, 9rem) 0 clamp(3rem, 7vw, 5rem);
+}
+
+.page-policy .pol-close__inner {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.page-policy .pol-close__eyebrow {
+  margin: 0;
+}
+
+.page-policy .pol-close__title {
+  max-width: 16ch;
+}
+
+.page-policy .pol-close__body {
+  max-width: 58ch;
+}
+
+.page-policy .pol-close__cta {
+  margin: clamp(0.5rem, 1.5vw, 1rem) 0 0;
+}
+
+/* ---------- footer — restated, scoped ---------- */
+
+.page-policy .site-footer__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  padding-block: clamp(2rem, 4vw, 3.5rem);
+  border-top: 1px solid var(--rule);
+}
+
+.page-policy .site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.page-policy .site-footer__link {
+  text-decoration: none;
+  font-size: var(--t-body);
+  line-height: 1.4;
+  padding-block: 0.25rem;
+  border-bottom: 1px solid transparent;
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+
+.page-policy .site-footer__link:hover,
+.page-policy .site-footer__link:focus-visible {
+  color: var(--orchid);
+  border-bottom-color: var(--orchid);
+}
+
+.page-policy .site-footer__meta {
+  margin: 0;
+  color: var(--quiet);
+}
+
+/* The one sentence on this page that is a disclosure rather than a
+   description. It gets the accent rule and full-contrast ink so it
+   cannot be read as fine print. */
+.page-policy .site-footer__note {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  border-left: 1px solid var(--orchid);
+  padding-left: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+/* =====================================================================
+   Narrower viewports
+   ===================================================================== */
+
+@media (min-width: 48rem) {
+  .page-policy .site-footer__inner {
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+  }
+
+  .page-policy .site-footer__meta {
+    justify-self: end;
+    text-align: right;
+  }
+
+  .page-policy .site-footer__note {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 64rem) {
+  .page-policy .pol-rules__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-policy .pol-order__groups {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Below this the table stops being a grid and becomes a stack of
+   labelled rows. The ARIA roles are written into the markup, so the
+   table semantics survive the change of display. */
+@media (max-width: 48rem) {
+  .page-policy .pol-calc__scroll {
+    overflow-x: visible;
+  }
+
+  .page-policy .pol-table,
+  .page-policy .pol-table thead,
+  .page-policy .pol-table tbody,
+  .page-policy .pol-table__row,
+  .page-policy .pol-table__cell {
+    display: block;
+    width: auto;
+    min-width: 0;
+  }
+
+  .page-policy .pol-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .page-policy .pol-table__row {
+    padding: clamp(1rem, 3vw, 1.5rem) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .page-policy .pol-table__row:last-child {
+    border-bottom: 0;
+  }
+
+  .page-policy .pol-table__cell {
+    border-bottom: 0;
+    padding-block: 0.4rem;
+  }
+
+  /* The column name moves into the cell, except where the live row
+     already carries a real <label>. */
+  .page-policy .pol-table__cell[data-col]:not(:has(.pol-field__label))::before {
+    content: attr(data-col);
+    display: block;
+    font-family: var(--mono);
+    font-size: var(--t-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: var(--quiet);
+    margin-bottom: 0.35rem;
+  }
+
+  .page-policy .pol-table__cell--act {
+    width: auto;
+    text-align: left;
+    padding-top: 0.75rem;
+  }
+
+  /* The marker runs along the whole stacked row rather than one cell. */
+  .page-policy .pol-table__cell:first-child::after {
+    display: none;
+  }
+
+  .page-policy .pol-table__row[data-decision="require_approval"],
+  .page-policy .pol-table__row[data-decision="deny"] {
+    padding-left: clamp(0.75rem, 3vw, 1.25rem);
+    border-left: 3px solid var(--ink);
+  }
+
+  .page-policy .pol-table__row[data-decision="deny"] {
+    border-left-color: transparent;
+    border-image: repeating-linear-gradient(
+        to bottom,
+        var(--ink) 0 3px,
+        transparent 3px 6px
+      )
+      3;
+  }
+
+  .page-policy .pol-table__cell--reason {
+    min-width: 0;
+  }
+
+  .page-policy .pol-field__select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .page-policy .pol-edge__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .page-policy .pol-edge__ord {
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 34rem) {
+  .page-policy .pol-rules__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* =====================================================================
+   Reduced motion — the only motion on this page is the hover and focus
+   transition on the footer links and the load buttons. Both go.
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .page-policy .site-footer__link,
+  .page-policy .pol-table__load .plus-link__box,
+  .page-policy .masthead .plus-link__box {
+    transition: none;
+  }
+}

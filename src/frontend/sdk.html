@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adeia SDK — the client your agent calls</title>
+<meta name="description" content="Reference for @adeia/sdk: the constructor, requestAction, getAction, waitForAction, the errors they throw, and the three answers a request can come back as.">
+
+<link rel="stylesheet" href="styles/tokens.css">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/menu.css">
+<link rel="stylesheet" href="styles/page-sdk.css">
+<link rel="stylesheet" href="styles/motion.css">
+</head>
+
+<body class="page-sdk">
+
+<a class="page-sdk__skip" href="#main">Skip to content</a>
+
+<!-- ---------------------------------------------------------------
+     Masthead and menu panel.
+
+     The same bar and the same full-screen panel as the landing page,
+     driven by the same nav.js. Every entry points back at a section
+     of index.html, because that is where those sections live; the
+     wordmark goes home.
+     --------------------------------------------------------------- -->
+<header class="masthead">
+  <a class="masthead__mark" href="index.html">Adeia</a>
+
+  <button
+    class="plus-link masthead__menu"
+    type="button"
+    id="menu-button"
+    aria-expanded="false"
+    aria-controls="menu-panel"
+  >
+    <span class="masthead__menu-label" data-menu-label>Menu</span>
+    <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
+  </button>
+</header>
+
+<div class="menu ground ground--ink" id="menu-panel" data-menu-panel hidden>
+  <nav class="container menu__nav" aria-label="Sections">
+    <ol class="menu__list">
+      <li class="menu__item">
+        <a class="menu__link" href="index.html#capability"
+          ><span class="label menu__num">01</span
+          ><span class="display menu__word">Capability</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="index.html#approach"
+          ><span class="label menu__num">02</span
+          ><span class="display menu__word">Approach</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="index.html#proof"
+          ><span class="label menu__num">03</span
+          ><span class="display menu__word">Proof</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="index.html#policy"
+          ><span class="label menu__num">04</span
+          ><span class="display menu__word">Policy</span></a
+        >
+      </li>
+      <li class="menu__item">
+        <a class="menu__link" href="index.html#contact"
+          ><span class="label menu__num">05</span
+          ><span class="display menu__word">Contact</span></a
+        >
+      </li>
+    </ol>
+
+    <p class="label quiet menu__note">
+      No payment processor is attached &middot; nothing settles
+    </p>
+  </nav>
+</div>
+
+<main id="main">
+
+  <!-- ===========================================================
+       Hero — ink
+       A reference page, so it is quieter than the landing hero:
+       no canvas, no split heading, nothing that moves.
+       =========================================================== -->
+  <section class="ground ground--ink sdk-hero" aria-labelledby="sdk-hero-title">
+    <div class="container sdk-hero__inner">
+      <p class="label quiet sdk-hero__eyebrow">Reference &middot; @adeia/sdk</p>
+
+      <h1 class="display sdk-hero__title" id="sdk-hero-title">
+        The client your agent calls
+      </h1>
+
+      <p class="lead sdk-hero__lead">
+        One call asks for an action and gets back one that has already been
+        decided — run, held for a person, or refused with the figure that
+        refused it. Every method, option and error on this page exists in
+        <code class="sdk-inline">src/sdk/src/index.ts</code>; nothing here is
+        a plan.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       Install and the sixty-second version — bone
+       =========================================================== -->
+  <section
+    class="ground ground--bone section sdk-start"
+    id="install"
+    aria-labelledby="sdk-install-title"
+  >
+    <div class="container">
+      <header class="sdk-head">
+        <p class="label quiet sdk-head__eyebrow">Install</p>
+        <h2 class="h1 sdk-head__title" id="sdk-install-title">What a builder types</h2>
+        <p class="body quiet sdk-head__note">
+          Node 22 or newer, ESM. The client is plain
+          <code class="sdk-inline">fetch</code> with no HTTP dependency, and it
+          reads <code class="sdk-inline">node:crypto</code> for idempotency
+          keys — so it runs on your server, not in a browser.
+        </p>
+      </header>
+
+      <ol class="sdk-steps">
+        <li class="sdk-step">
+          <span class="mono sdk-step__ordinal" aria-hidden="true">01</span>
+          <h3 class="h3 sdk-step__title">Start the layer</h3>
+          <pre class="sdk-code sdk-step__code" tabindex="0"><code><span class="sdk-code__c">$</span> npm install
+<span class="sdk-code__c">$</span> npm run seed
+<span class="sdk-code__c">$</span> npm run dev</code></pre>
+          <p class="body quiet sdk-step__copy">
+            <code class="sdk-inline">seed</code> prints one API key and never
+            prints it again — only its hash is stored. The boot banner names the
+            adapter it registered.
+          </p>
+        </li>
+
+        <li class="sdk-step">
+          <span class="mono sdk-step__ordinal" aria-hidden="true">02</span>
+          <h3 class="h3 sdk-step__title">Add the client</h3>
+          <pre class="sdk-code sdk-step__code" tabindex="0"><code><span class="sdk-code__c">$</span> npm install @adeia/sdk</code></pre>
+          <p class="body quiet sdk-step__copy">
+            Not on the public registry yet. Inside this repo it resolves through
+            npm workspaces, so the root <code class="sdk-inline">npm install</code>
+            is already enough.
+          </p>
+        </li>
+
+        <li class="sdk-step">
+          <span class="mono sdk-step__ordinal" aria-hidden="true">03</span>
+          <h3 class="h3 sdk-step__title">Point it somewhere</h3>
+          <pre class="sdk-code sdk-step__code" tabindex="0"><code>ADEIA_API_KEY=adeia_sk_…
+ADEIA_URL=http://localhost:3000</code></pre>
+          <p class="body quiet sdk-step__copy">
+            The URL is optional — leave it out and the client talks to
+            <code class="sdk-inline">http://localhost:3000</code>.
+          </p>
+        </li>
+      </ol>
+
+      <div class="sdk-sixty">
+        <div class="sdk-sixty__aside">
+          <p class="label quiet sdk-sixty__eyebrow">The sixty-second version</p>
+          <h3 class="h2 sdk-sixty__title">The smallest thing that works</h3>
+          <p class="body sdk-sixty__copy">
+            Two calls. The first always resolves, whatever the policy decided.
+            The second is only reached when a person has to be asked, and it
+            blocks until they answer or the deadline passes.
+          </p>
+          <p class="body quiet sdk-sixty__copy">
+            Money is integer cents the whole way through. If your model talks in
+            dollars, round at that boundary and nowhere else —
+            <code class="sdk-inline">0.29 * 100</code> is not 29.
+          </p>
+        </div>
+
+        <pre class="sdk-code sdk-sixty__code" tabindex="0"><code><span class="sdk-code__k">import</span> { AdeiaClient } <span class="sdk-code__k">from</span> <span class="sdk-code__s">"@adeia/sdk"</span>;
+
+<span class="sdk-code__k">const</span> adeia = <span class="sdk-code__k">new</span> AdeiaClient({
+  apiKey: process.env.ADEIA_API_KEY!,
+  baseUrl: process.env.ADEIA_URL,        <span class="sdk-code__c">// default http://localhost:3000</span>
+});
+
+<span class="sdk-code__k">const</span> action = <span class="sdk-code__k">await</span> adeia.requestAction({
+  type: <span class="sdk-code__s">"payment"</span>,
+  params: {
+    amountCents: 2500,                   <span class="sdk-code__c">// integer cents, never a float</span>
+    currency: <span class="sdk-code__s">"usd"</span>,
+    recipient: <span class="sdk-code__s">"acct_cloudhost"</span>,
+    description: <span class="sdk-code__s">"monthly hosting"</span>,
+  },
+});
+
+<span class="sdk-code__k">if</span> (action.status === <span class="sdk-code__s">"pending_approval"</span>) {
+  <span class="sdk-code__k">const</span> final = <span class="sdk-code__k">await</span> adeia.waitForAction(action.id);
+  console.log(final.status);             <span class="sdk-code__c">// executed | denied | expired | failed</span>
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       Method reference — paper
+       =========================================================== -->
+  <section
+    class="ground ground--paper section sdk-ref"
+    id="reference"
+    aria-labelledby="sdk-ref-title"
+  >
+    <div class="container">
+      <header class="sdk-head">
+        <p class="label quiet sdk-head__eyebrow">Reference</p>
+        <h2 class="h1 sdk-head__title" id="sdk-ref-title">Every method, and when it throws</h2>
+        <p class="body quiet sdk-head__note">
+          Three methods and a constructor. Everything resolves to the same
+          record, so the shape below is worth reading once before the rest.
+        </p>
+      </header>
+
+      <div class="sdk-record">
+        <p class="label quiet sdk-record__label">What every method resolves to</p>
+        <pre class="sdk-code sdk-record__code" tabindex="0"><code><span class="sdk-code__k">interface</span> ActionRecord {
+  id: <span class="sdk-code__k">string</span>;                 <span class="sdk-code__c">// act_…</span>
+  projectId: <span class="sdk-code__k">string</span>;
+  type: <span class="sdk-code__k">string</span>;               <span class="sdk-code__c">// "payment" is the only type today</span>
+  params: Record&lt;<span class="sdk-code__k">string</span>, <span class="sdk-code__k">unknown</span>&gt;;
+  status:
+    | <span class="sdk-code__s">"pending_policy"</span> | <span class="sdk-code__s">"pending_approval"</span> | <span class="sdk-code__s">"approved"</span> | <span class="sdk-code__s">"executing"</span>
+    | <span class="sdk-code__s">"executed"</span> | <span class="sdk-code__s">"failed"</span> | <span class="sdk-code__s">"denied"</span> | <span class="sdk-code__s">"expired"</span>;
+  decision: <span class="sdk-code__s">"allow"</span> | <span class="sdk-code__s">"require_approval"</span> | <span class="sdk-code__s">"deny"</span> | <span class="sdk-code__k">null</span>;
+  decisionReason: <span class="sdk-code__k">string</span> | <span class="sdk-code__k">null</span>;   <span class="sdk-code__c">// names the figure that decided it</span>
+  idempotencyKey: <span class="sdk-code__k">string</span>;
+  result: Record&lt;<span class="sdk-code__k">string</span>, <span class="sdk-code__k">unknown</span>&gt; | <span class="sdk-code__k">null</span>;
+  error: <span class="sdk-code__k">string</span> | <span class="sdk-code__k">null</span>;
+  createdAt: <span class="sdk-code__k">string</span>;          <span class="sdk-code__c">// ISO-8601 UTC</span>
+  decidedAt: <span class="sdk-code__k">string</span> | <span class="sdk-code__k">null</span>;
+  executedAt: <span class="sdk-code__k">string</span> | <span class="sdk-code__k">null</span>;
+}</code></pre>
+        <p class="body quiet sdk-record__note">
+          The four terminal statuses are
+          <code class="sdk-inline">executed</code>,
+          <code class="sdk-inline">failed</code>,
+          <code class="sdk-inline">denied</code> and
+          <code class="sdk-inline">expired</code>. An action never leaves one,
+          and <code class="sdk-inline">waitForAction</code> polls until it
+          reaches one.
+        </p>
+      </div>
+
+      <div class="sdk-methods">
+
+        <!-- constructor -->
+        <article class="sdk-method" id="new-adeiaclient">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Constructor</p>
+            <h3 class="mono sdk-method__name">new AdeiaClient(options)</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>new AdeiaClient(options: AdeiaClientOptions): AdeiaClient</code></pre>
+
+            <dl class="sdk-opts">
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">apiKey</span>
+                  <span class="sdk-chip">required</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  The key <code class="sdk-inline">npm run seed</code> printed
+                  once. Sent as
+                  <code class="sdk-inline">authorization: Bearer &lt;key&gt;</code>
+                  on every request.
+                </dd>
+              </div>
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">baseUrl</span>
+                  <span class="sdk-chip">http://localhost:3000</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  Where the layer is listening. Trailing slashes are trimmed, so
+                  a URL out of an env file does not produce a double slash.
+                </dd>
+              </div>
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">fetch</span>
+                  <span class="sdk-chip">global fetch</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  Injectable purely so tests need no live server. Anything
+                  matching the <code class="sdk-inline">fetch</code> signature
+                  will do.
+                </dd>
+              </div>
+            </dl>
+
+            <dl class="sdk-facts">
+              <dt class="label sdk-facts__term">Throws</dt>
+              <dd class="sdk-facts__desc">
+                A plain <code class="sdk-inline">Error</code> —
+                <span class="quiet">AdeiaClient requires an apiKey</span> — when
+                the key is empty. Construction is synchronous and sends nothing;
+                the first request happens when you call a method.
+              </dd>
+            </dl>
+          </div>
+        </article>
+
+        <!-- requestAction -->
+        <article class="sdk-method" id="request-action">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Method</p>
+            <h3 class="mono sdk-method__name">requestAction(req)</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>requestAction(req: ActionRequestInput): Promise&lt;ActionRecord&gt;</code></pre>
+
+            <dl class="sdk-facts">
+              <dt class="label sdk-facts__term">Returns</dt>
+              <dd class="sdk-facts__desc">
+                The decided record. Executed, held for a person, or refused —
+                the promise resolves either way, so read
+                <code class="sdk-inline">status</code> rather than assuming
+                success.
+              </dd>
+
+              <dt class="label sdk-facts__term">Throws</dt>
+              <dd class="sdk-facts__desc">
+                <code class="sdk-inline">AdeiaError</code> on any non-2xx
+                response: <code class="sdk-inline">invalid_request</code> (400,
+                carrying <code class="sdk-inline">issues</code>),
+                <code class="sdk-inline">unauthorized</code> (401),
+                <code class="sdk-inline">internal_error</code> (500). A policy
+                denial is none of these.
+              </dd>
+            </dl>
+
+            <pre class="sdk-code" tabindex="0"><code><span class="sdk-code__k">await</span> adeia.requestAction({
+  type: <span class="sdk-code__s">"payment"</span>,
+  idempotencyKey: <span class="sdk-code__s">`invoice-${invoice.id}`</span>,   <span class="sdk-code__c">// optional</span>
+  params: {
+    amountCents: 50000,                    <span class="sdk-code__c">// integer, positive</span>
+    currency: <span class="sdk-code__s">"usd"</span>,                       <span class="sdk-code__c">// three lowercase letters</span>
+    recipient: <span class="sdk-code__s">"acct_contractor"</span>,
+    description: <span class="sdk-code__s">"Q3 design work"</span>,         <span class="sdk-code__c">// optional, ≤ 500 chars</span>
+  },
+});</code></pre>
+
+            <p class="body sdk-method__note">
+              Omit <code class="sdk-inline">idempotencyKey</code> and the client
+              generates a fresh UUID for that call. Supply your own when a retry
+              should be recognised as the same logical action — a new key is a
+              new payment. The body is validated strictly, so a misspelled field
+              is a 400 you can see rather than a key that vanishes.
+            </p>
+
+            <p class="body sdk-method__note sdk-method__note--marked">
+              There is no automatic retry, deliberately. A blind retry against a
+              payment endpoint is how double charges happen. The idempotency key
+              makes a retry safe; the decision to make one stays with you.
+            </p>
+          </div>
+        </article>
+
+        <!-- getAction -->
+        <article class="sdk-method" id="get-action">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Method</p>
+            <h3 class="mono sdk-method__name">getAction(id)</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>getAction(id: string): Promise&lt;ActionRecord&gt;</code></pre>
+
+            <dl class="sdk-facts">
+              <dt class="label sdk-facts__term">Returns</dt>
+              <dd class="sdk-facts__desc">
+                The record as it stands right now. The id is URL-encoded for
+                you.
+              </dd>
+
+              <dt class="label sdk-facts__term">Throws</dt>
+              <dd class="sdk-facts__desc">
+                <code class="sdk-inline">AdeiaError</code> with
+                <code class="sdk-inline">status: 404</code> and
+                <code class="sdk-inline">code: "not_found"</code> for an id that
+                does not exist — and for another project's action, which is
+                deliberately the same answer. A 403 there would confirm the id
+                exists.
+              </dd>
+            </dl>
+          </div>
+        </article>
+
+        <!-- waitForAction -->
+        <article class="sdk-method" id="wait-for-action">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Method</p>
+            <h3 class="mono sdk-method__name">waitForAction(id, opts?)</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>waitForAction(id: string, opts?: WaitOptions): Promise&lt;ActionRecord&gt;</code></pre>
+
+            <dl class="sdk-opts">
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">timeoutMs</span>
+                  <span class="sdk-chip">300000</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  Five minutes. Long enough for someone to read an approval
+                  email and click through, short enough that an ignored request
+                  does not hang an agent forever.
+                </dd>
+              </div>
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">pollMs</span>
+                  <span class="sdk-chip">2000</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  How long it sleeps between reads.
+                </dd>
+              </div>
+            </dl>
+
+            <dl class="sdk-facts">
+              <dt class="label sdk-facts__term">Returns</dt>
+              <dd class="sdk-facts__desc">
+                The record once it reaches a terminal status. It reads once
+                before it starts waiting, so an action that has already finished
+                comes back without a sleep.
+              </dd>
+
+              <dt class="label sdk-facts__term">Throws</dt>
+              <dd class="sdk-facts__desc">
+                <code class="sdk-inline">AdeiaTimeoutError</code> when the
+                deadline passes while the action is still in flight. That is not
+                a failed action — a human may simply not have decided yet, and
+                the id is still good. Any
+                <code class="sdk-inline">AdeiaError</code> from the underlying
+                read passes straight through.
+              </dd>
+            </dl>
+          </div>
+        </article>
+
+        <!-- AdeiaError -->
+        <article class="sdk-method" id="adeia-error">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Error</p>
+            <h3 class="mono sdk-method__name">AdeiaError</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>class AdeiaError extends Error {
+  name: "AdeiaError";
+  status: number;
+  code: string;
+  issues?: unknown[];
+}</code></pre>
+
+            <dl class="sdk-opts">
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">status</span>
+                </dt>
+                <dd class="sdk-opt__desc">The HTTP status of the response.</dd>
+              </div>
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">code</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  The server's machine-readable code — one of
+                  <code class="sdk-inline">unauthorized</code>,
+                  <code class="sdk-inline">not_found</code>,
+                  <code class="sdk-inline">invalid_request</code>,
+                  <code class="sdk-inline">internal_error</code> — so you can
+                  branch without parsing prose. It falls back to
+                  <code class="sdk-inline">unknown_error</code> when a response
+                  carried none.
+                </dd>
+              </div>
+              <div class="sdk-opt">
+                <dt class="sdk-opt__term">
+                  <span class="mono sdk-opt__name">issues</span>
+                  <span class="sdk-chip">optional</span>
+                </dt>
+                <dd class="sdk-opt__desc">
+                  The validation issue list, present only when the server sent
+                  one. This is where a bad amount or a missing recipient shows
+                  up.
+                </dd>
+              </div>
+            </dl>
+
+            <pre class="sdk-code" tabindex="0"><code><span class="sdk-code__k">import</span> { AdeiaError } <span class="sdk-code__k">from</span> <span class="sdk-code__s">"@adeia/sdk"</span>;
+
+<span class="sdk-code__k">try</span> {
+  <span class="sdk-code__k">await</span> adeia.requestAction(req);
+} <span class="sdk-code__k">catch</span> (err) {
+  <span class="sdk-code__k">if</span> (err <span class="sdk-code__k">instanceof</span> AdeiaError &amp;&amp; err.code === <span class="sdk-code__s">"invalid_request"</span>) {
+    console.error(err.issues);
+  }
+}</code></pre>
+
+            <p class="body sdk-method__note">
+              The message reads
+              <code class="sdk-inline">POST /v1/actions failed with 400</code>.
+              The detail is on the properties, not in the prose.
+            </p>
+          </div>
+        </article>
+
+        <!-- AdeiaTimeoutError -->
+        <article class="sdk-method" id="adeia-timeout-error">
+          <div class="sdk-method__id">
+            <p class="label quiet sdk-method__kind">Error</p>
+            <h3 class="mono sdk-method__name">AdeiaTimeoutError</h3>
+          </div>
+
+          <div class="sdk-method__detail">
+            <pre class="sdk-code sdk-code--sig" tabindex="0"><code>class AdeiaTimeoutError extends Error {
+  name: "AdeiaTimeoutError";
+  actionId: string;
+  lastStatus: string;
+}</code></pre>
+
+            <dl class="sdk-facts">
+              <dt class="label sdk-facts__term">Thrown by</dt>
+              <dd class="sdk-facts__desc">
+                <code class="sdk-inline">waitForAction</code>, and nothing else.
+              </dd>
+
+              <dt class="label sdk-facts__term">Carries</dt>
+              <dd class="sdk-facts__desc">
+                <code class="sdk-inline">actionId</code> and
+                <code class="sdk-inline">lastStatus</code>, so you can report
+                what it was still doing, or come back and poll the same id
+                later.
+              </dd>
+            </dl>
+
+            <p class="body sdk-method__note sdk-method__note--marked">
+              It extends <code class="sdk-inline">Error</code> directly, not
+              <code class="sdk-inline">AdeiaError</code>. A check for
+              <code class="sdk-inline">err instanceof AdeiaError</code> is false
+              for a timeout — branch on it by name.
+            </p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       The three outcomes — paper
+       =========================================================== -->
+  <section
+    class="ground ground--paper section sdk-outcomes"
+    id="outcomes"
+    aria-labelledby="sdk-outcomes-title"
+  >
+    <div class="container">
+      <header class="sdk-head">
+        <p class="label quiet sdk-head__eyebrow">Outcomes</p>
+        <h2 class="h1 sdk-head__title" id="sdk-outcomes-title">Three answers, three jobs</h2>
+        <p class="body quiet sdk-head__note">
+          One call, three things it can come back as. They are not
+          interchangeable, and the status code each one carries is part of the
+          answer.
+        </p>
+      </header>
+
+      <ul class="sdk-grid">
+        <li class="sdk-outcome sdk-outcome--executed">
+          <span class="sdk-outcome__bar" aria-hidden="true"></span>
+          <div class="sdk-outcome__head">
+            <h3 class="mono sdk-outcome__name">executed</h3>
+            <span class="sdk-chip sdk-outcome__code">HTTP 201</span>
+          </div>
+          <p class="body sdk-outcome__copy">
+            Inside the fence. The policy answered
+            <code class="sdk-inline">allow</code>, the adapter ran, and
+            <code class="sdk-inline">result</code> holds what it wrote.
+          </p>
+          <p class="label quiet sdk-outcome__do">What to do</p>
+          <p class="body quiet sdk-outcome__copy">
+            Nothing further. Read
+            <code class="sdk-inline">result</code> and carry on. Note the
+            payment result says
+            <code class="sdk-inline">settled: false</code> — no processor is
+            attached, so the action was authorised and recorded, not paid.
+          </p>
+        </li>
+
+        <li class="sdk-outcome sdk-outcome--held">
+          <span class="sdk-outcome__bar" aria-hidden="true"></span>
+          <div class="sdk-outcome__head">
+            <h3 class="mono sdk-outcome__name">pending_approval</h3>
+            <span class="sdk-chip sdk-outcome__code">HTTP 202</span>
+          </div>
+          <p class="body sdk-outcome__copy">
+            Over a limit. The action stopped where it stood, an email went to a
+            named human, and nothing downstream has been contacted.
+            <code class="sdk-inline">decisionReason</code> says which rule
+            tripped.
+          </p>
+          <p class="label quiet sdk-outcome__do">What to do</p>
+          <p class="body quiet sdk-outcome__copy">
+            Call <code class="sdk-inline">waitForAction(action.id)</code>. It
+            resolves <code class="sdk-inline">executed</code>,
+            <code class="sdk-inline">denied</code> or
+            <code class="sdk-inline">expired</code>, or throws
+            <code class="sdk-inline">AdeiaTimeoutError</code> if nobody has
+            answered in five minutes. 202 is the one code that means
+            <em>not finished — poll this</em>.
+          </p>
+        </li>
+
+        <li class="sdk-outcome sdk-outcome--denied">
+          <span class="sdk-outcome__bar" aria-hidden="true"></span>
+          <div class="sdk-outcome__head">
+            <h3 class="mono sdk-outcome__name">denied</h3>
+            <span class="sdk-chip sdk-outcome__code">HTTP 200</span>
+          </div>
+          <p class="body sdk-outcome__copy">
+            Refused by policy. Past the hard ceiling or over the daily cap, no
+            approval request is sent and no button anywhere lets a tired human
+            wave it through.
+          </p>
+          <p class="label quiet sdk-outcome__do">What to do</p>
+          <p class="body quiet sdk-outcome__copy">
+            Read <code class="sdk-inline">decisionReason</code>, say it out loud
+            to whoever asked, and stop. Do not retry — the same request will get
+            the same answer every time.
+          </p>
+        </li>
+      </ul>
+
+      <div class="sdk-callout">
+        <p class="label quiet sdk-callout__label">The one that bites</p>
+        <p class="lead sdk-callout__lead">
+          A denial is a 200, not an error.
+        </p>
+        <p class="body sdk-callout__copy">
+          The call succeeded. The request was well formed, it was received, it
+          was evaluated, and the answer was no — that is a result, not a
+          transport failure. It resolves as an ordinary record and never reaches
+          your <code class="sdk-inline">catch</code> block. A client that treats
+          it as a failed request will retry a refusal that cannot change, at
+          whatever interval its backoff decides, forever. That is the single
+          most likely way to misuse this SDK, which is why
+          <code class="sdk-inline">requestAction</code> does not retry anything
+          on your behalf.
+        </p>
+        <p class="body quiet sdk-callout__copy">
+          Two more terminal statuses exist and neither throws either.
+          <code class="sdk-inline">failed</code> (201) is an action that reached
+          its adapter and the adapter refused it —
+          <code class="sdk-inline">error</code> carries the reason, and a 500
+          there would make callers retry something that may already have landed.
+          <code class="sdk-inline">expired</code> is an approval nobody answered
+          before the token lapsed.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===========================================================
+       Closing — forest
+       =========================================================== -->
+  <section class="ground ground--forest sdk-closing" id="contact" aria-labelledby="sdk-closing-title">
+    <div class="container sdk-closing__inner">
+      <p class="label sdk-closing__eyebrow js-reveal">In closing</p>
+
+      <h2 class="display sdk-closing__title js-split" id="sdk-closing-title">
+        It asks. It never decides.
+      </h2>
+
+      <p class="lead sdk-closing__lead js-reveal" data-delay="120">
+        The client is small on purpose. Everything it is careful not to do is
+        the reason the thing on the other side can be trusted with an agent.
+      </p>
+
+      <ul class="sdk-nots js-reveal" data-delay="200">
+        <li class="sdk-not">
+          <h3 class="label sdk-not__title">It holds no limits</h3>
+          <p class="body sdk-not__copy">
+            Every figure lives server-side in a policy the agent cannot read or
+            edit. Nothing you pass to this client can widen the fence.
+          </p>
+        </li>
+        <li class="sdk-not">
+          <h3 class="label sdk-not__title">It reaches no processor</h3>
+          <p class="body sdk-not__copy">
+            The agent only ever sees this client. What executes on the far side
+            of the seam is not something the model can name, let alone call.
+          </p>
+        </li>
+        <li class="sdk-not">
+          <h3 class="label sdk-not__title">It retries nothing</h3>
+          <p class="body sdk-not__copy">
+            No backoff, no silent second attempt. The idempotency key makes a
+            retry safe when you choose to make one.
+          </p>
+        </li>
+      </ul>
+
+      <p class="sdk-closing__cta js-reveal" data-delay="280">
+        <a class="plus-link" href="index.html">
+          <span class="plus-link__box" aria-hidden="true">+</span>
+          <span>BACK TO THE OVERVIEW</span>
+        </a>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ground ground--forest site-footer">
+  <div class="container">
+    <div class="site-footer__inner">
+      <nav class="site-footer__nav" aria-label="Sections">
+        <a class="site-footer__link" href="index.html#approach">How it works</a>
+        <a class="site-footer__link" href="sdk.html" aria-current="page">SDK</a>
+        <a class="site-footer__link" href="index.html#policy">Policy</a>
+        <a class="site-footer__link" href="index.html#capability">Audit</a>
+      </nav>
+
+      <p class="label site-footer__meta">
+        Adeia &middot; agent execution &amp; permissions layer &middot; 2026
+      </p>
+
+      <p class="site-footer__note">
+        No payment processor is attached. Payments are authorised and recorded;
+        nothing settles.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="motion.js"></script>
+<script src="nav.js"></script>
+
+</body>
+</html>
