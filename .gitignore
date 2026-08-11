@@ -11,3 +11,6 @@ dist/
 # playwright mcp scratch output
 .playwright-mcp/
 .claude/settings.local.json
+
+# verification screenshots
+v-*.png

@@ -96,6 +96,32 @@ export const auditEvents = sqliteTable(
   (t) => [index("audit_events_action_created_idx").on(t.actionId, t.createdAt)],
 );
 
+/**
+ * Landing-page visit counter.
+ *
+ * One row per visitor per UTC day. `visitorHash` is
+ * sha256(salt + ip + user-agent) — the raw address is never written, and the
+ * salt is per-deployment, so a leaked table cannot be walked back to an IP.
+ *
+ * The unique index is what makes the figure honest: refreshing the page all
+ * afternoon adds one row, not fifty. The number it produces is unique
+ * visitor-days, which is what the page says it is.
+ */
+export const siteVisits = sqliteTable(
+  "site_visits",
+  {
+    id: text("id").primaryKey(),
+    /** UTC date, YYYY-MM-DD. */
+    day: text("day").notNull(),
+    visitorHash: text("visitor_hash").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [
+    uniqueIndex("site_visits_day_visitor_uq").on(t.day, t.visitorHash),
+    index("site_visits_day_idx").on(t.day),
+  ],
+);
+
 export type ProjectRow = typeof projects.$inferSelect;
 export type NewProjectRow = typeof projects.$inferInsert;
 export type PolicyRow = typeof policies.$inferSelect;
@@ -106,3 +132,5 @@ export type ApprovalRow = typeof approvals.$inferSelect;
 export type NewApprovalRow = typeof approvals.$inferInsert;
 export type AuditRow = typeof auditEvents.$inferSelect;
 export type NewAuditRow = typeof auditEvents.$inferInsert;
+export type SiteVisitRow = typeof siteVisits.$inferSelect;
+export type NewSiteVisitRow = typeof siteVisits.$inferInsert;

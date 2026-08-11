@@ -9,6 +9,7 @@ import {
   auditEvents,
   policies,
   projects,
+  siteVisits,
   type ActionRow,
   type ApprovalRow,
   type AuditRow,
@@ -395,4 +396,47 @@ export function listProjectAudit(
   const events = rows.slice(0, opts.limit);
   const nextCursor = rows.length > opts.limit ? (events.at(-1)?.id ?? null) : null;
   return { events, nextCursor };
+}
+
+// --- site visits ------------------------------------------------------------
+
+export interface VisitCounts {
+  total: number;
+  today: number;
+}
+
+/**
+ * Record one visit and return the counts.
+ *
+ * The unique index on (day, visitor_hash) does the deduplication: a repeat
+ * visitor on the same UTC day is a no-op insert, not a second row. That is why
+ * `INSERT OR IGNORE` is correct here rather than a read-then-write, which would
+ * race between two requests arriving together.
+ */
+export function recordVisit(db: Db, visitorHash: string, at: Date = new Date()): VisitCounts {
+  const day = at.toISOString().slice(0, 10);
+  db.insert(siteVisits)
+    .values({
+      id: newId("vis"),
+      day,
+      visitorHash,
+      createdAt: at.toISOString(),
+    })
+    .onConflictDoNothing()
+    .run();
+  return getVisitCounts(db, at);
+}
+
+export function getVisitCounts(db: Db, at: Date = new Date()): VisitCounts {
+  const day = at.toISOString().slice(0, 10);
+  const total = db
+    .select({ n: sql<number>`count(*)` })
+    .from(siteVisits)
+    .get();
+  const today = db
+    .select({ n: sql<number>`count(*)` })
+    .from(siteVisits)
+    .where(eq(siteVisits.day, day))
+    .get();
+  return { total: Number(total?.n ?? 0), today: Number(today?.n ?? 0) };
 }

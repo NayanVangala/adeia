@@ -61,6 +61,45 @@ export const EnvSchema = z.object({
       .transform((u) => u.replace(/\/+$/, "")),
   ),
   APPROVAL_TOKEN_TTL_MS: z.coerce.number().int().positive().default(86_400_000),
+
+  // --- landing page visit counter ---
+
+  /**
+   * Salt for the visitor hash. The raw IP and user agent are never stored, only
+   * sha256(salt + ip + ua), and the salt is what stops that hash from being a
+   * rainbow table away from an address — the input space is small enough to
+   * enumerate without one.
+   *
+   * The default is fine for local development. Set a real value in production;
+   * changing it resets deduplication, so today's returning visitors count once
+   * more and nothing else moves.
+   */
+  ADEIA_VISIT_SALT: z.string().min(1).default("adeia-dev-salt"),
+
+  /**
+   * Whether `x-forwarded-for` can be believed. Off by default: anyone can send
+   * that header, so trusting it on a directly-exposed server lets a single
+   * client inflate the count by changing one string. Turn it on only behind a
+   * proxy that overwrites it.
+   */
+  ADEIA_TRUST_PROXY: z
+    .preprocess((v) => v === "true" || v === "1", z.boolean())
+    .default(false),
+
+  /**
+   * Origins allowed to call the public site endpoints, comma separated. The
+   * landing page is served from a different origin in development (:5173) and
+   * possibly in production too, so it needs to be named rather than assumed.
+   */
+  ADEIA_SITE_ORIGINS: z
+    .string()
+    .default("http://localhost:5173,http://127.0.0.1:5173")
+    .transform((s) =>
+      s
+        .split(",")
+        .map((o) => o.trim().replace(/\/+$/, ""))
+        .filter(Boolean),
+    ),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
