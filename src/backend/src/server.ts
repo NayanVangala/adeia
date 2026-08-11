@@ -1,5 +1,7 @@
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { createLedgerAdapter } from "./adapters/ledger.ts";
 import { createRegistry } from "./adapters/types.ts";
@@ -14,6 +16,7 @@ import { createSmtpSender, createSmtpTransport, verifySmtp } from "./notify/smtp
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
 import { createAuditRoutes } from "./routes/audit.ts";
+import { createSiteRoutes } from "./routes/site.ts";
 
 export type { AppDeps };
 
@@ -27,11 +30,59 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
 
   app.get("/healthz", (c) => c.json({ ok: true }));
 
+  // CORS for the public site endpoints only. Scoped to `/v1/site/*` and to the
+  // origins named in the environment: the action API is key-authenticated and
+  // has no business being reachable from a browser on another origin.
+  app.use("/v1/site/*", async (c, next) => {
+    const origin = c.req.header("origin");
+    if (origin && env.ADEIA_SITE_ORIGINS.includes(origin.replace(/\/+$/, ""))) {
+      c.header("access-control-allow-origin", origin);
+      c.header("vary", "origin");
+    }
+    if (c.req.method === "OPTIONS") {
+      c.header("access-control-allow-methods", "GET, POST, OPTIONS");
+      c.header("access-control-allow-headers", "content-type");
+      c.header("access-control-max-age", "86400");
+      return c.body(null, 204);
+    }
+    await next();
+  });
+
+  app.route("/v1/site", createSiteRoutes());
   app.route("/v1/actions", createActionRoutes());
   // Mounted after the action routes; `/actions/:id/audit` is two segments and
   // cannot collide with `/actions/:id`.
   app.route("/v1", createAuditRoutes());
   app.route("/approvals", createApprovalRoutes());
+
+  // The site, served from the same origin as the API. Mounted last so it can
+  // never shadow a route above it, and only when a document root is
+  // configured — the test suite builds an API-only app and should 404 on `/`
+  // rather than depend on a directory being present.
+  //
+  // Same origin is the whole point: no CORS on the visit counter, one
+  // certificate, and the page can call `/v1/site/visits` as a relative path
+  // in production exactly as it does in development.
+  if (deps.siteRoot) {
+    // serveStatic resolves `root` against process.cwd(), so an absolute path
+    // has to be made relative to it or every asset 404s when the server is
+    // started from anywhere but the repo root.
+    const relativeRoot = path.relative(process.cwd(), deps.siteRoot) || ".";
+
+    app.use(
+      "/*",
+      serveStatic({
+        root: relativeRoot,
+        // Directory requests land on index.html; `/audit` also resolves to
+        // `audit.html`, so the pages have clean URLs without a redirect table.
+        rewriteRequestPath: (requestPath) => {
+          if (requestPath === "/") return "/index.html";
+          if (/\.[a-z0-9]+$/i.test(requestPath)) return requestPath;
+          return `${requestPath}.html`;
+        },
+      }),
+    );
+  }
 
   app.notFound((c) => c.json({ error: "not_found" }, 404));
 
@@ -125,15 +176,20 @@ export async function boot(): Promise<void> {
     transportLine = "resend";
   }
 
+  // src/backend/src/server.ts -> src/frontend
+  const siteRoot = fileURLToPath(new URL("../../frontend", import.meta.url));
+
   const app = createApp({
     db,
     adapters,
     approverEmail: approval.approverEmail,
     onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
+    siteRoot,
   });
 
   serve({ fetch: app.fetch, port: env.PORT }, (info) => {
     console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${env.ADEIA_DB_PATH})`);
+    console.log(`[adeia] serving the site from ${siteRoot}`);
     // Names and addresses only. No key is ever logged.
     console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}`);
     // Said out loud, every boot. A permission layer that has quietly stopped

@@ -18,6 +18,8 @@
     "seed": "node --experimental-strip-types scripts/seed.ts",
     "audit": "node --experimental-strip-types scripts/audit.ts",
     "docs:json": "node --experimental-strip-types scripts/gen-docs.ts",
+    "site:build": "node scripts/build-site.mjs",
+    "site:check": "node scripts/build-site.mjs --check",
     "demo": "npm run -w @adeia/demo-agent start",
     "db:generate": "npm run -w @adeia/server db:generate"
   },

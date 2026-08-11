@@ -7,6 +7,13 @@ export interface AppDeps extends RequestDeps {
    * verified identity of whoever clicked.
    */
   approverEmail?: string;
+
+  /**
+   * Absolute path to the directory holding the landing page. When set, the
+   * app serves it from the same origin as the API; when absent, the app is
+   * API-only, which is what the tests build.
+   */
+  siteRoot?: string;
 }
 
 /**
