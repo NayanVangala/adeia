@@ -1,0 +1,42 @@
+# Cloudflare Pages response headers.
+#
+# Read top to bottom; the most specific matching rule wins. This file is
+# served-config only — it has no effect when the Node server serves the
+# site, which is the other deployment path.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+
+# No Content-Security-Policy here on purpose. audit.html carries an inline
+# script for its terminal-path tabs, so any policy worth having would need
+# a hash or a nonce, and Pages cannot generate a nonce for a static file.
+# Adding a policy loose enough to allow 'unsafe-inline' would be
+# decoration. The fix is to move that script to a file first.
+
+# Content-addressed by their own bytes: a new font or photograph arrives
+# under a new name, never as a changed body at the same URL.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Requested with ?v=<mtime>, so a changed file is a changed URL. An hour
+# is the ceiling on how long a direct, unversioned request can be stale.
+/styles/*
+  Cache-Control: public, max-age=3600
+
+# The documents themselves are the index into everything above. They must
+# never be served stale, or a visitor gets yesterday's page pointing at
+# today's asset versions.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

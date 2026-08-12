@@ -1,0 +1,11 @@
+# Cloudflare Pages redirects. Read top to bottom; first match wins.
+#
+# Pages already serves /audit for audit.html without any rule here, and the
+# Node server does the same by rewriting extensionless paths. These exist so
+# the .html form does not become a second, competing URL for the same page.
+
+/index.html      /            301
+/quickstart.html /quickstart  301
+/sdk.html        /sdk         301
+/policy.html     /policy      301
+/audit.html      /audit       301
