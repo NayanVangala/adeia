@@ -6,6 +6,7 @@
 <!-- No adeia-api meta: the server serves this page and /v1 from one
      origin, so the visit counter calls a relative path. -->
 <title>Adeia — agents that act, inside a fence you set</title>
+<link rel="canonical" href="https://adeia.xyz/">
 <meta name="description" content="Adeia sits between your agent and the real world. Actions inside the budget you set run immediately. Anything past it stops, emails a human, and waits.">
 
 <link rel="stylesheet" href="styles/tokens.css?v=1786405918">
@@ -379,9 +380,10 @@
       <h2 class="h2 proof__title" id="proof-title">
         Two payments clear. The third waits for a person.
       </h2>
-      <!-- Points at a page that exists. There is no docs site, so this is
-           the quickstart rather than a link that goes nowhere. -->
-      <a class="plus-link proof__link" href="quickstart.html">
+      <!-- Extensionless: the Node server rewrites /quickstart to the file,
+           and Pages does the same, so there is one URL per page rather than
+           a clean one and a .html one that redirects. -->
+      <a class="plus-link proof__link" href="/quickstart">
         <span class="plus-link__box" aria-hidden="true">+</span>
         <span>READ THE QUICKSTART</span>
       </a>
@@ -560,10 +562,10 @@
            then anchors on this page while the pages were being written; now
            each one has a page of its own. -->
       <nav class="site-footer__nav" aria-label="Documentation">
-        <a class="site-footer__link" href="quickstart.html">Quickstart</a>
-        <a class="site-footer__link" href="sdk.html">SDK</a>
-        <a class="site-footer__link" href="policy.html">Policy</a>
-        <a class="site-footer__link" href="audit.html">Audit</a>
+        <a class="site-footer__link" href="/quickstart">Quickstart</a>
+        <a class="site-footer__link" href="/sdk">SDK</a>
+        <a class="site-footer__link" href="/policy">Policy</a>
+        <a class="site-footer__link" href="/audit">Audit</a>
       </nav>
 
       <p class="label site-footer__meta">

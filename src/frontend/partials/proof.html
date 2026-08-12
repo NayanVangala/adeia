@@ -19,9 +19,10 @@
       <h2 class="h2 proof__title" id="proof-title">
         Two payments clear. The third waits for a person.
       </h2>
-      <!-- Points at a page that exists. There is no docs site, so this is
-           the quickstart rather than a link that goes nowhere. -->
-      <a class="plus-link proof__link" href="quickstart.html">
+      <!-- Extensionless: the Node server rewrites /quickstart to the file,
+           and Pages does the same, so there is one URL per page rather than
+           a clean one and a .html one that redirects. -->
+      <a class="plus-link proof__link" href="/quickstart">
         <span class="plus-link__box" aria-hidden="true">+</span>
         <span>READ THE QUICKSTART</span>
       </a>
