@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="styles/base.css?v=1786405962">
 <link rel="stylesheet" href="styles/hero.css?v=1786424113">
 <link rel="stylesheet" href="styles/capability.css?v=1786406810">
+<link rel="stylesheet" href="styles/statement.css?v=1786591902">
 <link rel="stylesheet" href="styles/proof.css?v=1786424375">
 <link rel="stylesheet" href="styles/closing.css?v=1786406654">
 <link rel="stylesheet" href="styles/motion.css?v=1786406965">
@@ -358,6 +359,112 @@
   </div>
 </section>
 <!-- @@END-CAPABILITY@@ -->
+  <!-- @@STATEMENT@@ -->
+<!-- ---------------------------------------------------------------
+     Statement — three photographs, one per rule.
+
+     Fragment: paste inside <main>. Styles in styles/statement.css.
+
+     The images are load-bearing, not decoration. Each one stands for a
+     specific number in the policy, and the caption under it names that
+     number — so the section reads as an explanation of the fence rather
+     than as three pictures of concrete.
+
+     Every <img> carries width/height and a srcset. Phones take the
+     1200px file; the 2000px one only ships to wide viewports.
+     --------------------------------------------------------------- -->
+
+<section
+  class="ground ground--paper section statement"
+  id="statement"
+  aria-labelledby="statement-title"
+>
+  <div class="container">
+    <header class="statement__head">
+      <p class="label quiet statement__eyebrow">The shape of it</p>
+      <h2 class="h2 statement__title js-split" id="statement-title">
+        A fence is three decisions.
+      </h2>
+    </header>
+
+    <ol class="statement__set">
+      <li class="statement__item js-reveal">
+        <figure class="statement__figure">
+          <img
+            class="statement__img"
+            src="images/fence-1200.jpg"
+            srcset="images/fence-1200.jpg 1200w, images/fence-2000.jpg 2000w"
+            sizes="(min-width: 62rem) 30vw, 100vw"
+            width="1200"
+            height="800"
+            loading="lazy"
+            decoding="async"
+            alt="A plain metal railing running along the top of a blank concrete wall."
+          />
+          <figcaption class="statement__caption">
+            <p class="mono statement__num">$50.00</p>
+            <p class="label statement__label">Per action</p>
+            <p class="body quiet statement__gloss">
+              The most one request may spend on its own. Over it, nothing
+              happens until a person says so.
+            </p>
+          </figcaption>
+        </figure>
+      </li>
+
+      <li class="statement__item js-reveal" data-delay="120">
+        <figure class="statement__figure">
+          <img
+            class="statement__img"
+            src="images/limit-line-1200.jpg"
+            srcset="images/limit-line-1200.jpg 1200w, images/limit-line-2000.jpg 2000w"
+            sizes="(min-width: 62rem) 30vw, 100vw"
+            width="1200"
+            height="800"
+            loading="lazy"
+            decoding="async"
+            alt="A single hard diagonal shadow falling across a flat grey concrete surface."
+          />
+          <figcaption class="statement__caption">
+            <p class="mono statement__num">$1,000.00</p>
+            <p class="label statement__label">Hard ceiling</p>
+            <p class="body quiet statement__gloss">
+              The one line nobody moves. Past it the action is refused
+              outright — no email is sent, and there is no button that lets a
+              tired human wave it through.
+            </p>
+          </figcaption>
+        </figure>
+      </li>
+
+      <li class="statement__item js-reveal" data-delay="240">
+        <figure class="statement__figure">
+          <img
+            class="statement__img"
+            src="images/passage-1200.jpg"
+            srcset="images/passage-1200.jpg 1200w, images/passage-2000.jpg 2000w"
+            sizes="(min-width: 62rem) 30vw, 100vw"
+            width="1200"
+            height="800"
+            loading="lazy"
+            decoding="async"
+            alt="A concrete passage lit from one end, the light falling in a hard band across the floor."
+          />
+          <figcaption class="statement__caption">
+            <p class="mono statement__num">$2,000.00</p>
+            <p class="label statement__label">Daily cap</p>
+            <p class="body quiet statement__gloss">
+              The running total for the day, counted per currency. Inside all
+              three, an action executes immediately and nobody is asked
+              anything.
+            </p>
+          </figcaption>
+        </figure>
+      </li>
+    </ol>
+  </div>
+</section>
+<!-- @@END-STATEMENT@@ -->
   <!-- @@PROOF@@ -->
 <!-- =========================================================================
      Proof — the live action ledger

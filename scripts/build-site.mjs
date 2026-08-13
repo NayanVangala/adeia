@@ -26,6 +26,7 @@ const PAGE = path.join(FRONTEND, "index.html");
 const SECTIONS = {
   HERO: "hero.html",
   CAPABILITY: "capability.html",
+  STATEMENT: "statement.html",
   PROOF: "proof.html",
   CLOSING: "closing.html",
 };

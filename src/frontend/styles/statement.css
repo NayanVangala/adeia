@@ -1,0 +1,105 @@
+/* ---------------------------------------------------------------
+   Statement — three photographs, one per rule.
+
+   Sits on --paper, between the bone capability section and the paper
+   proof section, so the page does not put two identical grounds back
+   to back without something between them.
+
+   Contrast against --paper:
+     --on-paper        15.35:1   figures and labels
+     --on-paper-quiet   6.69:1   the gloss under each
+   Both clear WCAG AA at the sizes used.
+
+   The photographs are greyscale concrete; the only colour in the
+   section is the rule above each caption. That is deliberate — the
+   accent marks where the number is, and nothing else competes with it.
+   --------------------------------------------------------------- */
+
+.statement__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.statement__head > * {
+  margin: 0;
+}
+
+.statement__title {
+  max-width: 18ch;
+}
+
+.statement__set {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(2.5rem, 4vw, 3rem);
+}
+
+@media (min-width: 62rem) {
+  .statement__set {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+}
+
+.statement__item {
+  margin: 0;
+}
+
+.statement__figure {
+  margin: 0;
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* width/height are on the element, so the box is reserved before the
+   file arrives and nothing below it moves as the three load. */
+.statement__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background: var(--bone);
+
+  /* The photographs carry warm and cool casts that fight each other and
+     the orchid. Desaturating settles them into one material. */
+  filter: grayscale(1) contrast(1.04);
+}
+
+.statement__caption {
+  display: grid;
+  gap: 0.375rem;
+  border-top: 1px solid var(--orchid);
+  padding-top: clamp(0.875rem, 1.6vw, 1.125rem);
+}
+
+.statement__num {
+  margin: 0;
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--on-paper);
+}
+
+.statement__label {
+  margin: 0;
+  color: var(--on-paper-quiet);
+}
+
+.statement__gloss {
+  margin: 0.25rem 0 0;
+  max-width: 42ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statement__img {
+    /* No transition to disable here; the filter is static. Kept as a
+       marker so the next person adding motion sees where it belongs. */
+    transition: none;
+  }
+}
