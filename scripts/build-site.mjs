@@ -28,6 +28,7 @@ const SECTIONS = {
   CAPABILITY: "capability.html",
   STATEMENT: "statement.html",
   PROOF: "proof.html",
+  QUICKSTART: "quickstart.html",
   CLOSING: "closing.html",
 };
 
