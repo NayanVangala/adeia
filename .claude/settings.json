@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'RESPONSE SUMMARY ACTIVE: end this response with the three bold lines defined in .claude/skills/response-summary/SKILL.md — **What you need to do next:**, **What I did:** (fifth-grade language), **What it does:**. The summary comes after the normal answer, never instead of it, and never reads cleaner than the truth above it.'"
+          }
+        ]
+      }
+    ]
+  }
+}
