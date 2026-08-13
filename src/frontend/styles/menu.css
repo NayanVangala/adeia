@@ -11,6 +11,15 @@
   z-index: 95; /* under the masthead (100) so the toggle stays clickable */
   display: grid;
   align-items: center;
+
+  /* The panel is NOT a .ground. Grounds go transparent under
+     html.ground-driven so the body can ease between them as you scroll —
+     correct for sections in the flow, wrong for a fixed overlay, which
+     would show whichever section happened to be behind it. This owns its
+     surface outright. */
+  background-color: var(--ink);
+  color: var(--on-ink);
+
   opacity: 0;
   visibility: hidden;
   transition:
