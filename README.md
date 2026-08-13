@@ -41,10 +41,12 @@ export ADEIA_API_KEY=adeia_sk_...
 npm run dev
 ```
 
-Then, from your agent:
+Then, from your agent. **The SDK is not on npm yet** — it ships inside this
+repository as a workspace, so `@adeia/sdk` resolves for anything under
+`examples/`. The fastest way to start is to copy the demo agent and edit it:
 
 ```bash
-npm install @adeia/sdk
+cp -r examples/demo-agent examples/my-agent
 ```
 
 ```ts
@@ -206,6 +208,11 @@ policy, approvals, audit, the SDK, the agent. The adapter seam is deliberately
 empty — payments are authorised and recorded, nothing settles.
 
 Known limits, named so they aren't mistaken for oversights: **no payment
-processor attached**, SQLite (no concurrent writers), email-only approvals, one
+processor attached**, **the SDK is not published to npm** (it ships in this
+repo as a workspace), SQLite (no concurrent writers), email-only approvals, one
 approver per deployment, no rate limiting on `POST /v1/actions`, no API key
 rotation, and a daily cap that is per-currency and never converts.
+
+There is no hosted Adeia. Running it means running the server yourself — the
+API key comes from `npm run seed` on your own machine, and there is no signup,
+no dashboard, and no key issuance for anyone else.
