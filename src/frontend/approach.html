@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Approach — Adeia</title>
+    <link rel="canonical" href="https://adeia.xyz/approach" />
+    <meta
+      name="description"
+      content="Six decisions that shaped Adeia: integer cents everywhere, a policy engine with no I/O, denials that are outcomes rather than errors, a server that refuses to boot half-configured, and a logger that can never take an action down with it."
+    />
+
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/menu.css" />
+    <link rel="stylesheet" href="styles/motion.css" />
+    <link rel="stylesheet" href="styles/page-approach.css" />
+  </head>
+
+  <body class="page-approach">
+    <header class="masthead">
+      <a class="masthead__mark" href="/">Adeia</a>
+
+      <button
+        class="plus-link masthead__menu"
+        type="button"
+        id="menu-button"
+        aria-expanded="false"
+        aria-controls="menu-panel"
+      >
+        <span class="masthead__menu-label" data-menu-label>Menu</span>
+        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
+      </button>
+    </header>
+
+    <div class="menu" id="menu-panel" data-menu-panel hidden>
+      <nav class="container menu__nav" aria-label="Sections">
+        <ol class="menu__list">
+          <li class="menu__item">
+            <a class="menu__link" href="#money"
+              ><span class="label menu__num">01</span
+              ><span class="display menu__word">Money</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#refusal"
+              ><span class="label menu__num">02</span
+              ><span class="display menu__word">Refusal</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#loudness"
+              ><span class="label menu__num">03</span
+              ><span class="display menu__word">Loudness</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#limits"
+              ><span class="label menu__num">04</span
+              ><span class="display menu__word">Limits</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="/"
+              ><span class="label menu__num">05</span
+              ><span class="display menu__word">Home</span></a
+            >
+          </li>
+        </ol>
+
+        <p class="label quiet menu__note">
+          No payment processor is attached &middot; nothing settles
+        </p>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ===========================================================
+           Hero — ink
+           =========================================================== -->
+      <section class="ground ground--ink app-hero" id="top">
+        <div class="container app-hero__inner">
+          <p class="label quiet app-hero__eyebrow">Approach</p>
+
+          <h1 class="display app-hero__title">Decisions that cost something</h1>
+
+          <p class="lead app-hero__body">
+            Anything can be made to work once. What makes a permission layer
+            worth putting in front of real money is the set of choices that were
+            harder than the alternative, and stayed. These are those choices,
+            with the reasoning intact — including the ones that make the system
+            less convenient on purpose.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           01 Money — bone
+           =========================================================== -->
+      <section
+        class="ground ground--bone section app-part"
+        id="money"
+        aria-labelledby="money-title"
+      >
+        <div class="container">
+          <header class="app-part__head">
+            <p class="label quiet">01 — Money</p>
+            <h2 class="h2 app-part__title" id="money-title">
+              Integer cents, the whole way through
+            </h2>
+          </header>
+
+          <p class="lead app-part__lead">
+            There is no floating-point number anywhere in the money path. Not in
+            the request schema, not in the policy comparison, not in the daily
+            total, not in the audit row.
+          </p>
+
+          <p class="body app-part__copy">
+            The wire format enforces it: <span class="app-code">amountCents</span>
+            is validated as a positive integer, and the error string says so in
+            those words. A request carrying <span class="app-code">50.00</span>
+            is a 400 the builder can see, not a value that silently becomes
+            fifty cents or 4999.999999.
+          </p>
+
+          <p class="body app-part__copy">
+            This is unglamorous and it is the single easiest way to lose money in
+            software. Currency in floats accumulates error the moment you divide,
+            and a permission layer that compares a drifting number against a
+            limit is a permission layer that eventually lets the wrong thing
+            through — or stops the right one, which erodes trust faster.
+          </p>
+
+          <p class="body app-part__copy">
+            The daily cap is per-currency and never converts. Adeia does not
+            fetch exchange rates, because a limit that changes with the market is
+            not a limit you set.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           02 Refusal — paper
+           =========================================================== -->
+      <section
+        class="ground ground--paper section app-part"
+        id="refusal"
+        aria-labelledby="refusal-title"
+      >
+        <div class="container">
+          <header class="app-part__head">
+            <p class="label quiet">02 — Refusal</p>
+            <h2 class="h2 app-part__title" id="refusal-title">
+              A denial is not an error
+            </h2>
+          </header>
+
+          <p class="lead app-part__lead">
+            The request was well formed. The call succeeded. The answer was no.
+            Those are three different facts and most APIs collapse them into one
+            exception.
+          </p>
+
+          <p class="body app-part__copy">
+            Adeia returns the refusal as a status with the figure that produced
+            it — <span class="app-code">amount 500000 exceeds hard maximum
+            100000</span> — so an agent can read the reason, say it out loud to
+            whoever asked, and stop. Thrown as an exception it becomes something
+            a retry loop swallows, and the agent tries again, and again, against
+            a rule that will never move.
+          </p>
+
+          <p class="body app-part__copy">
+            The same reasoning runs through the SDK, which will not retry on your
+            behalf at all. The idempotency key makes a retry <em>safe</em>;
+            deciding to make one stays with the caller. A library that quietly
+            re-sends a payment request is a library that quietly sends a payment
+            twice.
+          </p>
+
+          <div class="app-callout">
+            <h3 class="h3 app-callout__title">The ceiling nobody can raise</h3>
+            <p class="body app-callout__copy">
+              Past the hard maximum, the action is refused outright. No approval
+              email is sent, because there is no button anywhere that lets a
+              tired human wave it through at 2am. Everything else in the system
+              exists to ask a person; this is the one rule that does not.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           03 Loudness — ink
+           =========================================================== -->
+      <section
+        class="ground ground--ink section app-part"
+        id="loudness"
+        aria-labelledby="loudness-title"
+      >
+        <div class="container">
+          <header class="app-part__head">
+            <p class="label quiet">03 — Loudness</p>
+            <h2 class="h2 app-part__title" id="loudness-title">
+              Fail where somebody is looking
+            </h2>
+          </header>
+
+          <p class="lead app-part__lead">
+            The worst failure this system could have is silent: over-limit
+            actions pausing correctly, and then waiting forever because nothing
+            ever told a human they were asked. From the outside that is
+            indistinguishable from a hung agent.
+          </p>
+
+          <div class="app-notes">
+            <div class="app-note">
+              <h3 class="h3 app-note__title">The server refuses to boot</h3>
+              <p class="body quiet app-note__copy">
+                Without somewhere to send approval mail, it does not start. The
+                credentials are verified with a live connection before the port
+                is opened, so a wrong password fails at deploy time rather than
+                the first time somebody's payment needs a person.
+              </p>
+            </div>
+
+            <div class="app-note">
+              <h3 class="h3 app-note__title">Half-configured never falls back</h3>
+              <p class="body quiet app-note__copy">
+                Set an SMTP user without a password and it refuses, naming the
+                missing one. It does not quietly switch to another transport,
+                because the channel a human is watching is not something to
+                change by accident.
+              </p>
+            </div>
+
+            <div class="app-note">
+              <h3 class="h3 app-note__title">The banner on every boot</h3>
+              <p class="body quiet app-note__copy">
+                <span class="app-code">NO PAYMENT PROCESSOR ATTACHED</span>,
+                printed every start. A layer that has stopped executing anything
+                looks identical to one that is working — the audit log fills up
+                either way — so which of the two it is never goes unsaid.
+              </p>
+            </div>
+
+            <div class="app-note">
+              <h3 class="h3 app-note__title">Except the audit write</h3>
+              <p class="body quiet app-note__copy">
+                That one is deliberately quiet: it complains on stderr and
+                returns rather than throwing. Losing a record is bad; unwinding
+                an action that already completed because logging failed is
+                worse, and reversing a real transaction over it is worse still.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           04 Limits — paper
+           =========================================================== -->
+      <section
+        class="ground ground--paper section app-part"
+        id="limits"
+        aria-labelledby="limits-title"
+      >
+        <div class="container">
+          <header class="app-part__head">
+            <p class="label quiet">04 — Limits</p>
+            <h2 class="h2 app-part__title" id="limits-title">
+              What this does not do
+            </h2>
+            <p class="body app-part__intro">
+              Named here so they cannot be mistaken for oversights. Every one is
+              a real boundary of the current system.
+            </p>
+          </header>
+
+          <ul class="app-limits">
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">Nothing settles</h3>
+              <p class="body quiet app-limit__copy">
+                No payment processor is attached. The ledger adapter records the
+                payment and stops where settlement would begin. The seam is
+                deliberate and empty rather than filled with a convincing fake.
+              </p>
+            </li>
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">One approver per deployment</h3>
+              <p class="body quiet app-limit__copy">
+                A single address, from an environment variable. Per-project
+                approvers are not built, which breaks the moment two teams share
+                a server.
+              </p>
+            </li>
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">One writer</h3>
+              <p class="body quiet app-limit__copy">
+                SQLite. No concurrent writers, which means one machine. Running
+                two instances against a shared nothing would let them diverge in
+                silence.
+              </p>
+            </li>
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">Email only</h3>
+              <p class="body quiet app-limit__copy">
+                Approvals arrive as mail and nothing else. No Slack, no SMS, no
+                webhook — so the approval path is exactly as reliable as the
+                inbox behind it.
+              </p>
+            </li>
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">No rate limiting</h3>
+              <p class="body quiet app-limit__copy">
+                Nothing throttles requests to the action API. The policy bounds
+                what an agent can spend; it does not bound how often it can ask.
+              </p>
+            </li>
+            <li class="app-limit">
+              <h3 class="h3 app-limit__title">No key rotation</h3>
+              <p class="body quiet app-limit__copy">
+                An API key is issued once by the seed script and stored as a
+                hash. There is no way to rotate one without reseeding.
+              </p>
+            </li>
+          </ul>
+
+          <p class="app-part__more">
+            <a class="plus-link" href="/proof">
+              <span class="plus-link__box" aria-hidden="true">+</span>
+              <span>WHAT IS ACTUALLY PROVEN</span>
+            </a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ground ground--forest site-footer">
+      <div class="container">
+        <div class="site-footer__inner">
+          <nav class="site-footer__nav" aria-label="Documentation">
+            <a class="site-footer__link" href="/quickstart">Quickstart</a>
+            <a class="site-footer__link" href="/sdk">SDK</a>
+            <a class="site-footer__link" href="/policy">Policy</a>
+            <a class="site-footer__link" href="/audit">Audit</a>
+          </nav>
+
+          <p class="label site-footer__meta">
+            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
+          </p>
+
+          <p class="site-footer__note">
+            No payment processor is attached. Payments are authorised and
+            recorded; nothing settles.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="nav.js"></script>
+  </body>
+</html>
