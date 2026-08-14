@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capability — Adeia</title>
+    <link rel="canonical" href="https://adeia.xyz/capability" />
+    <meta
+      name="description"
+      content="Four parts: a pure policy function, single-use approval tokens, an append-only audit log, and an SDK that will not retry for you. What each one does, and what each one refuses to do."
+    />
+
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/menu.css" />
+    <link rel="stylesheet" href="styles/motion.css" />
+    <link rel="stylesheet" href="styles/page-capability.css" />
+  </head>
+
+  <body class="page-capability">
+    <header class="masthead">
+      <a class="masthead__mark" href="/">Adeia</a>
+
+      <button
+        class="plus-link masthead__menu"
+        type="button"
+        id="menu-button"
+        aria-expanded="false"
+        aria-controls="menu-panel"
+      >
+        <span class="masthead__menu-label" data-menu-label>Menu</span>
+        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
+      </button>
+    </header>
+
+    <div class="menu" id="menu-panel" data-menu-panel hidden>
+      <nav class="container menu__nav" aria-label="Sections">
+        <ol class="menu__list">
+          <li class="menu__item">
+            <a class="menu__link" href="#policy-engine"
+              ><span class="label menu__num">01</span
+              ><span class="display menu__word">Policy</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#approvals"
+              ><span class="label menu__num">02</span
+              ><span class="display menu__word">Approvals</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#audit"
+              ><span class="label menu__num">03</span
+              ><span class="display menu__word">Audit</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#sdk"
+              ><span class="label menu__num">04</span
+              ><span class="display menu__word">SDK</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#adapters"
+              ><span class="label menu__num">05</span
+              ><span class="display menu__word">Adapters</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="/"
+              ><span class="label menu__num">06</span
+              ><span class="display menu__word">Home</span></a
+            >
+          </li>
+        </ol>
+
+        <p class="label quiet menu__note">
+          No payment processor is attached &middot; nothing settles
+        </p>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ===========================================================
+           Hero — ink
+           =========================================================== -->
+      <section class="ground ground--ink cap-hero" id="top">
+        <div class="container cap-hero__inner">
+          <p class="label quiet cap-hero__eyebrow">Capability</p>
+
+          <h1 class="display cap-hero__title">What each part refuses to do</h1>
+
+          <p class="lead cap-hero__body">
+            Four pieces, and the interesting thing about each one is not the
+            feature — it is the constraint. The policy engine cannot read a
+            clock. The approval token cannot be replayed. The audit write cannot
+            throw. The SDK will not retry on your behalf. Each refusal is a
+            decision someone had to defend, and each one is why the layer above
+            it can be trusted.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           01 Policy engine — bone
+           =========================================================== -->
+      <section
+        class="ground ground--bone section cap-part"
+        id="policy-engine"
+        aria-labelledby="policy-engine-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">01 — Policy engine</p>
+            <h2 class="h2 cap-part__title" id="policy-engine-title">
+              A pure function that cannot cheat
+            </h2>
+            <p class="body cap-part__intro">
+              <span class="cap-code">evaluate()</span> takes an action request, a
+              policy, and the amount already spent today, and returns one of
+              three words with the figure that produced it. It reads no clock, no
+              database and no network. Today's spend is
+              <em>passed in</em> rather than looked up, which is what lets every
+              rule be tested on its own with no fixtures and no fake timers.
+            </p>
+          </header>
+
+          <h3 class="h3 cap-part__sub">The order is the enforcement</h3>
+
+          <p class="body cap-part__copy">
+            Rules run top to bottom and the first match wins. Every
+            <strong>deny</strong> rule runs before any <strong>approval</strong>
+            rule, and that ordering is load-bearing rather than incidental: if a
+            $2,000,000 payment to an unknown recipient came back as
+            <span class="cap-code">require_approval</span>, a tired human could
+            click a button and pass a hard ceiling that exists precisely so no
+            human has to be trusted at 2am.
+          </p>
+
+          <div
+            class="cap-table-scroll"
+            tabindex="0"
+            role="group"
+            aria-labelledby="policy-engine-title"
+          >
+            <table class="cap-table">
+              <caption class="visually-hidden">
+                The order rules are evaluated in, and what each one returns.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Condition</th>
+                  <th scope="col">Returns</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="cap-table__n">1</td>
+                  <td>No policy configured for this action type</td>
+                  <td><span class="cap-verdict cap-verdict--deny">deny</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">2</td>
+                  <td>Policy is for a different action type</td>
+                  <td><span class="cap-verdict cap-verdict--deny">deny</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">3</td>
+                  <td>Amount is over the hard maximum</td>
+                  <td><span class="cap-verdict cap-verdict--deny">deny</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">4</td>
+                  <td>Spent today <em>plus</em> this amount is over the daily cap</td>
+                  <td><span class="cap-verdict cap-verdict--deny">deny</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">5</td>
+                  <td>Policy marks this action type as always requiring approval</td>
+                  <td><span class="cap-verdict cap-verdict--hold">require_approval</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">6</td>
+                  <td>Amount is over the per-action limit</td>
+                  <td><span class="cap-verdict cap-verdict--hold">require_approval</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">7</td>
+                  <td>Recipient is not on the allowlist</td>
+                  <td><span class="cap-verdict cap-verdict--hold">require_approval</span></td>
+                </tr>
+                <tr>
+                  <td class="cap-table__n">8</td>
+                  <td>Nothing above matched</td>
+                  <td><span class="cap-verdict cap-verdict--allow">allow</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="cap-notes">
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Limits are inclusive</h3>
+              <p class="body quiet cap-note__copy">
+                An amount exactly equal to the per-action limit is allowed. Every
+                comparison in the function is <span class="cap-code">&gt;</span>,
+                never <span class="cap-code">&gt;=</span>. A $50.00 payment
+                against a $50.00 limit executes; a test pins this, because it is
+                the sort of thing a refactor quietly flips.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Null and zero are different</h3>
+              <p class="body quiet cap-note__copy">
+                <span class="cap-code">null</span> means <em>no limit</em>.
+                <span class="cap-code">0</span> means <em>nothing is allowed</em>.
+                Every check compares <span class="cap-code">!== null</span>
+                explicitly, because a truthiness test would read a
+                <span class="cap-code">0</span> limit as absent — turning the
+                strictest possible policy into no policy at all.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">The cap counts the pending amount</h3>
+              <p class="body quiet cap-note__copy">
+                The daily cap is checked against spend
+                <em>plus this request</em>, not spend alone. Otherwise a single
+                action that started the day under the cap could clear it in one
+                move, which is the exact scenario a daily cap exists to stop.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           02 Approvals — paper
+           =========================================================== -->
+      <section
+        class="ground ground--paper section cap-part"
+        id="approvals"
+        aria-labelledby="approvals-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">02 — Approvals</p>
+            <h2 class="h2 cap-part__title" id="approvals-title">
+              A bearer credential, treated like one
+            </h2>
+            <p class="body cap-part__intro">
+              The link in the approval email is the only authentication on the
+              page it opens. Whoever holds it can release a payment, so the token
+              is handled the way that sentence implies rather than the way a
+              convenience link usually is.
+            </p>
+          </header>
+
+          <ol class="cap-steps">
+            <li class="cap-step">
+              <p class="label cap-step__ordinal">01</p>
+              <div>
+                <h3 class="h3 cap-step__title">Minted</h3>
+                <p class="body quiet cap-step__copy">
+                  32 bytes of CSPRNG output, base64url encoded. Returned exactly
+                  once, to the sender, and never logged — not even when sending
+                  fails.
+                </p>
+              </div>
+            </li>
+            <li class="cap-step">
+              <p class="label cap-step__ordinal">02</p>
+              <div>
+                <h3 class="h3 cap-step__title">Stored as a hash</h3>
+                <p class="body quiet cap-step__copy">
+                  Only <span class="cap-code">sha256(token)</span> reaches the
+                  database. A leaked approvals table is a list of hashes, not a
+                  set of live approve buttons.
+                </p>
+              </div>
+            </li>
+            <li class="cap-step">
+              <p class="label cap-step__ordinal">03</p>
+              <div>
+                <h3 class="h3 cap-step__title">Single use, checked late</h3>
+                <p class="body quiet cap-step__copy">
+                  Consumption is enforced when the decision is made, not when the
+                  page renders. Both a double-clicked button and a browser
+                  re-submitting a POST reach the server twice; only the first one
+                  decides anything.
+                </p>
+              </div>
+            </li>
+            <li class="cap-step">
+              <p class="label cap-step__ordinal">04</p>
+              <div>
+                <h3 class="h3 cap-step__title">Expiring</h3>
+                <p class="body quiet cap-step__copy">
+                  Twenty-four hours by default. An ignored request ends at
+                  <span class="cap-code">approval.expired</span> rather than
+                  staying live indefinitely — which also stops an SDK from
+                  polling a status that will never change.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="cap-callout">
+            <h3 class="h3 cap-callout__title">Approving is never a GET</h3>
+            <p class="body cap-callout__copy">
+              The decision is a form POST. A GET would mean any preview fetcher,
+              link scanner, corporate mail gateway or over-eager browser
+              prefetch could approve a payment by looking at the email. Several
+              of those exist and none of them ask first.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           03 Audit — ink
+           =========================================================== -->
+      <section
+        class="ground ground--ink section cap-part"
+        id="audit"
+        aria-labelledby="audit-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">03 — Audit</p>
+            <h2 class="h2 cap-part__title" id="audit-title">
+              Append-only, and it never takes the action down with it
+            </h2>
+            <p class="body cap-part__intro">
+              Every state change writes one row. The event name is not a
+              free-text string but a TypeScript union, so a typo like
+              <span class="cap-code">action.exectued</span> is a compile error
+              rather than a trail that quietly loses a step.
+            </p>
+          </header>
+
+          <div class="cap-notes">
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">The write cannot throw</h3>
+              <p class="body quiet cap-note__copy">
+                If the insert fails it says so loudly on stderr, names the event
+                and the action, and returns. Losing a record is bad. Unwinding an
+                action that already completed because the logging failed is
+                worse, and reversing a real transaction over a logging error is
+                worse still.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Secrets stripped at write time</h3>
+              <p class="body quiet cap-note__copy">
+                One expression tests key names — not values — and replaces
+                matches with <span class="cap-code">[redacted]</span>, leaving the
+                key in place so the trail still shows a field was there.
+                Redacting on read would leave the secret sitting in the database
+                file, and the file is the thing that leaves the building.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">It is a denylist, and denylists leak</h3>
+              <p class="body quiet cap-note__copy">
+                It catches key names it knows. It will not catch a live
+                credential pasted into a free-text
+                <span class="cap-code">description</span>, because nothing about
+                that value says otherwise. Redaction is the backstop, not the
+                plan.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Stable order, bounded size</h3>
+              <p class="body quiet cap-note__copy">
+                Events sort by timestamp then insertion order, because SQLite
+                routinely writes several inside the same millisecond and sorting
+                on the clock alone reshuffles the trail on every read. The data
+                column caps at four kilobytes so a chatty adapter cannot bloat
+                the table.
+              </p>
+            </div>
+          </div>
+
+          <p class="cap-part__more">
+            <a class="plus-link" href="/audit">
+              <span class="plus-link__box" aria-hidden="true">+</span>
+              <span>THE FULL EVENT VOCABULARY</span>
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           04 SDK — paper
+           =========================================================== -->
+      <section
+        class="ground ground--paper section cap-part"
+        id="sdk"
+        aria-labelledby="sdk-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">04 — SDK</p>
+            <h2 class="h2 cap-part__title" id="sdk-title">
+              Three methods, and no retry
+            </h2>
+            <p class="body cap-part__intro">
+              <span class="cap-code">requestAction</span> resolves with a decided
+              record whatever the outcome — executed, held, or refused. Check
+              <span class="cap-code">status</span>.
+              <span class="cap-code">getAction</span> fetches one.
+              <span class="cap-code">waitForAction</span> polls until the action
+              reaches a terminal state. That is the whole surface.
+            </p>
+          </header>
+
+          <div class="cap-notes">
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">It will not retry for you</h3>
+              <p class="body quiet cap-note__copy">
+                Deliberately. A blind retry against a payment endpoint is how
+                double charges happen. The idempotency key — generated for you if
+                you do not pass one — makes a retry <em>safe</em>; deciding to
+                make one stays yours.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Waiting has a deadline</h3>
+              <p class="body quiet cap-note__copy">
+                Five minutes by default, polled every two seconds. Long enough
+                for a human to read an email and click through, short enough that
+                an ignored request does not hang an agent forever.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">A denial is not an exception</h3>
+              <p class="body quiet cap-note__copy">
+                The request was well formed and the call succeeded; the answer
+                was no. It comes back as a status with the figure that produced
+                it, so an agent can say the reason out loud to whoever asked and
+                stop — instead of retrying a call that will never pass.
+              </p>
+            </div>
+
+            <div class="cap-note">
+              <h3 class="h3 cap-note__title">Not on npm</h3>
+              <p class="body quiet cap-note__copy">
+                <span class="cap-code">@adeia/sdk</span> ships inside the
+                repository as a workspace. There is no published package yet, so
+                <span class="cap-code">npm install @adeia/sdk</span> will not
+                work. Copy the demo agent to start.
+              </p>
+            </div>
+          </div>
+
+          <p class="cap-part__more">
+            <a class="plus-link" href="/sdk">
+              <span class="plus-link__box" aria-hidden="true">+</span>
+              <span>SDK REFERENCE</span>
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           05 Adapters — forest
+           =========================================================== -->
+      <section
+        class="ground ground--forest section cap-part"
+        id="adapters"
+        aria-labelledby="adapters-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">05 — Adapters</p>
+            <h2 class="h2 cap-part__title" id="adapters-title">
+              The seam, deliberately empty
+            </h2>
+          </header>
+
+          <p class="lead cap-part__lead">
+            An adapter is what actually does the thing once policy and a human
+            have both said yes. The registry takes any number of them; one is
+            attached.
+          </p>
+
+          <p class="body cap-part__copy">
+            It is the ledger adapter, and it records the payment and stops where
+            settlement would begin — <span class="cap-code">status: 'recorded'</span>,
+            <span class="cap-code">settled: false</span>, no processor
+            identifier. It does not imitate a payment processor, because a
+            convincing fake is the one thing worse than an obvious gap: you
+            cannot tell, later, which of your test runs moved money.
+          </p>
+
+          <p class="body cap-part__copy">
+            The server says <strong>NO PAYMENT PROCESSOR ATTACHED</strong> on
+            every boot. A permission layer that has quietly stopped executing
+            anything looks identical, from the outside, to one that is working —
+            the audit log fills up either way. The one thing that must never
+            happen silently is nobody knowing which of the two this is.
+          </p>
+
+          <p class="body cap-part__copy">
+            Nothing about the fence is specific to money. An adapter is any
+            action with a consequence: sending mail, deleting records, calling a
+            paid API, posting in public. <span class="cap-code">payment</span> is
+            simply the first one written.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ground ground--forest site-footer">
+      <div class="container">
+        <div class="site-footer__inner">
+          <nav class="site-footer__nav" aria-label="Documentation">
+            <a class="site-footer__link" href="/quickstart">Quickstart</a>
+            <a class="site-footer__link" href="/sdk">SDK</a>
+            <a class="site-footer__link" href="/policy">Policy</a>
+            <a class="site-footer__link" href="/audit">Audit</a>
+          </nav>
+
+          <p class="label site-footer__meta">
+            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
+          </p>
+
+          <p class="site-footer__note">
+            No payment processor is attached. Payments are authorised and
+            recorded; nothing settles.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="nav.js"></script>
+  </body>
+</html>

@@ -1,0 +1,434 @@
+/* ---------------------------------------------------------------
+   Adeia — the Capability page
+
+   Layout for capability.html only. Every selector is scoped under
+   .page-capability, which sits on the page's <body>, so nothing here
+   can reach another page's markup. Colour, type, spacing and easing
+   come from tokens.css; .display, .h2, .h3, .lead, .body, .label,
+   .mono, .quiet, .plus-link and .visually-hidden come from base.css
+   and are not restated.
+
+   The masthead and the footer are the exceptions. Their rules live in
+   styles/hero.css and styles/closing.css, which this page does not
+   load, so the parts of them this page needs are restated here under
+   the page scope rather than pulled in wholesale.
+
+   Contrast, measured against the ground each element sits on:
+     hero          --orchid on --ink        6.40:1   display heading
+                   --mist on --ink         11.90:1   lead copy
+                   --on-ink-quiet on --ink  5.77:1   10px eyebrow
+     policy        --on-bone on --bone     11.79:1   table and headings
+                   --on-bone-quiet          6.04:1   secondary copy
+     approvals     --on-paper on --paper   15.35:1   headings and copy
+                   --on-paper-quiet         6.69:1   step copy
+     audit         --mist on --ink         11.90:1   headings and copy
+                   --on-ink-quiet           5.77:1   note copy
+     adapters      --orchid on --forest     5.61:1   display heading
+                   --on-forest             11.96:1   body copy
+                   --on-forest-quiet        7.08:1   10px meta
+   Every one clears WCAG AA at the size it is used.
+
+   The three verdicts in the rules table never rely on hue. Each is the
+   word itself, set in a different weight, with a different fill: none,
+   outlined, and reversed out. In greyscale all three stay distinct.
+   --------------------------------------------------------------- */
+
+/* =====================================================================
+   Masthead — restated, scoped. See the note at the top of this file.
+   ===================================================================== */
+
+.page-capability .masthead {
+  --rule: var(--rule-on-ink);
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 1.375rem var(--pad-x);
+  color: var(--mist);
+}
+
+/* An ink scrim under the bar. Invisible over the hero; over the pale
+   grounds further down it is what keeps the wordmark above 4.5:1. */
+.page-capability .masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    to bottom,
+    rgba(34, 34, 34, 0.92),
+    rgba(34, 34, 34, 0.62) 55%,
+    rgba(34, 34, 34, 0)
+  );
+  pointer-events: none;
+}
+
+.page-capability .masthead__mark {
+  font-size: var(--t-body);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--mist);
+}
+
+/* A <button> needs its own reset before .plus-link's flexbox applies. */
+.page-capability .masthead__menu {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--sans);
+  color: var(--mist);
+  cursor: pointer;
+}
+
+.page-capability .masthead__menu-label {
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* =====================================================================
+   Shared marks
+   ===================================================================== */
+
+/* An identifier quoted inside a sentence. Sized down so a monospace run
+   does not tower over the line it sits in. */
+.page-capability .cap-code {
+  font-family: var(--mono);
+  font-size: 0.875em;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+  padding: 0.1em 0.32em;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: rgba(34, 34, 34, 0.04);
+}
+
+.page-capability .ground--ink .cap-code,
+.page-capability .ground--forest .cap-code {
+  background: rgba(237, 223, 238, 0.08);
+}
+
+/* =====================================================================
+   Hero — ink
+   ===================================================================== */
+
+.page-capability .cap-hero {
+  display: flex;
+  align-items: flex-end;
+  min-height: min(72svh, 40rem);
+  padding-block: clamp(8rem, 18vh, 12rem) clamp(3rem, 7vw, 5.5rem);
+}
+
+.page-capability .cap-hero__inner {
+  display: grid;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+}
+
+.page-capability .cap-hero__eyebrow {
+  margin: 0;
+}
+
+.page-capability .cap-hero__title {
+  margin: 0;
+  max-width: 18ch;
+  color: var(--orchid);
+}
+
+.page-capability .cap-hero__body {
+  margin: 0;
+  max-width: 58ch;
+}
+
+/* =====================================================================
+   Section scaffold — shared by all five parts
+   ===================================================================== */
+
+.page-capability .cap-part__head {
+  display: grid;
+  gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.page-capability .cap-part__head > * {
+  margin: 0;
+}
+
+.page-capability .cap-part__title {
+  max-width: 22ch;
+}
+
+.page-capability .cap-part__intro {
+  max-width: 64ch;
+  color: var(--quiet);
+}
+
+.page-capability .cap-part__sub {
+  margin: 0 0 clamp(0.75rem, 1.5vw, 1rem);
+}
+
+.page-capability .cap-part__lead {
+  margin: 0 0 clamp(1rem, 2vw, 1.5rem);
+  max-width: 52ch;
+}
+
+.page-capability .cap-part__copy {
+  margin: 0 0 clamp(1rem, 2vw, 1.5rem);
+  max-width: 64ch;
+}
+
+.page-capability .cap-part__copy:last-child {
+  margin-bottom: 0;
+}
+
+.page-capability .cap-part__more {
+  margin: clamp(2rem, 4vw, 3rem) 0 0;
+}
+
+/* =====================================================================
+   The rules table
+   ===================================================================== */
+
+.page-capability .cap-table-scroll {
+  overflow-x: auto;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  border-top: 1px solid var(--rule);
+}
+
+.page-capability .cap-table-scroll:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.page-capability .cap-table {
+  width: 100%;
+  min-width: 38rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.page-capability .cap-table th,
+.page-capability .cap-table td {
+  vertical-align: baseline;
+  padding: clamp(0.75rem, 1.5vw, 1.125rem) 1.25rem
+    clamp(0.75rem, 1.5vw, 1.125rem) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-capability .cap-table thead th {
+  font-family: var(--mono);
+  font-size: var(--t-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--quiet);
+  padding-top: 0;
+}
+
+.page-capability .cap-table tbody td {
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+
+.page-capability .cap-table__n {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--quiet);
+  width: 3rem;
+}
+
+/* The three outcomes, told apart by weight and fill as well as colour —
+   in greyscale the outline and the reversed fill still separate them. */
+.page-capability .cap-verdict {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 0.5em 0.7em;
+  border: 1px solid transparent;
+}
+
+.page-capability .cap-verdict--allow {
+  font-weight: 400;
+  color: var(--on-bone-quiet);
+}
+
+.page-capability .cap-verdict--hold {
+  font-weight: 700;
+  border-color: currentColor;
+  color: var(--on-bone);
+}
+
+.page-capability .cap-verdict--deny {
+  font-weight: 700;
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bone);
+}
+
+/* =====================================================================
+   Note grid — used in three sections
+   ===================================================================== */
+
+.page-capability .cap-notes {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+@media (min-width: 54rem) {
+  .page-capability .cap-notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+.page-capability .cap-note {
+  padding-top: clamp(1rem, 2vw, 1.25rem);
+  border-top: 1px solid var(--rule);
+}
+
+.page-capability .cap-note__title {
+  margin: 0 0 0.625rem;
+  max-width: 26ch;
+}
+
+.page-capability .cap-note__copy {
+  margin: 0;
+  max-width: 54ch;
+}
+
+/* =====================================================================
+   The approval sequence
+   ===================================================================== */
+
+.page-capability .cap-steps {
+  list-style: none;
+  margin: 0 0 clamp(2.5rem, 5vw, 4rem);
+  padding: 0;
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2rem);
+}
+
+@media (min-width: 54rem) {
+  .page-capability .cap-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(2rem, 4vw, 4rem);
+  }
+}
+
+.page-capability .cap-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: clamp(0.875rem, 1.8vw, 1.25rem);
+  padding-top: clamp(1rem, 2vw, 1.25rem);
+  border-top: 1px solid var(--rule);
+}
+
+.page-capability .cap-step__ordinal {
+  margin: 0;
+  color: var(--orchid);
+  line-height: 1.6;
+}
+
+.page-capability .cap-step__title {
+  margin: 0 0 0.5rem;
+}
+
+.page-capability .cap-step__copy {
+  margin: 0;
+  max-width: 46ch;
+}
+
+/* =====================================================================
+   Callout — the one claim on the page that is a warning
+   ===================================================================== */
+
+.page-capability .cap-callout {
+  border-left: 1px solid var(--orchid);
+  padding-left: clamp(0.875rem, 2vw, 1.5rem);
+}
+
+.page-capability .cap-callout__title {
+  margin: 0 0 0.625rem;
+}
+
+.page-capability .cap-callout__copy {
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* =====================================================================
+   Footer — restated, scoped
+   ===================================================================== */
+
+.page-capability .site-footer__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.25rem, 2.5vw, 2rem);
+  padding-block: clamp(2rem, 4vw, 3.5rem);
+  border-top: 1px solid var(--rule);
+}
+
+.page-capability .site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.page-capability .site-footer__link {
+  text-decoration: none;
+  font-size: var(--t-body);
+  line-height: 1.4;
+  padding-block: 0.25rem;
+  border-bottom: 1px solid transparent;
+  transition:
+    color var(--d-hover) var(--ease-out),
+    border-color var(--d-hover) var(--ease-out);
+}
+
+.page-capability .site-footer__link:hover,
+.page-capability .site-footer__link:focus-visible {
+  color: var(--orchid);
+  border-bottom-color: var(--orchid);
+}
+
+.page-capability .site-footer__meta {
+  margin: 0;
+  color: var(--quiet);
+}
+
+/* A disclosure rather than a description. Accent rule and full-contrast
+   ink, so it cannot be read as fine print. */
+.page-capability .site-footer__note {
+  margin: 0;
+  max-width: 62ch;
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  border-left: 1px solid var(--orchid);
+  padding-left: clamp(0.75rem, 1.5vw, 1.25rem);
+}
+
+/* =====================================================================
+   Motion off
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .page-capability .site-footer__link {
+    transition: none;
+  }
+}
