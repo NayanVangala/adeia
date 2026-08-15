@@ -5,10 +5,19 @@ import { AdeiaError, AdeiaTimeoutError } from "./errors.ts";
 export { AdeiaError, AdeiaTimeoutError };
 export type { ActionRecord, ActionRequest };
 
-/** `idempotencyKey` is optional here — the client generates one when omitted. */
-export type ActionRequestInput = Omit<ActionRequest, "idempotencyKey"> & {
-  idempotencyKey?: string;
-};
+/**
+ * `idempotencyKey` is optional here — the client generates one when omitted.
+ *
+ * Distributed over the union rather than applied to it. A bare
+ * `Omit<ActionRequest, …>` collapses the members into one object with a
+ * `"payment" | "http"` type and both params shapes, which would let a payment
+ * type be sent with http params and still compile.
+ */
+type WithOptionalKey<T> = T extends unknown
+  ? Omit<T, "idempotencyKey"> & { idempotencyKey?: string }
+  : never;
+
+export type ActionRequestInput = WithOptionalKey<ActionRequest>;
 
 export interface AdeiaClientOptions {
   apiKey: string;
@@ -49,10 +58,15 @@ export class AdeiaClient {
    * *safe*, but the decision to make one is the caller's.
    */
   async requestAction(req: ActionRequestInput): Promise<ActionRecord> {
-    const body: ActionRequest = {
+    // The spread widens `type` back to the full union, which TypeScript cannot
+    // re-narrow on its own. The input was a single valid member and only
+    // idempotencyKey is added, so the shape is sound; the assertion says that
+    // rather than loosening the parameter type and letting a mismatched
+    // type/params pair through at the call site.
+    const body = {
       ...req,
       idempotencyKey: req.idempotencyKey ?? randomUUID(),
-    };
+    } as ActionRequest;
     return this.#request("POST", "/v1/actions", body);
   }
 

@@ -3,52 +3,116 @@
   "title": "ActionRequest",
   "description": "Body of POST /v1/actions. Generated from ActionRequestSchema.",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "type": {
-      "type": "string",
-      "const": "payment"
-    },
-    "idempotencyKey": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 255
-    },
-    "params": {
+  "oneOf": [
+    {
       "type": "object",
       "properties": {
-        "amountCents": {
-          "type": "integer",
-          "exclusiveMinimum": 0,
-          "maximum": 9007199254740991
-        },
-        "currency": {
+        "type": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 3,
-          "pattern": "^[a-z]{3}$"
+          "const": "payment"
         },
-        "recipient": {
+        "idempotencyKey": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 255
         },
-        "description": {
-          "type": "string",
-          "maxLength": 500
+        "params": {
+          "type": "object",
+          "properties": {
+            "amountCents": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3,
+              "pattern": "^[a-z]{3}$"
+            },
+            "recipient": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "amountCents",
+            "currency",
+            "recipient"
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
-        "amountCents",
-        "currency",
-        "recipient"
+        "type",
+        "idempotencyKey",
+        "params"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "http"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "params": {
+          "type": "object",
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "HEAD",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "maxLength": 2048,
+              "format": "uri"
+            },
+            "headers": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "body": {},
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "required": [
+            "method",
+            "url"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "idempotencyKey",
+        "params"
       ],
       "additionalProperties": false
     }
-  },
-  "required": [
-    "type",
-    "idempotencyKey",
-    "params"
-  ],
-  "additionalProperties": false
+  ]
 }

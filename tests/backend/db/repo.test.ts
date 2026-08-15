@@ -15,6 +15,21 @@ import {
   updateActionStatus,
   utcMidnightIso,
 } from "../../../src/backend/src/db/repo.ts";
+import type { PaymentPolicy, Policy } from "../../../src/backend/src/policy/evaluate.ts";
+
+/**
+ * Narrows a policy to the payment shape, failing loudly if it is not one.
+ *
+ * A cast would also compile, and would keep compiling on the day toPolicy
+ * starts returning the wrong variant for a payment row — which is exactly the
+ * bug worth catching here.
+ */
+function asPayment(policy: Policy): PaymentPolicy {
+  if (policy.actionType !== "payment") {
+    throw new Error(`expected a payment policy, got "${policy.actionType}"`);
+  }
+  return policy;
+}
 
 let db: Db;
 let projectId: string;
@@ -323,7 +338,7 @@ describe("toPolicy", () => {
 
   it("keeps an absent limit as null rather than collapsing it to 0", () => {
     insertPolicy(db, { projectId, actionType: "payment" });
-    const policy = toPolicy(getPolicy(db, projectId, "payment")!);
+    const policy = asPayment(toPolicy(getPolicy(db, projectId, "payment")!));
 
     expect(policy.maxAmountCents).toBeNull();
     expect(policy.hardMaxAmountCents).toBeNull();
@@ -340,7 +355,7 @@ describe("toPolicy", () => {
       hardMaxAmountCents: 0,
       dailyCapCents: 0,
     });
-    const policy = toPolicy(getPolicy(db, projectId, "payment")!);
+    const policy = asPayment(toPolicy(getPolicy(db, projectId, "payment")!));
 
     expect(policy.maxAmountCents).toBe(0);
     expect(policy.hardMaxAmountCents).toBe(0);
@@ -349,7 +364,7 @@ describe("toPolicy", () => {
 
   it("distinguishes an empty allowlist from no allowlist", () => {
     insertPolicy(db, { projectId, actionType: "payment", allowedRecipients: [] });
-    expect(toPolicy(getPolicy(db, projectId, "payment")!).allowedRecipients).toEqual([]);
+    expect(asPayment(toPolicy(getPolicy(db, projectId, "payment")!)).allowedRecipients).toEqual([]);
   });
 
   it("rejects a corrupted allowed_recipients column", () => {

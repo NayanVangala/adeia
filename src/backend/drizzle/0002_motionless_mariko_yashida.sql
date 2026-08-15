@@ -1,0 +1,1 @@
+ALTER TABLE `policies` ADD `config` text;

@@ -32,6 +32,17 @@ export const policies = sqliteTable(
     allowedRecipients: text("allowed_recipients"),
     /** 0/1. Forces approval regardless of amount. */
     requiresApproval: integer("requires_approval").notNull().default(0),
+    /**
+     * (json) Rules that belong to one action type and have no meaning for the
+     * others. The money columns above stayed as columns because they are
+     * queried and because every one of them predates a second action type;
+     * anything new lands here rather than adding a column that is null for
+     * every row of a different type.
+     *
+     * For `http`: `{ allowedHosts, approvalMethods, deniedMethods,
+     * maxCallsPerDay }`. Null for `payment`.
+     */
+    config: text("config"),
     createdAt: text("created_at").notNull(),
   },
   (t) => [uniqueIndex("policies_project_action_unique").on(t.projectId, t.actionType)],

@@ -3,6 +3,7 @@ import type { Adapter, AdapterRegistry } from "../adapters/types.ts";
 import { appendAudit } from "../audit/log.ts";
 import type { Db } from "../db/client.ts";
 import {
+  countExecutedTodayByType,
   findActionByIdempotencyKey,
   getAction,
   getPolicy,
@@ -126,7 +127,13 @@ export async function requestAction(
   });
 
   const policyRow = getPolicy(deps.db, projectId, req.type);
-  const spentTodayCents = sumSpentTodayCents(deps.db, projectId, req.params.currency);
+  // What "used up today" means depends on the action type: money for a
+  // payment, calls made for an http request. Both feed the same field, because
+  // both answer the same question — has this policy's daily budget run out.
+  const spentTodayCents =
+    req.type === "payment"
+      ? sumSpentTodayCents(deps.db, projectId, req.params.currency)
+      : countExecutedTodayByType(deps.db, projectId, req.type);
   const { decision, reason } = evaluate({
     actionType: req.type,
     params: req.params,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HttpParamsSchema } from "./http.ts";
 import { PaymentParamsSchema } from "./payment.ts";
 
 /**
@@ -58,22 +59,38 @@ export const DECISIONS = ["allow", "require_approval", "deny"] as const;
 
 export type Decision = (typeof DECISIONS)[number];
 
+/** Every action type that exists. A policy is stored against one of these. */
+export const ACTION_TYPES = ["payment", "http"] as const;
+
+export type ActionType = (typeof ACTION_TYPES)[number];
+
 /**
  * The wire format an agent POSTs to /v1/actions.
  *
- * `payment` is the only action type in the MVP. A second type slots in here as
- * another discriminated-union member, with its own params schema.
+ * Discriminated on `type`, so each action carries its own params schema and an
+ * unknown type is a validation error rather than something that reaches a
+ * policy which has no rules for it.
+ *
+ * Both members are strict rather than stripping. A misspelled field is a 400
+ * the builder can see, not a silently dropped key — and it keeps the published
+ * JSON Schema (`additionalProperties: false`) honest about runtime behaviour.
  */
-export const ActionRequestSchema = z
-  .object({
-    type: z.literal("payment"),
-    idempotencyKey: z.string().min(1).max(255),
-    params: PaymentParamsSchema,
-  })
-  // Strict, not stripping. A misspelled field is a 400 the builder can see,
-  // rather than a silently dropped key. It also keeps the published JSON
-  // Schema (`additionalProperties: false`) honest about runtime behaviour.
-  .strict();
+export const ActionRequestSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      type: z.literal("payment"),
+      idempotencyKey: z.string().min(1).max(255),
+      params: PaymentParamsSchema,
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("http"),
+      idempotencyKey: z.string().min(1).max(255),
+      params: HttpParamsSchema,
+    })
+    .strict(),
+]);
 
 export type ActionRequest = z.infer<typeof ActionRequestSchema>;
 

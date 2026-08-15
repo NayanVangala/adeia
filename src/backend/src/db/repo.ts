@@ -99,22 +99,80 @@ export function insertPolicy(db: Db, p: NewPolicy): PolicyRow {
  * coerced to boolean, and absent limits left as `null` rather than collapsed
  * to `0` — the two mean opposite things to the policy engine.
  */
-export function toPolicy(row: PolicyRow): Policy {
-  let allowedRecipients: string[] | null = null;
-  if (row.allowedRecipients !== null) {
-    const parsed: unknown = JSON.parse(row.allowedRecipients);
-    if (!Array.isArray(parsed) || parsed.some((r) => typeof r !== "string")) {
-      throw new Error(`policy ${row.id}: allowed_recipients is not a JSON array of strings`);
-    }
-    allowedRecipients = parsed as string[];
+/** Parses a stored JSON column that must hold an array of strings, or null. */
+function stringArrayColumn(raw: string | null, policyId: string, column: string): string[] | null {
+  if (raw === null) return null;
+  const parsed: unknown = JSON.parse(raw);
+  if (!Array.isArray(parsed) || parsed.some((value) => typeof value !== "string")) {
+    throw new Error(`policy ${policyId}: ${column} is not a JSON array of strings`);
   }
+  return parsed as string[];
+}
 
+export function toPolicy(row: PolicyRow): Policy {
+  if (row.actionType === "http") return toHttpPolicy(row);
+  if (row.actionType === "payment") return toPaymentPolicy(row);
+
+  // A row for a type the engine has no rules for. Refusing here is what stops
+  // it reaching evaluate() and being answered by the wrong rule set.
+  throw new Error(`policy ${row.id}: unknown action type "${row.actionType}"`);
+}
+
+function toPaymentPolicy(row: PolicyRow): Policy {
   return {
-    actionType: row.actionType,
+    actionType: "payment",
     maxAmountCents: row.maxAmountCents ?? null,
     hardMaxAmountCents: row.hardMaxAmountCents ?? null,
     dailyCapCents: row.dailyCapCents ?? null,
-    allowedRecipients,
+    allowedRecipients: stringArrayColumn(row.allowedRecipients, row.id, "allowed_recipients"),
+    requiresApproval: row.requiresApproval === 1,
+  };
+}
+
+/**
+ * An http policy keeps its rules in `config`.
+ *
+ * A missing or unparseable config throws rather than defaulting. The host
+ * allowlist is the only thing bounding an outbound call, so "no config" must
+ * never quietly become "no restrictions" — the failure has to be loud and at
+ * the point of reading, not silent and at the point of execution.
+ */
+function toHttpPolicy(row: PolicyRow): Policy {
+  if (row.config === null) {
+    throw new Error(`policy ${row.id}: an http policy requires a config, and this row has none`);
+  }
+
+  const parsed: unknown = JSON.parse(row.config);
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`policy ${row.id}: config is not a JSON object`);
+  }
+  const config = parsed as Record<string, unknown>;
+
+  const list = (key: string): string[] => {
+    const value = config[key];
+    if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
+      throw new Error(`policy ${row.id}: config.${key} is not a JSON array of strings`);
+    }
+    return value as string[];
+  };
+
+  const maxCallsPerDay = config["maxCallsPerDay"];
+  if (
+    maxCallsPerDay !== null &&
+    maxCallsPerDay !== undefined &&
+    (typeof maxCallsPerDay !== "number" || !Number.isInteger(maxCallsPerDay))
+  ) {
+    throw new Error(`policy ${row.id}: config.maxCallsPerDay must be an integer or null`);
+  }
+
+  return {
+    actionType: "http",
+    // Lowercased on the way in so the comparison against a parsed hostname,
+    // which is always lowercase, cannot miss on case alone.
+    allowedHosts: list("allowedHosts").map((host) => host.toLowerCase()),
+    approvalMethods: list("approvalMethods"),
+    deniedMethods: list("deniedMethods"),
+    maxCallsPerDay: (maxCallsPerDay as number | undefined) ?? null,
     requiresApproval: row.requiresApproval === 1,
   };
 }
@@ -231,6 +289,30 @@ export function findActionByIdempotencyKey(
  * happens anywhere. Two currencies means two independent caps. That is a
  * documented MVP limitation, not a bug.
  */
+/**
+ * How many actions of one type have already executed today.
+ *
+ * The http equivalent of the spend total: there is no amount to add up, so
+ * what a daily cap bounds is the number of calls. Counts executed actions
+ * only, on the same reasoning — a request that was denied or is still waiting
+ * on a person has not used anything up.
+ */
+export function countExecutedTodayByType(db: Db, projectId: string, actionType: string): number {
+  const row = db
+    .select({ total: sql<number>`count(*)` })
+    .from(actions)
+    .where(
+      and(
+        eq(actions.projectId, projectId),
+        eq(actions.type, actionType),
+        eq(actions.status, "executed"),
+        gte(actions.createdAt, utcMidnightIso()),
+      ),
+    )
+    .get();
+  return Number(row?.total ?? 0);
+}
+
 export function sumSpentTodayCents(db: Db, projectId: string, currency: string): number {
   const row = db
     .select({

@@ -16,7 +16,9 @@ describe("ActionRequestSchema", () => {
   it("accepts an integer cent amount", () => {
     const parsed = ActionRequestSchema.safeParse(base);
     expect(parsed.success).toBe(true);
-    expect(parsed.success && parsed.data.params.amountCents).toBe(2500);
+    expect(parsed.success && parsed.data.type === "payment" && parsed.data.params.amountCents).toBe(
+      2500,
+    );
   });
 
   it("rejects a fractional amount — money is integer cents everywhere", () => {
