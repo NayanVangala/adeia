@@ -510,10 +510,27 @@
           </p>
 
           <p class="body cap-part__copy">
-            Nothing about the fence is specific to money. An adapter is any
-            action with a consequence: sending mail, deleting records, calling a
-            paid API, posting in public. <span class="cap-code">payment</span> is
-            simply the first one written.
+            <span class="cap-code">payment</span> is the only action type that
+            exists. The request schema is a discriminated union with exactly one
+            member, so anything else is a validation error today — not a missing
+            adapter, a missing type.
+          </p>
+
+          <p class="body cap-part__copy">
+            Two of the three layers are ready for a second one. The adapter
+            registry takes any number of them, and the policy is stored against
+            an action type and refuses to answer for a different one. The layer
+            that is not ready is the rule set: every rule the engine has is a
+            money rule — per-action limit, daily cap, hard ceiling, recipient
+            allowlist — and its parameters are typed as payment parameters.
+          </p>
+
+          <p class="body cap-part__copy">
+            So "delete these records" or "email this list" would need more than
+            an adapter. It would need a policy shape that fences something other
+            than an amount: a row count, a recipient count, a blast radius. That
+            is a real piece of design work rather than a configuration change,
+            and it has not been done.
           </p>
         </div>
       </section>
