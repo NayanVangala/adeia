@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Where this stands — Adeia</title>
+    <link rel="canonical" href="https://adeia.xyz/contact" />
+    <meta
+      name="description"
+      content="Adeia is a working reference implementation, not a hosted service. What is real, what is deliberately missing, and how to get involved."
+    />
+
+    <link rel="stylesheet" href="styles/tokens.css" />
+    <link rel="stylesheet" href="styles/base.css" />
+    <link rel="stylesheet" href="styles/menu.css" />
+    <link rel="stylesheet" href="styles/motion.css" />
+    <link rel="stylesheet" href="styles/page-contact.css" />
+  </head>
+
+  <body class="page-contact">
+    <header class="masthead">
+      <a class="masthead__mark" href="/">Adeia</a>
+
+      <button
+        class="plus-link masthead__menu"
+        type="button"
+        id="menu-button"
+        aria-expanded="false"
+        aria-controls="menu-panel"
+      >
+        <span class="masthead__menu-label" data-menu-label>Menu</span>
+        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
+      </button>
+    </header>
+
+    <div class="menu" id="menu-panel" data-menu-panel hidden>
+      <nav class="container menu__nav" aria-label="Sections">
+        <ol class="menu__list">
+          <li class="menu__item">
+            <a class="menu__link" href="#state"
+              ><span class="label menu__num">01</span
+              ><span class="display menu__word">State</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="#involved"
+              ><span class="label menu__num">02</span
+              ><span class="display menu__word">Involved</span></a
+            >
+          </li>
+          <li class="menu__item">
+            <a class="menu__link" href="/"
+              ><span class="label menu__num">03</span
+              ><span class="display menu__word">Home</span></a
+            >
+          </li>
+        </ol>
+
+        <p class="label quiet menu__note">
+          No payment processor is attached &middot; nothing settles
+        </p>
+      </nav>
+    </div>
+
+    <main>
+      <!-- ===========================================================
+           Hero — ink
+           =========================================================== -->
+      <section class="ground ground--ink ct-hero" id="top">
+        <div class="container ct-hero__inner">
+          <p class="label quiet ct-hero__eyebrow">Where this stands</p>
+
+          <h1 class="display ct-hero__title">A working thing, not a service</h1>
+
+          <p class="lead ct-hero__body">
+            Adeia is open source and self-hosted. There is no signup, no
+            dashboard and no hosted API — the server runs on your machine, the
+            database is a file next to it, and the API key comes from a script
+            you run yourself. That is the whole distribution model today, and it
+            is stated here rather than discovered after you try to register.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           01 State — bone
+           =========================================================== -->
+      <section
+        class="ground ground--bone section ct-part"
+        id="state"
+        aria-labelledby="state-title"
+      >
+        <div class="container">
+          <header class="ct-part__head">
+            <p class="label quiet">01 — State</p>
+            <h2 class="h2 ct-part__title" id="state-title">
+              Real, and deliberately unfinished
+            </h2>
+          </header>
+
+          <div class="ct-columns">
+            <div class="ct-column">
+              <h3 class="h3 ct-column__title">Built and working</h3>
+              <ul class="ct-list">
+                <li class="ct-list__item">
+                  A policy engine that decides allow, hold or deny with the
+                  figure that produced it
+                </li>
+                <li class="ct-list__item">
+                  Email approvals with single-use, expiring, hashed tokens
+                </li>
+                <li class="ct-list__item">
+                  An append-only audit log with redaction at write time
+                </li>
+                <li class="ct-list__item">
+                  A TypeScript SDK — three methods, no hidden retries
+                </li>
+                <li class="ct-list__item">
+                  293 tests, and two full runs against real mail and a real phone
+                </li>
+              </ul>
+            </div>
+
+            <div class="ct-column">
+              <h3 class="h3 ct-column__title">Deliberately not built</h3>
+              <ul class="ct-list ct-list--gap">
+                <li class="ct-list__item">
+                  No payment processor. The adapter seam is empty on purpose —
+                  payments are recorded, nothing settles
+                </li>
+                <li class="ct-list__item">
+                  One approver per deployment, from an environment variable
+                </li>
+                <li class="ct-list__item">
+                  SQLite, so one writer and one machine
+                </li>
+                <li class="ct-list__item">
+                  No rate limiting, and no API key rotation
+                </li>
+                <li class="ct-list__item">
+                  <span class="ct-code">@adeia/sdk</span> is not published to
+                  npm; it ships in the repository as a workspace
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="body ct-part__note">
+            Built for the Lumos Fellows program. Every layer above the adapter is
+            real; the seam below it is the part left open on purpose, because a
+            convincing fake payment processor is worse than an obvious gap.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
+           02 Involved — paper
+           =========================================================== -->
+      <section
+        class="ground ground--paper section ct-part"
+        id="involved"
+        aria-labelledby="involved-title"
+      >
+        <div class="container">
+          <header class="ct-part__head">
+            <p class="label quiet">02 — Involved</p>
+            <h2 class="h2 ct-part__title" id="involved-title">
+              The repository is the channel
+            </h2>
+            <p class="body ct-part__intro">
+              There is no inbox behind this project yet, so rather than print an
+              address that bounces: issues and pull requests are where anything
+              actually gets discussed.
+            </p>
+          </header>
+
+          <div class="ct-ways">
+            <div class="ct-way">
+              <h3 class="h3 ct-way__title">Run it and say what broke</h3>
+              <p class="body quiet ct-way__copy">
+                The most useful thing anyone can do right now. Clone it, seed a
+                project, point an agent at it, and open an issue when the
+                instructions are wrong or something fails in a way the docs did
+                not predict. It has been run by very few people.
+              </p>
+            </div>
+
+            <div class="ct-way">
+              <h3 class="h3 ct-way__title">Attach an adapter</h3>
+              <p class="body quiet ct-way__copy">
+                The registry takes any action type, not just payments — sending
+                mail, deleting records, calling a paid API. A second adapter
+                would prove the seam is real rather than theoretical.
+              </p>
+            </div>
+
+            <div class="ct-way">
+              <h3 class="h3 ct-way__title">Break the approval flow</h3>
+              <p class="body quiet ct-way__copy">
+                Tokens are hashed, single use and expiring, and nobody outside
+                this project has tried to defeat that. A serious attempt would be
+                worth more than a feature.
+              </p>
+            </div>
+          </div>
+
+          <p class="ct-part__more">
+            <a class="plus-link" href="https://github.com/NayanVangala/adeia">
+              <span class="plus-link__box" aria-hidden="true">+</span>
+              <span>THE REPOSITORY</span>
+            </a>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="ground ground--forest site-footer">
+      <div class="container">
+        <div class="site-footer__inner">
+          <nav class="site-footer__nav" aria-label="Documentation">
+            <a class="site-footer__link" href="/quickstart">Quickstart</a>
+            <a class="site-footer__link" href="/sdk">SDK</a>
+            <a class="site-footer__link" href="/policy">Policy</a>
+            <a class="site-footer__link" href="/audit">Audit</a>
+          </nav>
+
+          <p class="label site-footer__meta">
+            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
+          </p>
+
+          <p class="site-footer__note">
+            No payment processor is attached. Payments are authorised and
+            recorded; nothing settles.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="nav.js"></script>
+  </body>
+</html>
