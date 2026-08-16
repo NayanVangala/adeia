@@ -174,6 +174,19 @@
   color: var(--quiet);
 }
 
+/* The licence heading sits closer to the paragraph it introduces than the
+   notes above it sit to each other, so the two read as one block. */
+.page-contact .ct-licence__title {
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+  border-top: 1px solid var(--rule);
+  max-width: 30ch;
+}
+
+.page-contact .ct-licence__title + .ct-part__note {
+  margin-top: clamp(0.75rem, 1.5vw, 1rem);
+}
+
 .page-contact .ct-part__more {
   margin: clamp(2rem, 4vw, 3rem) 0 0;
 }

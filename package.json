@@ -1,5 +1,6 @@
 {
   "name": "adeia",
+  "license": "BUSL-1.1",
   "private": true,
   "type": "module",
   "workspaces": [
