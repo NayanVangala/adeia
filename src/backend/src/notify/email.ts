@@ -1,4 +1,4 @@
-import { formatMoney, type ActionRecord } from "@adeia/shared";
+import { explainCall, formatMoney, type ActionRecord } from "@adeia/shared";
 import { Resend } from "resend";
 import { escapeHtml } from "../approvals/page.ts";
 
@@ -79,14 +79,23 @@ function renderHttpApproval(
   const description = action.params["description"];
   const body = previewBody(action.params["body"]);
   const reason = action.decisionReason ?? "This action requires approval.";
+  const plain = explainCall(method, target);
 
   const text = [
     `An agent is asking to make this call:`,
     ``,
     `  ${method} ${target}`,
     ``,
-    description ? `Description: ${String(description)}` : "",
-    body ? `Body:\n${body}\n` : "",
+    `WHAT THIS ACTUALLY DOES`,
+    plain.headline,
+    plain.what,
+    plain.warning ? `⚠ ${plain.warning}` : "",
+    ``,
+    // Kept apart from the explanation above on purpose: that came from the
+    // request, this came from the agent, and only one of them can be trusted.
+    description ? `The agent says it is for: "${String(description)}"` : "",
+    description ? `(That is the agent's own wording, not something Adeia checked.)` : "",
+    body ? `\nBody it will send:\n${body}\n` : "",
     `Why you are being asked: ${reason}`,
     ``,
     `Review and decide:`,
@@ -105,8 +114,25 @@ function renderHttpApproval(
   <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .5rem">Approval needed</p>
   <p style="font-size:26px;font-weight:600;margin:0 0 .25rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">${escapeHtml(method)}</p>
   <p style="color:#48505E;margin:0 0 1.25rem;word-break:break-all">${escapeHtml(host)}</p>
-  <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:#F4F5F7;border:1px solid #C6CBD2;padding:.75rem;border-radius:6px;margin:0 0 1.25rem;word-break:break-all">${escapeHtml(target)}</p>
-  ${description ? `<p style="margin:0 0 1rem">${escapeHtml(String(description))}</p>` : ""}
+  <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:#F4F5F7;border:1px solid #C6CBD2;padding:.75rem;border-radius:6px;margin:0 0 1.5rem;word-break:break-all">${escapeHtml(target)}</p>
+
+  <div style="border:1px solid #C6CBD2;border-radius:8px;padding:1rem 1.125rem;margin:0 0 1.5rem">
+    <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .625rem">What this actually does</p>
+    <p style="margin:0 0 .5rem;font-weight:600">${escapeHtml(plain.headline)}</p>
+    <p style="margin:0;color:#48505E;font-size:15px">${escapeHtml(plain.what)}</p>
+    ${
+      plain.warning
+        ? `<p style="margin:.75rem 0 0;padding:.625rem .75rem;background:#FBF3E7;border-left:3px solid #B3701C;font-size:14px">${escapeHtml(plain.warning)}</p>`
+        : ""
+    }
+  </div>
+
+  ${
+    description
+      ? `<p style="margin:0 0 .25rem">The agent says it is for: <em>${escapeHtml(String(description))}</em></p>
+  <p style="margin:0 0 1.25rem;font-size:13px;color:#48505E">That is the agent's own wording, not something Adeia checked.</p>`
+      : ""
+  }
   ${
     body
       ? `<p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .375rem">Body</p>

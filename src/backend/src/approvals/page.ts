@@ -1,4 +1,4 @@
-import { formatMoney, type ActionRecord } from "@adeia/shared";
+import { explainCall, formatMoney, type ActionRecord } from "@adeia/shared";
 
 /**
  * Server-rendered HTML. No JavaScript, no external assets, no network calls
@@ -55,6 +55,17 @@ const STYLE = `
      letter — DELETE against a host you half-recognise — is the whole decision. */
   h1.mono, dd { font-variant-ligatures: none; }
   h1.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.01em; }
+  /* The plain-language block. Boxed rather than run into the page, because
+     it is the part someone unfamiliar with HTTP is meant to read first. */
+  .explain { border: 1px solid #C6CBD2; border-radius: 8px; padding: 1rem 1.125rem; margin: 0 0 1.25rem; }
+  .explain-label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #48505E; margin: 0 0 .625rem; }
+  .explain-headline { font-weight: 600; margin: 0 0 .5rem; }
+  .explain-what { margin: 0; color: #48505E; font-size: .9375rem; }
+  .explain-warning { margin: .75rem 0 0; padding: .625rem .75rem; background: #FBF3E7; border-left: 3px solid #B3701C; font-size: .875rem; }
+  /* Visually separate from .explain above it: that is derived from the
+     request, this is only what the agent said about itself. */
+  .claim { margin: 0 0 .25rem; font-size: .9375rem; }
+  .claim-note { margin: 0 0 1.25rem; font-size: .8125rem; color: #48505E; }
   .reason {
     margin: 1.5rem 0 0; padding: .875rem 1rem; border-radius: 8px;
     background: color-mix(in srgb, var(--held) 12%, transparent);
@@ -116,6 +127,8 @@ export function renderApprovalPage(
   let headline: string;
   let subhead: string;
   let details: string;
+  /** Empty for a payment: an amount and a recipient explain themselves. */
+  let explainBlock = "";
 
   if (isHttp) {
     const method = String(action.params["method"] ?? "");
@@ -141,12 +154,30 @@ export function renderApprovalPage(
     headline = method;
     subhead = host;
 
+    // Stated from the request, never from the agent's description — an agent
+    // that is confused or compromised will call a DELETE "just reading data",
+    // and the person approving has no way to check. The agent's wording is
+    // shown separately below, marked as a claim.
+    const plain = explainCall(method, target);
+    explainBlock = `
+    <div class="explain">
+      <p class="explain-label">What this actually does</p>
+      <p class="explain-headline">${escapeHtml(plain.headline)}</p>
+      <p class="explain-what">${escapeHtml(plain.what)}</p>
+      ${plain.warning ? `<p class="explain-warning">${escapeHtml(plain.warning)}</p>` : ""}
+    </div>
+    ${
+      description
+        ? `<p class="claim">The agent says it is for: <em>${escapeHtml(String(description))}</em></p>
+    <p class="claim-note">That is the agent's own wording, not something Adeia checked.</p>`
+        : ""
+    }`;
+
     // Request headers are deliberately absent. That is where the credential
     // is, and this page gets left open, screenshotted and shoulder-read.
     details = [
       row("URL", target),
-      description ? row("Description", String(description)) : "",
-      bodyPreview ? row("Body", bodyPreview) : "",
+      bodyPreview ? row("Body it will send", bodyPreview) : "",
       row("Project", opts.projectName ?? action.projectId),
       row("Requested", action.createdAt),
       row("Action", action.id),
@@ -175,6 +206,7 @@ export function renderApprovalPage(
     <p class="eyebrow">Approval needed</p>
     <h1${isHttp ? ' class="mono"' : ""}>${escapeHtml(headline)}</h1>
     <p class="to">${escapeHtml(subhead)}</p>
+    ${explainBlock}
     <dl>${details}</dl>
     <p class="reason">${escapeHtml(action.decisionReason ?? "This action requires approval.")}</p>
     <div class="actions">

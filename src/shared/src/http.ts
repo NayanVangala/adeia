@@ -123,6 +123,79 @@ export const HttpParamsSchema = z
 
 export type HttpParams = z.infer<typeof HttpParamsSchema>;
 
+/**
+ * What a request will do, in words anyone can read.
+ *
+ * Derived from the method and the URL — never from the agent's own
+ * description. That separation is the point: an agent that is confused or
+ * compromised will label a DELETE "just reading some data", and the person
+ * approving it has no way to check. What Adeia states here comes from the
+ * request itself and cannot be talked around. The agent's wording is shown
+ * beside it, clearly marked as a claim.
+ */
+export interface PlainExplanation {
+  /** One sentence: the verb, in plain words, and where it lands. */
+  headline: string;
+  /** What this kind of request does generally. */
+  what: string;
+  /** Present only when the action cannot be taken back. */
+  warning: string | null;
+}
+
+const METHOD_MEANING: Record<HttpMethod, { verb: string; what: string; warning: string | null }> = {
+  GET: {
+    verb: "read information from",
+    what: "Reading does not change anything. The website sends information back and nothing there is altered.",
+    warning: null,
+  },
+  HEAD: {
+    verb: "check something on",
+    what: "This asks whether something exists without downloading it. Nothing is changed.",
+    warning: null,
+  },
+  POST: {
+    verb: "create something new on",
+    what: "This usually adds something — a new record, a new message, a new payment — or starts a job.",
+    warning: "Whatever gets created will really exist afterwards. Adeia cannot take it back.",
+  },
+  PUT: {
+    verb: "replace something on",
+    what: "This overwrites an existing thing completely with whatever is in the body below.",
+    warning: "The old version is gone once this runs. Adeia cannot restore it.",
+  },
+  PATCH: {
+    verb: "change part of something on",
+    what: "This edits an existing thing, changing only the fields in the body below.",
+    warning: "The previous values are not kept. Adeia cannot put them back.",
+  },
+  DELETE: {
+    verb: "remove something from",
+    what: "This destroys whatever is at that address.",
+    warning: "This is usually permanent. Adeia cannot undo it, and the website may not either.",
+  },
+};
+
+export function explainCall(method: string, url: string): PlainExplanation {
+  const host = hostOf(url) ?? url;
+  const meaning = METHOD_MEANING[method as HttpMethod];
+
+  if (!meaning) {
+    // An unrecognised verb. Say so rather than guessing it is harmless — the
+    // policy engine treats these as writes for the same reason.
+    return {
+      headline: `This will send a ${method} request to ${host}.`,
+      what: `Adeia does not recognise ${method}, so it is treated as something that could change data.`,
+      warning: "Because it is unrecognised, assume it can change or destroy something.",
+    };
+  }
+
+  return {
+    headline: `This will ${meaning.verb} ${host}.`,
+    what: meaning.what,
+    warning: meaning.warning,
+  };
+}
+
 /** `https://api.cloudflare.com/client/v4/zones` -> `api.cloudflare.com` */
 export function hostOf(url: string): string | null {
   try {
