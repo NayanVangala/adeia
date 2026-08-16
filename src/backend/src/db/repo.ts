@@ -73,6 +73,12 @@ export interface NewPolicy {
   dailyCapCents?: number | null;
   allowedRecipients?: string[] | null;
   requiresApproval?: boolean;
+  /**
+   * Rules belonging to one action type. Serialised as it is given; `toPolicy`
+   * is what validates the shape on the way back out, so a malformed config
+   * fails when the policy is read rather than silently becoming no rules.
+   */
+  config?: Record<string, unknown> | null;
 }
 
 export function insertPolicy(db: Db, p: NewPolicy): PolicyRow {
@@ -87,6 +93,7 @@ export function insertPolicy(db: Db, p: NewPolicy): PolicyRow {
       dailyCapCents: p.dailyCapCents ?? null,
       allowedRecipients: p.allowedRecipients ? JSON.stringify(p.allowedRecipients) : null,
       requiresApproval: p.requiresApproval ? 1 : 0,
+      config: p.config ? JSON.stringify(p.config) : null,
       createdAt: now(),
     })
     .returning()

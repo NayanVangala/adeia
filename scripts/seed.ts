@@ -26,6 +26,33 @@ export const DEMO_POLICY = {
   requiresApproval: false,
 } as const;
 
+/**
+ * The http policy: read freely, ask before changing anything.
+ *
+ * `allowedHosts` is the whole defence for this action type, so it is a short
+ * explicit list rather than anything permissive. api.github.com is here
+ * because it answers unauthenticated GETs, which makes the read path testable
+ * by anyone in one command; api.cloudflare.com because managing DNS is the
+ * case this was built for.
+ *
+ * Methods split the way consequences do. GET and HEAD change nothing, so they
+ * run. Everything that writes stops for a person — and a method nobody
+ * classified is treated as a write by the engine, so a new verb is safe by
+ * default rather than by remembering to list it.
+ */
+export const DEMO_HTTP_POLICY = {
+  actionType: "http",
+  requiresApproval: false,
+  config: {
+    allowedHosts: ["api.github.com", "api.cloudflare.com"],
+    approvalMethods: ["POST", "PUT", "PATCH", "DELETE"],
+    deniedMethods: [],
+    // Bounds a runaway loop. There is no amount to cap, so the budget is
+    // attempts.
+    maxCallsPerDay: 100,
+  },
+} as const;
+
 function main(): void {
   const name = process.argv[2] ?? "demo";
 
@@ -35,6 +62,12 @@ function main(): void {
   const apiKey = generateApiKey();
   const project = insertProject(db, { name, apiKeyHash: hashApiKey(apiKey) });
   const policy = insertPolicy(db, { projectId: project.id, ...DEMO_POLICY });
+  const httpPolicy = insertPolicy(db, {
+    projectId: project.id,
+    actionType: DEMO_HTTP_POLICY.actionType,
+    requiresApproval: DEMO_HTTP_POLICY.requiresApproval,
+    config: { ...DEMO_HTTP_POLICY.config },
+  });
 
   const usd = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
@@ -45,6 +78,15 @@ function main(): void {
   console.log(`    hard maximum       ${usd(DEMO_POLICY.hardMaxAmountCents)}   above this → denied`);
   console.log(`    daily cap          ${usd(DEMO_POLICY.dailyCapCents)}   per currency, UTC day`);
   console.log(`    allowed recipients any`);
+
+  console.log(`\n  policy    ${httpPolicy.id}  type=${httpPolicy.actionType}`);
+  console.log(`    allowed hosts      ${DEMO_HTTP_POLICY.config.allowedHosts.join(", ")}`);
+  console.log(`    reads              GET, HEAD → run immediately`);
+  console.log(
+    `    writes             ${DEMO_HTTP_POLICY.config.approvalMethods.join(", ")} → ask a human`,
+  );
+  console.log(`    every other host   denied`);
+  console.log(`    daily call cap     ${DEMO_HTTP_POLICY.config.maxCallsPerDay}`);
 
   console.log(`\n  API key — copy it now, it is not stored and will not be shown again:\n`);
   console.log(`    ${apiKey}\n`);
