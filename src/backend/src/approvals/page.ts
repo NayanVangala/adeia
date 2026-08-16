@@ -50,7 +50,11 @@ const STYLE = `
   .to { color: var(--ink-soft); margin: 0 0 1.5rem; }
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: .6rem 1rem; }
   dt { color: var(--ink-soft); font-size: .875rem; }
-  dd { margin: 0; font-size: .875rem; word-break: break-word; }
+  dd { margin: 0; font-size: .875rem; word-break: break-word; white-space: pre-wrap; }
+  /* An http verb or a URL. Monospace because a character that differs by one
+     letter — DELETE against a host you half-recognise — is the whole decision. */
+  h1.mono, dd { font-variant-ligatures: none; }
+  h1.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.01em; }
   .reason {
     margin: 1.5rem 0 0; padding: .875rem 1rem; border-radius: 8px;
     background: color-mix(in srgb, var(--held) 12%, transparent);
@@ -103,26 +107,74 @@ export function renderApprovalPage(
   token: string,
   opts: { projectName?: string } = {},
 ): string {
-  const amountCents = Number(action.params["amountCents"] ?? 0);
-  const currency = String(action.params["currency"] ?? "usd");
-  const recipient = String(action.params["recipient"] ?? "");
   const description = action.params["description"];
+  const isHttp = action.type === "http";
 
-  const details = [
-    row("Recipient", recipient),
-    description ? row("Description", String(description)) : "",
-    row("Project", opts.projectName ?? action.projectId),
-    row("Requested", action.createdAt),
-    row("Action", action.id),
-  ].join("");
+  // The headline is whatever the person needs to read first: an amount for a
+  // payment, the verb for a call. For http the verb decides the blast radius,
+  // so it leads and the host sits under it.
+  let headline: string;
+  let subhead: string;
+  let details: string;
+
+  if (isHttp) {
+    const method = String(action.params["method"] ?? "");
+    const target = String(action.params["url"] ?? "");
+    let host = target;
+    try {
+      host = new URL(target).hostname;
+    } catch {
+      // Leave the raw string; it is escaped below either way.
+    }
+
+    let bodyPreview: string | null = null;
+    const raw = action.params["body"];
+    if (raw !== undefined && raw !== null) {
+      try {
+        const text = typeof raw === "string" ? raw : JSON.stringify(raw, null, 2);
+        bodyPreview = text.length > 600 ? `${text.slice(0, 600)}\n… truncated` : text;
+      } catch {
+        bodyPreview = "… body could not be displayed";
+      }
+    }
+
+    headline = method;
+    subhead = host;
+
+    // Request headers are deliberately absent. That is where the credential
+    // is, and this page gets left open, screenshotted and shoulder-read.
+    details = [
+      row("URL", target),
+      description ? row("Description", String(description)) : "",
+      bodyPreview ? row("Body", bodyPreview) : "",
+      row("Project", opts.projectName ?? action.projectId),
+      row("Requested", action.createdAt),
+      row("Action", action.id),
+    ].join("");
+  } else {
+    const amountCents = Number(action.params["amountCents"] ?? 0);
+    const currency = String(action.params["currency"] ?? "usd");
+    const recipient = String(action.params["recipient"] ?? "");
+
+    headline = formatMoney(amountCents, currency);
+    subhead = `to ${recipient}`;
+
+    details = [
+      row("Recipient", recipient),
+      description ? row("Description", String(description)) : "",
+      row("Project", opts.projectName ?? action.projectId),
+      row("Requested", action.createdAt),
+      row("Action", action.id),
+    ].join("");
+  }
 
   // The action id is in the path already; posting to "" keeps the browser on
   // the exact URL it loaded, token included.
   const body = `
   <div class="card">
     <p class="eyebrow">Approval needed</p>
-    <h1>${escapeHtml(formatMoney(amountCents, currency))}</h1>
-    <p class="to">to ${escapeHtml(recipient)}</p>
+    <h1${isHttp ? ' class="mono"' : ""}>${escapeHtml(headline)}</h1>
+    <p class="to">${escapeHtml(subhead)}</p>
     <dl>${details}</dl>
     <p class="reason">${escapeHtml(action.decisionReason ?? "This action requires approval.")}</p>
     <div class="actions">
@@ -135,18 +187,31 @@ export function renderApprovalPage(
         <button class="deny" type="submit">Deny</button>
       </form>
     </div>
-    <p class="note">This link can be used once. Nothing has been charged yet.</p>
+    <p class="note">This link can be used once. ${
+      isHttp
+        ? "The request has not been sent yet, and any credentials it carries are not shown here."
+        : "Nothing has been charged yet."
+    }</p>
   </div>`;
 
-  return shell(`Approve ${formatMoney(amountCents, currency)} to ${recipient}`, body);
+  return shell(`Approve ${headline} ${subhead}`, body);
 }
 
 export function renderDecidedPage(decision: string, action?: ActionRecord | null): string {
   const approved = decision === "approve";
   const heading = approved ? "Approved" : "Denied";
-  const detail = approved
-    ? "The payment has been released and is executing now."
-    : "The payment was refused. Nothing was charged.";
+
+  // Worded for what the action actually was. Telling someone "nothing was
+  // charged" after they refused a DELETE is technically true and useless —
+  // the sentence has to name the thing they just stopped.
+  const isHttp = action?.type === "http";
+  const detail = isHttp
+    ? approved
+      ? "The request has been released and is being sent now."
+      : "The request was refused. It was never sent."
+    : approved
+      ? "The payment has been released and is executing now."
+      : "The payment was refused. Nothing was charged.";
 
   const outcome = action
     ? `<dl>${row("Action", action.id)}${row("Status", action.status)}</dl>`
