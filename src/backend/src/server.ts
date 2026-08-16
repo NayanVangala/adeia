@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { createHttpAdapter } from "./adapters/http.ts";
 import { createLedgerAdapter } from "./adapters/ledger.ts";
 import { createRegistry } from "./adapters/types.ts";
 import type { AppDeps, AppEnv } from "./appEnv.ts";
@@ -144,7 +145,7 @@ export async function boot(): Promise<void> {
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
 
-  const adapters = createRegistry([createLedgerAdapter()]);
+  const adapters = createRegistry([createLedgerAdapter(), createHttpAdapter()]);
   const emailConfig = { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl };
 
   let send: ApprovalSender;
