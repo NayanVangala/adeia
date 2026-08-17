@@ -8,7 +8,7 @@
   <div class="container">
     <header class="capability__head">
       <p class="label quiet">Capability</p>
-      <h2 class="h3 capability__title">Four parts. Each does one thing.</h2>
+      <h2 class="h3 capability__title">Five parts. Each does one thing.</h2>
       <p class="label quiet capability__hint">
         Hover a band, or tab through them
       </p>
@@ -47,12 +47,58 @@
         >
           <div class="capability__body">
             <p class="capability__copy">
-              It takes an action request and the day's spend and hands back one
-              of three words — allow, hold, deny — with the figure that produced
-              it. It reads no clock, no database and no network, so every rule
-              in it can be tested on its own.
+              It takes an action request and what has been used today, and hands
+              back allow, hold or deny with the rule that produced it. Money is
+              bounded by amount; an outbound call is bounded by which hosts it
+              may reach and which methods change something. It reads no clock,
+              no database and no network, so every rule in it can be tested on
+              its own.
             </p>
             <p class="capability__note mono">pure function &middot; no i/o</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 01b — the classifier. Sits beside the policy engine because it only
+           ever answers questions the engine handed it. -->
+      <div
+        class="capability__band capability__band--classifier"
+        data-cap-band
+        data-open="false"
+      >
+        <button
+          type="button"
+          class="capability__trigger"
+          data-cap-trigger
+          id="cap-trigger-classifier"
+          aria-expanded="false"
+          aria-controls="cap-panel-classifier"
+        >
+          <span class="plus-link__box capability__mark" aria-hidden="true">
+            <span class="capability__glyph">+</span>
+          </span>
+          <span class="label capability__label">Risk classifier</span>
+        </button>
+        <div
+          class="capability__panel"
+          data-cap-panel
+          id="cap-panel-classifier"
+          role="region"
+          aria-labelledby="cap-trigger-classifier"
+          aria-hidden="true"
+        >
+          <div class="capability__body">
+            <p class="capability__copy">
+              Asking about every write buries the one that mattered. So you name
+              the methods a model may judge, and it decides those — filing an
+              issue runs, repointing a DNS record still stops. It never sees a
+              call the rules already refused, and it never reads the agent's own
+              description of what it is doing. That sentence exists to persuade,
+              and persuasion is the attack.
+            </p>
+            <p class="capability__note mono">
+              judges inside your band &middot; never widens it
+            </p>
           </div>
         </div>
       </div>

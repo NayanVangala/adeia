@@ -67,6 +67,14 @@
           ><span class="display menu__word">Contact</span></a
         >
       </li>
+      <!-- Not a marketing page. This is the running application, so it is
+           served by the API rather than sitting in this directory. -->
+      <li class="menu__item">
+        <a class="menu__link" href="/dashboard"
+          ><span class="label menu__num">07</span
+          ><span class="display menu__word">Dashboard</span></a
+        >
+      </li>
     </ol>
 
     <p class="label quiet menu__note">
@@ -102,9 +110,13 @@
       </p>
     </div>
 
+    <!-- The readout animates a payment because an amount is the one thing that
+         reads instantly on a moving dial. The second sentence is there so the
+         demonstration is not mistaken for the whole product. -->
     <p class="body hero__hint">
       Distance from the centre is the amount requested. The per-action
-      limit is $50.00; the hard ceiling is $1,000.00.
+      limit is $50.00; the hard ceiling is $1,000.00. Money is one kind of
+      action — the same fence bounds every call an agent makes.
     </p>
   </div>
 </section>

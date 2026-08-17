@@ -1,9 +1,13 @@
 import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 /**
- * All five tables land in Phase 1. Later phases add columns; they do not add
- * tables. Timestamps are ISO-8601 UTC strings, money is integer cents, and
- * anything marked `(json)` is a JSON string in a text column.
+ * The five core tables land in Phase 1. Timestamps are ISO-8601 UTC strings,
+ * money is integer cents, and anything marked `(json)` is a JSON string in a
+ * text column.
+ *
+ * `users` and `sessions` arrive with the dashboard. They are about who is
+ * looking at Adeia; everything above them is about what an agent asked to do.
+ * The two are joined only by `projects.owner_user_id`.
  */
 
 export const projects = sqliteTable("projects", {
@@ -11,7 +15,74 @@ export const projects = sqliteTable("projects", {
   name: text("name").notNull(),
   /** sha256 hex of the plaintext API key. The key itself is never stored. */
   apiKeyHash: text("api_key_hash").notNull().unique(),
+  /**
+   * Who may see this project in the dashboard. Nullable because every project
+   * seeded from the command line before the dashboard existed has no owner,
+   * and because `npm run seed` still creates ownerless projects for local work.
+   *
+   * A null owner is not "visible to everyone" — the dashboard query filters on
+   * an explicit user id, so an ownerless project is visible to nobody.
+   */
+  ownerUserId: text("owner_user_id"),
   createdAt: text("created_at").notNull(),
+});
+
+/**
+ * A person who has signed in. Distinct from a project: a user may own several.
+ *
+ * Identity comes from GitHub and is keyed on the numeric id rather than the
+ * login, because a login can be renamed and then claimed by somebody else.
+ */
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  /** GitHub's numeric account id, as a string. Stable across renames. */
+  githubId: text("github_id").notNull().unique(),
+  login: text("login").notNull(),
+  /** May be absent: GitHub allows a private email with no verified address. */
+  email: text("email"),
+  avatarUrl: text("avatar_url"),
+  createdAt: text("created_at").notNull(),
+  lastLoginAt: text("last_login_at").notNull(),
+});
+
+/**
+ * A signed-in browser.
+ *
+ * The cookie holds 32 bytes of CSPRNG output; only `sha256(token)` is stored,
+ * for the same reason approval tokens are hashed — a leaked table must not be
+ * a set of live logins. Expiry is absolute, not sliding.
+ */
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull(),
+    /** Set when the user signs out. A revoked session is never resurrected. */
+    revokedAt: text("revoked_at"),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)],
+);
+
+/**
+ * An in-flight OAuth handshake.
+ *
+ * The `state` parameter is what stops a third party from feeding us their own
+ * authorization code and binding your browser to their GitHub account. It is
+ * stored server-side, single-use, and short-lived; a callback whose state is
+ * unknown, spent or stale is refused rather than followed.
+ */
+export const oauthStates = sqliteTable("oauth_states", {
+  id: text("id").primaryKey(),
+  /** sha256 hex. The plaintext only ever exists in the redirect URL. */
+  stateHash: text("state_hash").notNull().unique(),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at").notNull(),
+  usedAt: text("used_at"),
 });
 
 export const policies = sqliteTable(
@@ -145,3 +216,10 @@ export type AuditRow = typeof auditEvents.$inferSelect;
 export type NewAuditRow = typeof auditEvents.$inferInsert;
 export type SiteVisitRow = typeof siteVisits.$inferSelect;
 export type NewSiteVisitRow = typeof siteVisits.$inferInsert;
+
+export type UserRow = typeof users.$inferSelect;
+export type NewUserRow = typeof users.$inferInsert;
+export type SessionRow = typeof sessions.$inferSelect;
+export type NewSessionRow = typeof sessions.$inferInsert;
+export type OauthStateRow = typeof oauthStates.$inferSelect;
+export type NewOauthStateRow = typeof oauthStates.$inferInsert;

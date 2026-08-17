@@ -76,6 +76,25 @@ export const EnvSchema = z.object({
    */
   ANTHROPIC_API_KEY: optional(z.string().min(1)),
 
+  // --- dashboard sign-in ---
+  //
+  // All three optional together. Without them the dashboard serves a page
+  // explaining how to configure it rather than a broken login button, and the
+  // rest of the server runs exactly as before. Sign-in is a feature, not a
+  // dependency of the fence.
+
+  /** From the GitHub OAuth app. Public; it travels in the redirect URL. */
+  GITHUB_CLIENT_ID: optional(z.string().min(1)),
+  /** Secret. Never logged, never rendered, never leaves the token exchange. */
+  GITHUB_CLIENT_SECRET: optional(z.string().min(1)),
+  /**
+   * Must match the callback registered on the OAuth app exactly, including
+   * scheme and port. Deliberately its own variable rather than derived from
+   * PUBLIC_BASE_URL: that one points at a tunnel whose hostname changes every
+   * restart, and a moving callback is a login that breaks every morning.
+   */
+  GITHUB_REDIRECT_URI: optional(z.string().url()),
+
   // --- landing page visit counter ---
 
   /**

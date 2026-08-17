@@ -10,7 +10,18 @@ const SIZE = 21;
 
 const nano = customAlphabet(ALPHABET, SIZE);
 
-export const ID_PREFIXES = ["proj", "act", "pol", "apr", "evt", "vis"] as const;
+export const ID_PREFIXES = [
+  "proj",
+  "act",
+  "pol",
+  "apr",
+  "evt",
+  "vis",
+  // The dashboard: a person, a signed-in browser, an in-flight OAuth handshake.
+  "usr",
+  "ses",
+  "oas",
+] as const;
 
 export type IdPrefix = (typeof ID_PREFIXES)[number];
 

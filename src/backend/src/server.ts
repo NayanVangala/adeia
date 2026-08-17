@@ -18,6 +18,8 @@ import { createClassifier, createStubClassifier, CLASSIFIER_MODEL } from "./poli
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
 import { createAuditRoutes } from "./routes/audit.ts";
+import { createAuthRoutes } from "./routes/auth.ts";
+import { createDashboardRoutes } from "./routes/dashboard.ts";
 import { createSiteRoutes } from "./routes/site.ts";
 
 export type { AppDeps };
@@ -56,6 +58,11 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
   // cannot collide with `/actions/:id`.
   app.route("/v1", createAuditRoutes());
   app.route("/approvals", createApprovalRoutes());
+  app.route("/auth", createAuthRoutes());
+  // Mounted at the root because the path is `/dashboard`, and before the
+  // static handler so it is not shadowed by a `dashboard.html` that does not
+  // exist.
+  app.route("/", createDashboardRoutes());
 
   // The site, served from the same origin as the API. Mounted last so it can
   // never shadow a route above it, and only when a document root is
@@ -190,12 +197,25 @@ export async function boot(): Promise<void> {
   // src/backend/src/server.ts -> src/frontend
   const siteRoot = fileURLToPath(new URL("../../frontend", import.meta.url));
 
+  // All three or none. A half-configured OAuth app produces a login that fails
+  // at GitHub with a message the user cannot act on, so the dashboard treats it
+  // as unconfigured and says what is missing.
+  const oauth =
+    env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.GITHUB_REDIRECT_URI
+      ? {
+          clientId: env.GITHUB_CLIENT_ID,
+          clientSecret: env.GITHUB_CLIENT_SECRET,
+          redirectUri: env.GITHUB_REDIRECT_URI,
+        }
+      : undefined;
+
   const app = createApp({
     db,
     adapters,
     approverEmail: approval.approverEmail,
     onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
     classifier,
+    oauth,
     siteRoot,
   });
 
@@ -216,6 +236,11 @@ export async function boot(): Promise<void> {
     // Same reasoning as the payment line above: which classifier is answering
     // changes what runs unattended, so it is stated rather than inferred.
     console.log(`[adeia] risk classifier: ${classifierLine}`);
+    console.log(
+      `[adeia] dashboard: ${
+        oauth ? `sign-in via GitHub, callback ${oauth.redirectUri}` : "sign-in not configured"
+      }`,
+    );
   });
 }
 

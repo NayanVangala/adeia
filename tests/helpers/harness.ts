@@ -73,6 +73,10 @@ export interface HarnessOptions {
    * policy exists, which the engine denies — the same as production.
    */
   httpPolicy?: Partial<HttpPolicyConfig> | null;
+  /** Configures dashboard sign-in. Absent means the deployment has no OAuth app. */
+  oauth?: { clientId: string; clientSecret: string; redirectUri: string };
+  /** Stands in for GitHub during the OAuth handshake. */
+  fetch?: typeof fetch;
 }
 
 /** The `config` blob an http policy row carries. */
@@ -142,6 +146,8 @@ export function createHarness(opts: HarnessOptions = {}): Harness {
     db,
     adapters: createRegistry([adapter, httpAdapter]),
     approverEmail: APPROVER_EMAIL,
+    oauth: opts.oauth,
+    fetch: opts.fetch,
     classifier: async (input) => {
       classifierCalls.push(input);
       const override = typeof opts.verdict === "function" ? opts.verdict(input) : opts.verdict;

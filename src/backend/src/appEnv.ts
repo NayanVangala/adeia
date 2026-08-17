@@ -1,6 +1,17 @@
 import type { RequestDeps } from "./actions/service.ts";
+import type { GithubOauthConfig } from "./auth/github.ts";
 
 export interface AppDeps extends RequestDeps {
+  /**
+   * Present only when the deployment configured a GitHub OAuth app. Absent
+   * means the dashboard explains how to set it up instead of offering a login
+   * button that cannot work — the rest of the server is unaffected either way.
+   */
+  oauth?: GithubOauthConfig;
+
+  /** Injected so the OAuth handshake can be tested without a network. */
+  fetch?: typeof fetch;
+
   /**
    * Recorded as `decided_by`. The token is the only authentication on the
    * approval page, so this is the address the link was *sent* to, not a

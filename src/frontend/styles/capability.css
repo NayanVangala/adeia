@@ -73,10 +73,16 @@
                   bone  on forest  11.82:1
                   ink   on orchid   6.17:1
                   ink   on mist    12.42:1
-                  ink   on clay     7.53:1 */
+                  ink   on clay     7.53:1
+                  ink   on slate    7.88:1 */
 .capability__band--policy {
   --band: var(--forest);
   --band-ink: var(--bone);
+}
+
+.capability__band--classifier {
+  --band: var(--slate);
+  --band-ink: var(--ink);
 }
 
 .capability__band--approval {

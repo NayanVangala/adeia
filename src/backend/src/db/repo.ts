@@ -1,5 +1,5 @@
 import type { ActionRecord, ActionStatus, Decision } from "@adeia/shared";
-import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { newId } from "../ids.ts";
 import type { Policy } from "../policy/evaluate.ts";
 import type { Db } from "./client.ts";
@@ -7,18 +7,24 @@ import {
   actions,
   approvals,
   auditEvents,
+  oauthStates,
   policies,
   projects,
+  sessions,
   siteVisits,
+  users,
   type ActionRow,
   type ApprovalRow,
   type AuditRow,
   type PolicyRow,
+  type OauthStateRow,
   type ProjectRow,
+  type SessionRow,
+  type UserRow,
 } from "./schema.ts";
 
 export type Project = ProjectRow;
-export type { ApprovalRow, AuditRow, PolicyRow };
+export type { ApprovalRow, AuditRow, PolicyRow, SessionRow, UserRow };
 
 const now = (): string => new Date().toISOString();
 
@@ -38,6 +44,8 @@ export interface NewProject {
   name: string;
   /** sha256 hex. The plaintext key must never reach this function. */
   apiKeyHash: string;
+  /** Absent for a project seeded from the command line, which nobody owns. */
+  ownerUserId?: string;
 }
 
 export function insertProject(db: Db, p: NewProject): Project {
@@ -47,11 +55,39 @@ export function insertProject(db: Db, p: NewProject): Project {
       id: p.id ?? newId("proj"),
       name: p.name,
       apiKeyHash: p.apiKeyHash,
+      ownerUserId: p.ownerUserId ?? null,
       createdAt: now(),
     })
     .returning()
     .all();
   return row!;
+}
+
+/**
+ * Every project one user owns, newest first.
+ *
+ * Filters on an explicit id, so a project with a null owner is returned to
+ * nobody. That matters: `npm run seed` still creates ownerless projects, and
+ * "unowned" must never read as "everyone's".
+ */
+export function listProjectsByOwner(db: Db, userId: string): Project[] {
+  return db
+    .select()
+    .from(projects)
+    .where(eq(projects.ownerUserId, userId))
+    .orderBy(desc(projects.createdAt))
+    .all();
+}
+
+/** Rotating a key replaces the hash; the old key stops working immediately. */
+export function updateProjectKeyHash(db: Db, projectId: string, apiKeyHash: string): Project | null {
+  const [row] = db
+    .update(projects)
+    .set({ apiKeyHash })
+    .where(eq(projects.id, projectId))
+    .returning()
+    .all();
+  return row ?? null;
 }
 
 export function getProjectByKeyHash(db: Db, hash: string): Project | null {
@@ -541,4 +577,225 @@ export function getVisitCounts(db: Db, at: Date = new Date()): VisitCounts {
     .where(eq(siteVisits.day, day))
     .get();
   return { total: Number(total?.n ?? 0), today: Number(today?.n ?? 0) };
+}
+
+// --- users, sessions, oauth (the dashboard) ---------------------------------
+
+export interface NewUser {
+  githubId: string;
+  login: string;
+  email?: string | null;
+  avatarUrl?: string | null;
+}
+
+export function getUserByGithubId(db: Db, githubId: string): UserRow | null {
+  return db.select().from(users).where(eq(users.githubId, githubId)).get() ?? null;
+}
+
+export function getUser(db: Db, id: string): UserRow | null {
+  return db.select().from(users).where(eq(users.id, id)).get() ?? null;
+}
+
+/**
+ * Creates the user on first sign-in, refreshes the profile after that.
+ *
+ * Matched on the GitHub numeric id, never the login: a login can be given up
+ * and claimed by somebody else, and matching on it would hand that person the
+ * original account's projects.
+ */
+export function upsertUserFromGithub(db: Db, u: NewUser): UserRow {
+  const at = now();
+  const existing = getUserByGithubId(db, u.githubId);
+
+  if (existing) {
+    const [row] = db
+      .update(users)
+      .set({
+        login: u.login,
+        email: u.email ?? null,
+        avatarUrl: u.avatarUrl ?? null,
+        lastLoginAt: at,
+      })
+      .where(eq(users.id, existing.id))
+      .returning()
+      .all();
+    return row!;
+  }
+
+  const [row] = db
+    .insert(users)
+    .values({
+      id: newId("usr"),
+      githubId: u.githubId,
+      login: u.login,
+      email: u.email ?? null,
+      avatarUrl: u.avatarUrl ?? null,
+      createdAt: at,
+      lastLoginAt: at,
+    })
+    .returning()
+    .all();
+  return row!;
+}
+
+export function insertSession(
+  db: Db,
+  s: { userId: string; tokenHash: string; expiresAt: string },
+): SessionRow {
+  const [row] = db
+    .insert(sessions)
+    .values({
+      id: newId("ses"),
+      userId: s.userId,
+      tokenHash: s.tokenHash,
+      expiresAt: s.expiresAt,
+      createdAt: now(),
+    })
+    .returning()
+    .all();
+  return row!;
+}
+
+export function getSessionByTokenHash(db: Db, tokenHash: string): SessionRow | null {
+  return db.select().from(sessions).where(eq(sessions.tokenHash, tokenHash)).get() ?? null;
+}
+
+/** Signing out. Idempotent: revoking an already-revoked session is a no-op. */
+export function revokeSession(db: Db, id: string): void {
+  db.update(sessions)
+    .set({ revokedAt: now() })
+    .where(and(eq(sessions.id, id), isNull(sessions.revokedAt)))
+    .run();
+}
+
+export function insertOauthState(
+  db: Db,
+  s: { stateHash: string; expiresAt: string },
+): OauthStateRow {
+  const [row] = db
+    .insert(oauthStates)
+    .values({
+      id: newId("oas"),
+      stateHash: s.stateHash,
+      expiresAt: s.expiresAt,
+      createdAt: now(),
+    })
+    .returning()
+    .all();
+  return row!;
+}
+
+/**
+ * Spends an OAuth state, returning it only if it was unspent and unexpired.
+ *
+ * The update carries the `used_at IS NULL` predicate rather than reading then
+ * writing, so two callbacks arriving with the same state cannot both pass —
+ * SQLite settles it, not a race between two reads.
+ */
+export function consumeOauthState(db: Db, stateHash: string): OauthStateRow | null {
+  const at = now();
+  const [row] = db
+    .update(oauthStates)
+    .set({ usedAt: at })
+    .where(
+      and(
+        eq(oauthStates.stateHash, stateHash),
+        isNull(oauthStates.usedAt),
+        gte(oauthStates.expiresAt, at),
+      ),
+    )
+    .returning()
+    .all();
+  return row ?? null;
+}
+
+/** Housekeeping. Spent and stale states are of no further use. */
+export function deleteExpiredOauthStates(db: Db): void {
+  db.delete(oauthStates).where(lt(oauthStates.expiresAt, now())).run();
+}
+
+// --- dashboard reads --------------------------------------------------------
+
+/** Newest first. Bounded, because the dashboard renders every row it gets. */
+export function listActionsByProject(db: Db, projectId: string, limit = 50): ActionRecord[] {
+  return db
+    .select()
+    .from(actions)
+    .where(eq(actions.projectId, projectId))
+    .orderBy(desc(actions.createdAt))
+    .limit(limit)
+    .all()
+    .map(toActionRecord);
+}
+
+export function countActionsByStatus(db: Db, projectId: string, status: ActionStatus): number {
+  const [row] = db
+    .select({ n: sql<number>`count(*)` })
+    .from(actions)
+    .where(and(eq(actions.projectId, projectId), eq(actions.status, status)))
+    .all();
+  return row?.n ?? 0;
+}
+
+/** Same UTC-day boundary the policy engine uses, for the same reason. */
+export function countActionsByStatusToday(
+  db: Db,
+  projectId: string,
+  status: ActionStatus,
+): number {
+  const [row] = db
+    .select({ n: sql<number>`count(*)` })
+    .from(actions)
+    .where(
+      and(
+        eq(actions.projectId, projectId),
+        eq(actions.status, status),
+        gte(actions.createdAt, utcMidnightIso()),
+      ),
+    )
+    .all();
+  return row?.n ?? 0;
+}
+
+export interface ClassifierVerdict {
+  actionId: string;
+  verdict: string;
+  reason: string;
+  model: string;
+}
+
+/**
+ * The classifier's verdict for each of the given actions, where there was one.
+ *
+ * Read from the audit trail rather than stored on the action, because the trail
+ * is already the record of who decided what and duplicating it invites the two
+ * to disagree.
+ */
+export function classifierVerdictsFor(db: Db, actionIds: string[]): Map<string, ClassifierVerdict> {
+  const found = new Map<string, ClassifierVerdict>();
+  if (actionIds.length === 0) return found;
+
+  const rows = db
+    .select()
+    .from(auditEvents)
+    .where(and(eq(auditEvents.event, "action.classified"), inArray(auditEvents.actionId, actionIds)))
+    .all();
+
+  for (const row of rows) {
+    if (!row.actionId || !row.data) continue;
+    try {
+      const data = JSON.parse(row.data) as { verdict?: unknown; reason?: unknown; model?: unknown };
+      if (typeof data.verdict !== "string") continue;
+      found.set(row.actionId, {
+        actionId: row.actionId,
+        verdict: data.verdict,
+        reason: typeof data.reason === "string" ? data.reason : "",
+        model: typeof data.model === "string" ? data.model : "unknown",
+      });
+    } catch {
+      // A malformed audit row must not take the whole dashboard down.
+    }
+  }
+
+  return found;
 }

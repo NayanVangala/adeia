@@ -34,6 +34,11 @@
   --orchid: #cd8dbd;
   --mist: #eddfee;
   --clay: #b7b39c;
+  /* The classifier's colour. Cooler than the rest on purpose: it marks the one
+     part of the system where a model decides rather than a rule, and that
+     distinction should be visible before the words are read.
+     --ink on --slate is 7.88:1. */
+  --slate: #a8b6c8;
 
   /* ---- readable inks per ground (all verified >= WCAG AA) ----
      --orchid on --ink is 6.4:1, fine at any size.
