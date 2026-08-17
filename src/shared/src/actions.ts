@@ -59,6 +59,21 @@ export const DECISIONS = ["allow", "require_approval", "deny"] as const;
 
 export type Decision = (typeof DECISIONS)[number];
 
+/**
+ * What `evaluate()` can return — a superset of `Decision`.
+ *
+ * `classify` means the deterministic rules found nothing disqualifying and the
+ * operator opened this case to the risk classifier. It is an instruction to the
+ * caller, not an outcome: by the time an action row is written the classifier
+ * has resolved it into `allow` or `require_approval`.
+ *
+ * Kept as a separate type rather than a fourth `DECISIONS` entry so that
+ * persisting it does not compile. An action stored as `classify` would be a row
+ * in a state nothing knows how to resume, and a comment asking future callers
+ * not to do that is weaker than a type that refuses.
+ */
+export type PolicyOutcome = Decision | "classify";
+
 /** Every action type that exists. A policy is stored against one of these. */
 export const ACTION_TYPES = ["payment", "http"] as const;
 

@@ -163,6 +163,18 @@ function toHttpPolicy(row: PolicyRow): Policy {
     return value as string[];
   };
 
+  /**
+   * For keys whose absence is a real answer rather than a mistake.
+   *
+   * `allowedHosts` uses `list` because a missing allowlist must never become
+   * "no restrictions". `classifyMethods` is the opposite case: every policy
+   * written before the classifier existed lacks it, and the safe reading of
+   * "not mentioned" is the empty list — nothing opened to a model. A present
+   * but malformed value still throws, because that is a mistake.
+   */
+  const optionalList = (key: string): string[] =>
+    config[key] === undefined || config[key] === null ? [] : list(key);
+
   const maxCallsPerDay = config["maxCallsPerDay"];
   if (
     maxCallsPerDay !== null &&
@@ -179,6 +191,7 @@ function toHttpPolicy(row: PolicyRow): Policy {
     allowedHosts: list("allowedHosts").map((host) => host.toLowerCase()),
     approvalMethods: list("approvalMethods"),
     deniedMethods: list("deniedMethods"),
+    classifyMethods: optionalList("classifyMethods"),
     maxCallsPerDay: (maxCallsPerDay as number | undefined) ?? null,
     requiresApproval: row.requiresApproval === 1,
   };

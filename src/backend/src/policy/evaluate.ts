@@ -2,9 +2,9 @@ import {
   hostOf,
   isBlockedHost,
   isReadMethod,
-  type Decision,
   type HttpParams,
   type PaymentParams,
+  type PolicyOutcome,
 } from "@adeia/shared";
 
 /**
@@ -46,6 +46,16 @@ export interface HttpPolicy {
   approvalMethods: string[];
   /** Methods refused outright, with no approval offered. */
   deniedMethods: string[];
+  /**
+   * Methods the operator has opened to the risk classifier.
+   *
+   * Never overrides `deniedMethods` or `approvalMethods` — a method in both is
+   * resolved by the deny-then-approve ordering below, so a confused
+   * configuration asks more often rather than less. An empty list, the
+   * default, reproduces the behaviour of a policy written before the
+   * classifier existed.
+   */
+  classifyMethods: string[];
   /** Calls already made today against this policy. null = no cap. */
   maxCallsPerDay: number | null;
   /** Forces approval for every call, whatever the method. */
@@ -69,7 +79,7 @@ export interface PolicyInput {
 }
 
 export interface PolicyResult {
-  decision: Decision;
+  decision: PolicyOutcome;
   reason: string;
 }
 
@@ -223,6 +233,21 @@ function evaluateHttp(
     return {
       decision: "require_approval",
       reason: `method ${params.method} changes something and needs a person`,
+    };
+  }
+
+  // Checked after every deny rule and after `approvalMethods`, which is the
+  // whole safety argument for the classifier: it is only ever consulted about
+  // calls that survived the deterministic fence, and a method the operator
+  // wants a human on stays with the human whatever a model would have said.
+  //
+  // Deliberately above the read check, so an operator who wants reads judged
+  // too can have that by listing GET. The effect of that is more approvals,
+  // never fewer.
+  if (policy.classifyMethods.includes(params.method)) {
+    return {
+      decision: "classify",
+      reason: `method ${params.method} was opened to the risk classifier`,
     };
   }
 

@@ -1,4 +1,4 @@
-import { PaymentParamsSchema } from "@adeia/shared";
+import { HttpParamsSchema, PaymentParamsSchema } from "@adeia/shared";
 import type { Adapter, AdapterContext } from "./types.ts";
 
 export interface FakeCall {
@@ -45,6 +45,43 @@ export function createFakeAdapter(opts: { type?: string } = {}): FakeAdapter {
         status: "succeeded",
         amountCents: p.amountCents,
         currency: p.currency,
+      };
+    },
+  };
+}
+
+/**
+ * The http counterpart. Same purpose as `createFakeAdapter`: the assertions
+ * that matter are the negative ones, and they need a recorded call log.
+ *
+ * Validates with the real schema so a test cannot accidentally prove that
+ * something reached the network which the schema would have rejected.
+ */
+export function createFakeHttpAdapter(): FakeAdapter {
+  const calls: FakeCall[] = [];
+  let failure: Error | null = null;
+
+  return {
+    type: "http",
+    name: "fake-http",
+    calls,
+    failWith(error) {
+      failure = error;
+    },
+    async execute(params: unknown, ctx: AdapterContext) {
+      calls.push({ params, ctx });
+      if (failure) throw failure;
+
+      const p = HttpParamsSchema.parse(params);
+      return {
+        status: 200,
+        statusText: "OK",
+        ok: true,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ fake: true, method: p.method }),
+        bodyTruncated: false,
+        durationMs: 1,
+        resolvedAddress: "203.0.113.1",
       };
     },
   };

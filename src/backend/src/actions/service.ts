@@ -1,4 +1,4 @@
-import type { ActionRecord, ActionRequest } from "@adeia/shared";
+import type { ActionRecord, ActionRequest, Decision } from "@adeia/shared";
 import type { Adapter, AdapterRegistry } from "../adapters/types.ts";
 import { appendAudit } from "../audit/log.ts";
 import type { Db } from "../db/client.ts";
@@ -12,7 +12,8 @@ import {
   toPolicy,
   updateActionStatus,
 } from "../db/repo.ts";
-import { evaluate } from "../policy/evaluate.ts";
+import type { Classifier } from "../policy/classify.ts";
+import { evaluate, type PolicyResult } from "../policy/evaluate.ts";
 
 /**
  * The only module that writes an action status transition. Everything else
@@ -29,6 +30,12 @@ export interface RequestDeps {
    * changing, and it is the seam where Slack or a webhook slots in later.
    */
   onApprovalNeeded: (actionId: string, projectId: string) => Promise<void>;
+  /**
+   * Answers the `classify` outcome. Injected for the same reason as the
+   * sender: tests need no API key and no network, and a deployment without a
+   * key gets `createStubClassifier`, which refuses.
+   */
+  classifier: Classifier;
 }
 
 const now = (): string => new Date().toISOString();
@@ -101,6 +108,76 @@ async function execute(deps: RequestDeps, action: ActionRecord): Promise<ActionR
   return current;
 }
 
+/**
+ * Turns a `PolicyOutcome` into a `Decision`, calling the classifier when the
+ * policy opened this case to one.
+ *
+ * Everything the deterministic rules settled passes straight through. The
+ * classifier is reached only via `classify`, which `evaluate()` returns after
+ * every deny rule has already run — so no call the fence refused can ever be
+ * put to a model.
+ *
+ * Both failure paths land on `require_approval`. That is the whole contract:
+ * a classifier that cannot answer means ask, never means yes.
+ */
+async function resolveOutcome(
+  deps: RequestDeps,
+  actionId: string,
+  projectId: string,
+  req: ActionRequest,
+  outcome: PolicyResult,
+): Promise<{ decision: Decision; reason: string }> {
+  if (outcome.decision !== "classify") {
+    return { decision: outcome.decision, reason: outcome.reason };
+  }
+
+  // `evaluate()` only returns `classify` from the http rules, so this cannot
+  // happen. It is checked rather than asserted because the alternative is
+  // reading `params.url` off a payment — and a fence that assumes its own
+  // correctness is not a fence.
+  if (req.type !== "http") {
+    return {
+      decision: "require_approval",
+      reason: `the policy engine asked to classify a "${req.type}" action, which it should never do; asking a person`,
+    };
+  }
+
+  const verdict = await deps.classifier({
+    method: req.params.method,
+    url: req.params.url,
+    body: req.params.body,
+  });
+
+  appendAudit(deps.db, {
+    actionId,
+    projectId,
+    event: "action.classified",
+    data: {
+      verdict: verdict.risk,
+      reason: verdict.reason,
+      model: verdict.model,
+      durationMs: verdict.durationMs,
+      failed: verdict.failed,
+    },
+  });
+
+  // `failed` is checked alongside the verdict rather than trusted to carry
+  // `high`, so that a future change to the failure default cannot quietly
+  // open the gate.
+  if (verdict.risk === "low" && !verdict.failed) {
+    return {
+      // Worded so nobody reading the trail later mistakes this for a person.
+      decision: "allow",
+      reason: `a risk classifier judged this low risk and let it run: ${verdict.reason}`,
+    };
+  }
+
+  return {
+    decision: "require_approval",
+    reason: verdict.failed ? verdict.reason : `a risk classifier flagged this: ${verdict.reason}`,
+  };
+}
+
 export async function requestAction(
   deps: RequestDeps,
   projectId: string,
@@ -134,7 +211,7 @@ export async function requestAction(
     req.type === "payment"
       ? sumSpentTodayCents(deps.db, projectId, req.params.currency)
       : countExecutedTodayByType(deps.db, projectId, req.type);
-  const { decision, reason } = evaluate({
+  const outcome = evaluate({
     actionType: req.type,
     params: req.params,
     policy: policyRow ? toPolicy(policyRow) : null,
@@ -145,8 +222,17 @@ export async function requestAction(
     actionId: action.id,
     projectId,
     event: "policy.evaluated",
-    data: { decision, reason, spentTodayCents, policyId: policyRow?.id ?? null },
+    data: {
+      decision: outcome.decision,
+      reason: outcome.reason,
+      spentTodayCents,
+      policyId: policyRow?.id ?? null,
+    },
   });
+
+  // `classify` is an instruction, not an outcome. Resolving it here is what
+  // keeps it out of the database and out of every branch below.
+  const { decision, reason } = await resolveOutcome(deps, action.id, projectId, req, outcome);
 
   if (decision === "deny") {
     action = updateActionStatus(deps.db, action.id, {

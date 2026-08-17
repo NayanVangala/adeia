@@ -62,6 +62,20 @@ export const EnvSchema = z.object({
   ),
   APPROVAL_TOKEN_TTL_MS: z.coerce.number().int().positive().default(86_400_000),
 
+  // --- risk classifier ---
+
+  /**
+   * Powers the risk classifier, which answers the `classify` outcome for
+   * methods an operator listed in `classifyMethods`.
+   *
+   * Optional. Without it the server runs `createStubClassifier`, which refuses
+   * every classification and sends the action to a person — so a policy that
+   * opened methods to a classifier that was never configured produces approval
+   * emails rather than unattended writes. A missing key must not be a quiet
+   * upgrade in what an agent may do on its own.
+   */
+  ANTHROPIC_API_KEY: optional(z.string().min(1)),
+
   // --- landing page visit counter ---
 
   /**

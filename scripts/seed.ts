@@ -27,7 +27,7 @@ export const DEMO_POLICY = {
 } as const;
 
 /**
- * The http policy: read freely, ask before changing anything.
+ * The http policy: read freely, judge most writes, always ask before deleting.
  *
  * `allowedHosts` is the whole defence for this action type, so it is a short
  * explicit list rather than anything permissive. api.github.com is here
@@ -35,20 +35,28 @@ export const DEMO_POLICY = {
  * by anyone in one command; api.cloudflare.com because managing DNS is the
  * case this was built for.
  *
- * Methods split the way consequences do. GET and HEAD change nothing, so they
- * run. Everything that writes stops for a person — and a method nobody
- * classified is treated as a write by the engine, so a new verb is safe by
- * default rather than by remembering to list it.
+ * Methods split three ways, by how much a mistake costs.
+ *
+ * GET and HEAD change nothing, so they run. POST, PUT and PATCH go to the risk
+ * classifier: creating an issue and repointing a DNS record are both writes,
+ * and asking about them identically is what buried the approvals that mattered.
+ * DELETE stays with a person whatever the classifier would have said — it is
+ * the one verb whose mistakes cannot be inspected afterwards, because the thing
+ * you would inspect is gone.
+ *
+ * A method in neither list is still treated as a write by the engine, so a new
+ * verb is safe by default rather than by remembering to list it.
  */
 export const DEMO_HTTP_POLICY = {
   actionType: "http",
   requiresApproval: false,
   config: {
     allowedHosts: ["api.github.com", "api.cloudflare.com"],
-    approvalMethods: ["POST", "PUT", "PATCH", "DELETE"],
+    approvalMethods: ["DELETE"],
+    classifyMethods: ["POST", "PUT", "PATCH"],
     deniedMethods: [],
     // Bounds a runaway loop. There is no amount to cap, so the budget is
-    // attempts.
+    // attempts. It also bounds classifier spend: no action, no classification.
     maxCallsPerDay: 100,
   },
 } as const;
@@ -83,7 +91,10 @@ function main(): void {
   console.log(`    allowed hosts      ${DEMO_HTTP_POLICY.config.allowedHosts.join(", ")}`);
   console.log(`    reads              GET, HEAD → run immediately`);
   console.log(
-    `    writes             ${DEMO_HTTP_POLICY.config.approvalMethods.join(", ")} → ask a human`,
+    `    judged             ${DEMO_HTTP_POLICY.config.classifyMethods.join(", ")} → risk classifier decides`,
+  );
+  console.log(
+    `    always ask         ${DEMO_HTTP_POLICY.config.approvalMethods.join(", ")} → a human, whatever the classifier says`,
   );
   console.log(`    every other host   denied`);
   console.log(`    daily call cap     ${DEMO_HTTP_POLICY.config.maxCallsPerDay}`);

@@ -14,6 +14,7 @@ import { getAction } from "./db/repo.ts";
 import { env, requireApprovalConfig } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
 import { createSmtpSender, createSmtpTransport, verifySmtp } from "./notify/smtp.ts";
+import { createClassifier, createStubClassifier, CLASSIFIER_MODEL } from "./policy/classify.ts";
 import { createActionRoutes } from "./routes/actions.ts";
 import { createApprovalRoutes } from "./routes/approvals.ts";
 import { createAuditRoutes } from "./routes/audit.ts";
@@ -177,6 +178,15 @@ export async function boot(): Promise<void> {
     transportLine = "resend";
   }
 
+  // Falls back to the stub when no key is set, which refuses every
+  // classification rather than allowing it.
+  const classifier = env.ANTHROPIC_API_KEY
+    ? createClassifier({ apiKey: env.ANTHROPIC_API_KEY })
+    : createStubClassifier();
+  const classifierLine = env.ANTHROPIC_API_KEY
+    ? CLASSIFIER_MODEL
+    : "none — classified methods will ask a person";
+
   // src/backend/src/server.ts -> src/frontend
   const siteRoot = fileURLToPath(new URL("../../frontend", import.meta.url));
 
@@ -185,6 +195,7 @@ export async function boot(): Promise<void> {
     adapters,
     approverEmail: approval.approverEmail,
     onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
+    classifier,
     siteRoot,
   });
 
@@ -202,6 +213,9 @@ export async function boot(): Promise<void> {
     console.log(`[adeia] approvals: ${approval.approverEmail} via ${approval.publicBaseUrl}`);
     // The transport and the sending identity, never the credential.
     console.log(`[adeia]   sending as ${approval.fromEmail} over ${transportLine}`);
+    // Same reasoning as the payment line above: which classifier is answering
+    // changes what runs unattended, so it is stated rather than inferred.
+    console.log(`[adeia] risk classifier: ${classifierLine}`);
   });
 }
 

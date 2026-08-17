@@ -11,6 +11,15 @@ import { insertAuditEvent } from "../db/repo.ts";
 export const AUDIT_EVENTS = [
   "action.requested",
   "policy.evaluated",
+  /**
+   * A model, not a person, judged this action. Recorded whenever the policy
+   * returned `classify`, including when the classifier failed and the action
+   * was sent to a human as a result.
+   *
+   * Its own event rather than a field on `policy.evaluated`, so that reading
+   * the trail can never leave someone with the impression a person decided.
+   */
+  "action.classified",
   "action.denied",
   "action.pending_approval",
   "approval.sent",
