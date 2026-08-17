@@ -55,6 +55,10 @@
   color: var(--mist);
 }
 
+/* The sign-in pill lives in menu.css. Every page carries a masthead but
+   only this one and quickstart load this file, and the rule has to
+   apply to all nine. */
+
 /* A <button> needs its own reset before .plus-link's flexbox applies. */
 .masthead__menu {
   appearance: none;

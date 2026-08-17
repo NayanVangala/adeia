@@ -90,6 +90,17 @@ describe("the $25 invoice", () => {
   });
 });
 
+/**
+ * Both of these wait on a real poll cycle.
+ *
+ * `waitForAction` polls every 2s by default and the demo tool does not
+ * override it, so each test spends about that long genuinely suspended —
+ * which is the behaviour under test: the agent must sit still while a human
+ * decides. Under a loaded parallel run that overruns the 5s default, so the
+ * timeout is raised here rather than the wait being faked away.
+ */
+const POLL_CYCLE_TIMEOUT_MS = 20_000;
+
 describe("the $500 invoice", () => {
   it("pauses, waits for a human, then resumes and reports executed", async () => {
     const pending = tool.run({
@@ -105,7 +116,7 @@ describe("the $500 invoice", () => {
 
     expect(await pending).toMatch(/executed/);
     expect(h.adapter.calls).toHaveLength(1);
-  });
+  }, POLL_CYCLE_TIMEOUT_MS);
 
   it("reports the refusal when the human says no", async () => {
     const pending = tool.run({
@@ -119,7 +130,7 @@ describe("the $500 invoice", () => {
 
     expect(await pending).toMatch(/denied/);
     expect(h.adapter.calls).toHaveLength(0);
-  });
+  }, POLL_CYCLE_TIMEOUT_MS);
 });
 
 describe("an invoice policy refuses outright", () => {

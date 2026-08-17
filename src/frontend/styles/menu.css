@@ -126,3 +126,54 @@
     transition-delay: 0s;
   }
 }
+
+/* ---------- sign in ----------
+   Lives here rather than in hero.css because every page carries a
+   masthead and only two pages load that file. Unprefixed on purpose:
+   each page-*.css repeats the masthead block with its own .page-x
+   prefix, and repeating this nine more times would be nine more places
+   for it to drift.
+
+   It is a filled pill rather than another quiet link because it is the
+   one actionable thing in a bar that is otherwise navigation.
+
+   `margin-inline-start: auto` is what keeps the layout intact. Every
+   masthead is space-between with two children; a third would spread
+   across the middle. This pushes it and the Menu button into one group
+   on the right, separated by the bar's own gap.
+
+   --ink on --mist is 12.42:1, the same pairing the capability bands
+   use, so it clears AA here with room to spare. */
+.masthead__signin {
+  margin-inline-start: auto;
+  padding: 0.5rem 1.125rem;
+  border-radius: 999px;
+  background: var(--mist);
+  color: var(--ink);
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--quick) var(--ease),
+    color var(--quick) var(--ease);
+}
+
+.masthead__signin:hover,
+.masthead__signin:focus-visible {
+  background: var(--orchid);
+  color: var(--ink);
+}
+
+/* Narrow screens: the label alone, no pill, so it cannot crowd the
+   wordmark or push Menu off the edge. */
+@media (max-width: 30rem) {
+  .masthead__signin {
+    padding: 0;
+    background: none;
+    color: var(--mist);
+  }
+}

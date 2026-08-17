@@ -315,6 +315,17 @@ export function renderDashboard(view: DashboardView): string {
   const waiting = view.actions.filter((a) => a.action.status === "pending_approval");
   const rest = view.actions.filter((a) => a.action.status !== "pending_approval");
 
+  /**
+   * The key card, in one of two states.
+   *
+   * With a key: shown once, never again, because only the hash is stored.
+   * Without: a button to mint a new one. That button is the reason "shown
+   * once" is a reasonable thing to do to somebody — a secret you cannot see
+   * again and cannot replace is a locked door with the key inside.
+   *
+   * Rotating is destructive, so the button says what it breaks before it is
+   * pressed rather than after.
+   */
   const keyBlock = view.freshApiKey
     ? `<div class="card">
       <p class="eyebrow">Your API key</p>
@@ -324,7 +335,18 @@ export function renderDashboard(view: DashboardView): string {
       <p class="warn">Anyone holding this key can ask Adeia to act inside your policy.
       Keep it out of screenshots and out of git.</p>
     </div>`
-    : "";
+    : `<div class="card">
+      <p class="eyebrow">API key</p>
+      <p style="margin:0 0 .75rem">Your agents authenticate with a key. Adeia only stores a
+      hash of it, so an existing key can never be shown again — generating a new one is the
+      way to get a key you can read.</p>
+      <form method="POST" action="/dashboard/key" style="margin:0">
+        <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+        <button class="btn" type="submit">Generate a new key</button>
+      </form>
+      <p class="warn">This replaces the current key immediately. Anything already using
+      the old one stops working until you paste in the new one.</p>
+    </div>`;
 
   const table = (rows: DashboardAction[], emptyText: string): string =>
     rows.length === 0

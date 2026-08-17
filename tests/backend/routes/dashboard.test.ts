@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { requestAction } from "../../../src/backend/src/actions/service.ts";
+import { hashApiKey } from "../../../src/backend/src/auth/apiKey.ts";
 import { mintSession } from "../../../src/backend/src/auth/session.ts";
 import {
   STARTER_HTTP_POLICY,
@@ -229,5 +230,155 @@ describe("what the dashboard shows", () => {
     const body = await (await get("/dashboard", cookie)).text();
     expect(body).toContain("waiting on you");
     expect(body).toContain("ran today");
+  });
+});
+
+describe("rotating the API key", () => {
+  beforeEach(() => {
+    h = createHarness();
+  });
+
+  /** Signs in and provisions, returning the cookie and the project id. */
+  async function established() {
+    const session = signIn("someone", "1");
+    await get("/dashboard", session.cookie);
+    const [row] = h.db.$client
+      .prepare("SELECT id, api_key_hash FROM projects WHERE owner_user_id = ?")
+      .all(session.user.id) as { id: string; api_key_hash: string }[];
+    return { ...session, projectId: row!.id, hashBefore: row!.api_key_hash };
+  }
+
+  const rotate = (cookie: string, csrf: string) =>
+    h.app.request("/dashboard/key", {
+      method: "POST",
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ csrf }).toString(),
+    });
+
+  /** Reads the CSRF token the page embedded in its forms. */
+  async function csrfFrom(cookie: string): Promise<string> {
+    const body = await (await get("/dashboard", cookie)).text();
+    return /name="csrf" value="([a-f0-9]+)"/.exec(body)?.[1] ?? "";
+  }
+
+  it("issues a new key and shows it exactly once", async () => {
+    const s = await established();
+    const csrf = await csrfFrom(s.cookie);
+
+    const res = await rotate(s.cookie, csrf);
+    const body = await res.text();
+
+    expect(res.status).toBe(200);
+    expect(body).toContain("adeia_sk_");
+
+    // Gone on the next load, because only the hash was kept.
+    const next = await (await get("/dashboard", s.cookie)).text();
+    expect(next).not.toContain("adeia_sk_");
+  });
+
+  it("stores only the hash, never the key itself", async () => {
+    const s = await established();
+    const csrf = await csrfFrom(s.cookie);
+
+    const body = await (await rotate(s.cookie, csrf)).text();
+    const shown = /adeia_sk_[A-Za-z0-9_-]+/.exec(body)?.[0] ?? "";
+    expect(shown).not.toBe("");
+
+    const [row] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .all(s.projectId) as { api_key_hash: string }[];
+    expect(row!.api_key_hash).not.toBe(shown);
+    expect(row!.api_key_hash).toBe(hashApiKey(shown));
+  });
+
+  it("kills the old key immediately", async () => {
+    const s = await established();
+    const csrf = await csrfFrom(s.cookie);
+
+    await rotate(s.cookie, csrf);
+
+    const [row] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .all(s.projectId) as { api_key_hash: string }[];
+    expect(row!.api_key_hash).not.toBe(s.hashBefore);
+  });
+
+  it("never puts the key in a redirect URL", async () => {
+    // A redirect would carry the secret into browser history, the referer
+    // header, and every log between here and the user.
+    const s = await established();
+    const csrf = await csrfFrom(s.cookie);
+
+    const res = await rotate(s.cookie, csrf);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+  });
+
+  it("refuses without a CSRF token", async () => {
+    const s = await established();
+
+    const res = await rotate(s.cookie, "");
+    expect(res.status).toBe(403);
+
+    const [row] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .all(s.projectId) as { api_key_hash: string }[];
+    expect(row!.api_key_hash).toBe(s.hashBefore);
+  });
+
+  it("refuses a CSRF token belonging to a different session", async () => {
+    const mine = await established();
+    const theirs = signIn("someone-else", "2");
+    await get("/dashboard", theirs.cookie);
+    const theirCsrf = await csrfFrom(theirs.cookie);
+
+    const res = await rotate(mine.cookie, theirCsrf);
+    expect(res.status).toBe(403);
+
+    const [row] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .all(mine.projectId) as { api_key_hash: string }[];
+    expect(row!.api_key_hash).toBe(mine.hashBefore);
+  });
+
+  it("refuses a signed-out request", async () => {
+    const s = await established();
+
+    const res = await rotate("adeia_session=forged", "anything");
+    expect(res.status).toBe(302);
+
+    const [row] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .all(s.projectId) as { api_key_hash: string }[];
+    expect(row!.api_key_hash).toBe(s.hashBefore);
+  });
+
+  it("rotates only the caller's own project", async () => {
+    const mine = await established();
+    const theirs = signIn("someone-else", "2");
+    await get("/dashboard", theirs.cookie);
+    const [before] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE owner_user_id = ?")
+      .all(theirs.user.id) as { api_key_hash: string }[];
+
+    await rotate(mine.cookie, await csrfFrom(mine.cookie));
+
+    const [after] = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE owner_user_id = ?")
+      .all(theirs.user.id) as { api_key_hash: string }[];
+    expect(after!.api_key_hash).toBe(before!.api_key_hash);
+  });
+
+  it("produces a key that actually authenticates against the API", async () => {
+    // End to end: the thing the dashboard hands you must work as a bearer
+    // token, or the whole flow is decorative.
+    const s = await established();
+    const body = await (await rotate(s.cookie, await csrfFrom(s.cookie))).text();
+    const key = /adeia_sk_[A-Za-z0-9_-]+/.exec(body)?.[0] ?? "";
+
+    const ok = await h.app.request("/v1/audit", {
+      headers: { authorization: `Bearer ${key}` },
+    });
+    expect(ok.status).toBe(200);
   });
 });

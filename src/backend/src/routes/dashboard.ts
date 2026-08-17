@@ -2,9 +2,14 @@ import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { isBlockedHost } from "@adeia/shared";
 import { approveAction, denyAction, NotPendingApprovalError } from "../actions/service.ts";
-import type { AppEnv } from "../appEnv.ts";
+import type { AppDeps, AppEnv } from "../appEnv.ts";
 import { generateApiKey, hashApiKey } from "../auth/apiKey.ts";
-import { csrfMatches, resolveSession, SESSION_COOKIE } from "../auth/session.ts";
+import {
+  csrfMatches,
+  resolveSession,
+  SESSION_COOKIE,
+  type ResolvedSession,
+} from "../auth/session.ts";
 import {
   renderDashboard,
   renderSignIn,
@@ -23,6 +28,7 @@ import {
   listProjectsByOwner,
   toPolicy,
   updatePolicyConfig,
+  updateProjectKeyHash,
   type Project,
 } from "../db/repo.ts";
 
@@ -119,6 +125,53 @@ function provisionProject(
   });
 
   return { project, apiKey };
+}
+
+/**
+ * Builds the whole dashboard for one project.
+ *
+ * Shared by the GET and by the key-rotation POST, which renders directly
+ * instead of redirecting. Everything it shows is read back from the database
+ * rather than carried over from whatever just happened, so the page cannot
+ * claim a state the engine would not agree with.
+ */
+function renderDashboardFor(
+  deps: AppDeps,
+  session: ResolvedSession,
+  project: Project,
+  freshApiKey?: string,
+  flash?: { text: string; kind: "approved" | "denied" },
+): string {
+  const httpRow = getPolicy(deps.db, project.id, "http");
+  let allowedHosts: string[] = [];
+  if (httpRow) {
+    const parsed = toPolicy(httpRow);
+    if (parsed.actionType === "http") allowedHosts = parsed.allowedHosts;
+  }
+
+  const records = listActionsByProject(deps.db, project.id);
+  const verdicts = classifierVerdictsFor(
+    deps.db,
+    records.map((r) => r.id),
+  );
+
+  return renderDashboard({
+    user: { login: session.user.login, avatarUrl: session.user.avatarUrl },
+    projectName: project.name,
+    actions: records.map((action) => ({
+      action,
+      classifier: verdicts.get(action.id) ?? null,
+    })),
+    counts: {
+      waiting: countActionsByStatus(deps.db, project.id, "pending_approval"),
+      ranToday: countActionsByStatusToday(deps.db, project.id, "executed"),
+      refusedToday: countActionsByStatusToday(deps.db, project.id, "denied"),
+    },
+    freshApiKey,
+    csrf: session.csrf,
+    flash,
+    allowedHosts,
+  });
 }
 
 export function createDashboardRoutes(): Hono<AppEnv> {
@@ -240,6 +293,39 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     return c.redirect("/dashboard?policy=saved", 302);
   });
 
+  /**
+   * Mints a replacement API key.
+   *
+   * Destructive by design: the old key stops working the moment the hash is
+   * overwritten, and there is no grace period. That is the honest behaviour
+   * for a credential you rotate because you think it leaked — a window where
+   * both keys work is a window the thief also has.
+   *
+   * The new key is handed to the renderer and never stored. It exists in this
+   * response and nowhere else.
+   */
+  routes.post("/dashboard/key", async (c) => {
+    const deps = c.get("deps");
+    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const project = listProjectsByOwner(deps.db, session.user.id)[0];
+    if (!project) return c.redirect("/dashboard", 302);
+
+    const apiKey = generateApiKey();
+    updateProjectKeyHash(deps.db, project.id, hashApiKey(apiKey));
+
+    // Rendered directly rather than redirected, because a redirect would have
+    // to carry the key in a URL — into browser history, the referer header and
+    // every log between here and the user.
+    return c.html(renderDashboardFor(deps, session, project, apiKey));
+  });
+
   routes.get("/dashboard", (c) => {
     const deps = c.get("deps");
     const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
@@ -259,26 +345,6 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     // One project per user for now. The query is by owner, so adding a project
     // switcher later needs a selector, not a different data path.
     const project = projects[0]!;
-
-    // Read back rather than assumed, so the card always shows what the engine
-    // will actually enforce.
-    const httpRow = getPolicy(deps.db, project.id, "http");
-    let allowedHosts: string[] = [];
-    if (httpRow) {
-      const parsed = toPolicy(httpRow);
-      if (parsed.actionType === "http") allowedHosts = parsed.allowedHosts;
-    }
-
-    const records = listActionsByProject(deps.db, project.id);
-    const verdicts = classifierVerdictsFor(
-      deps.db,
-      records.map((r) => r.id),
-    );
-
-    const actions: DashboardAction[] = records.map((action) => ({
-      action,
-      classifier: verdicts.get(action.id) ?? null,
-    }));
 
     // Set by the redirect after a decision, so the page confirms what happened
     // rather than looking identical to a reload.
@@ -305,22 +371,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
                     }
                   : undefined;
 
-    return c.html(
-      renderDashboard({
-        user: { login: user.login, avatarUrl: user.avatarUrl },
-        projectName: project.name,
-        actions,
-        counts: {
-          waiting: countActionsByStatus(deps.db, project.id, "pending_approval"),
-          ranToday: countActionsByStatusToday(deps.db, project.id, "executed"),
-          refusedToday: countActionsByStatusToday(deps.db, project.id, "denied"),
-        },
-        freshApiKey,
-        csrf: session.csrf,
-        flash,
-        allowedHosts,
-      }),
-    );
+    return c.html(renderDashboardFor(deps, session, project, freshApiKey, flash));
   });
 
   return routes;
