@@ -50,6 +50,31 @@ export function mintSession(db: Db, userId: string, ttlMs = SESSION_TTL_MS): Min
 export interface ResolvedSession {
   user: UserRow;
   sessionId: string;
+  /**
+   * Goes in a hidden field on every form that changes something.
+   *
+   * `sameSite=Lax` already stops a cross-site POST from carrying the session
+   * cookie, so this is the second lock rather than the only one. It is derived
+   * from the stored hash, which lives in the database and never in the cookie
+   * — an attacker who can make a browser submit a form still cannot read the
+   * page to learn this value, and the same-origin policy is what keeps it that
+   * way.
+   */
+  csrf: string;
+}
+
+/** Stable for the life of a session, unguessable without the stored hash. */
+export function csrfTokenFor(storedTokenHash: string): string {
+  return createHash("sha256").update(`${storedTokenHash}:csrf`).digest("hex");
+}
+
+/**
+ * Constant-time compare for a submitted CSRF token. Length is checked first
+ * because `timingSafeEqual` throws on a mismatch rather than returning false.
+ */
+export function csrfMatches(expected: string, submitted: string | undefined): boolean {
+  if (!submitted || submitted.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(submitted));
 }
 
 /**
@@ -79,7 +104,7 @@ export function resolveSession(db: Db, token: string | undefined): ResolvedSessi
   const user = getUser(db, row.userId);
   if (!user) return null;
 
-  return { user, sessionId: row.id };
+  return { user, sessionId: row.id, csrf: csrfTokenFor(row.tokenHash) };
 }
 
 export function endSession(db: Db, sessionId: string): void {

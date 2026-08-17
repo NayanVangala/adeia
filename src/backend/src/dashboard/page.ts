@@ -86,6 +86,37 @@ const STYLE = `
     color: var(--model); border-left: 2px solid var(--model); padding-left: .5rem;
   }
   .empty { color: var(--ink-soft); padding: 2rem 0; text-align: center; }
+  .decide { display: flex; gap: .5rem; }
+  .decide form { margin: 0; }
+  .decide button {
+    padding: .4rem .875rem; font-size: .8125rem; font-weight: 600; font-family: inherit;
+    border-radius: 6px; cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+  }
+  .decide .yes { background: var(--exec); color: #fff; }
+  .decide .no { background: transparent; color: var(--deny); border-color: var(--deny); }
+  .flash {
+    border: 1px solid var(--rule); border-left: 3px solid var(--exec);
+    background: var(--surface); border-radius: 0 8px 8px 0;
+    padding: .875rem 1rem; margin: 0 0 1.5rem; font-size: .875rem;
+  }
+  .flash-deny { border-left-color: var(--deny); }
+  .hosts { list-style: none; margin: .75rem 0 0; padding: 0; }
+  .hosts li {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .5rem 0; border-bottom: 1px solid var(--rule); font-size: .875rem;
+  }
+  .hosts li:last-child { border-bottom: 0; }
+  .hosts form { margin: 0 0 0 auto; }
+  .addhost { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+  .addhost input {
+    flex: 1 1 16rem; min-width: 0; padding: .55rem .75rem; font: inherit; font-size: .875rem;
+    background: var(--bg); color: var(--fg);
+    border: 1px solid var(--rule); border-radius: 6px;
+  }
+  .addhost button {
+    padding: .55rem 1rem; font: inherit; font-size: .875rem; font-weight: 600;
+    background: var(--exec); color: #fff; border: 0; border-radius: 6px; cursor: pointer;
+  }
   .key {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8125rem;
     background: var(--bg); border: 1px solid var(--rule); border-radius: 6px;
@@ -177,9 +208,79 @@ export interface DashboardView {
   counts: { waiting: number; ranToday: number; refusedToday: number };
   /** Shown exactly once, immediately after a project is created. */
   freshApiKey?: string;
+  /** Hidden field on every form that changes something. */
+  csrf: string;
+  /** Set after a decision, so the page says what just happened. */
+  flash?: { text: string; kind: "approved" | "denied" };
+  /** Hosts this project's agents may call. Empty means none, which denies all. */
+  allowedHosts: string[];
 }
 
-function actionRow(entry: DashboardAction): string {
+/**
+ * The host allowlist, editable.
+ *
+ * A new project starts empty, which denies every outbound call. That is the
+ * right default — guessing which hosts a stranger trusts is not something to
+ * do for them — but it is only defensible if changing it takes one field. An
+ * empty list with no way to edit it is not a safe default, it is a dead end.
+ */
+function hostsCard(hosts: string[], csrf: string): string {
+  const field = `<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">`;
+
+  const rows = hosts
+    .map(
+      (host) => `<li>
+        <span class="mono">${escapeHtml(host)}</span>
+        <form method="POST" action="/dashboard/policy/hosts">
+          ${field}<input type="hidden" name="remove" value="${escapeHtml(host)}">
+          <button class="linkbtn" type="submit">Remove</button>
+        </form>
+      </li>`,
+    )
+    .join("");
+
+  const empty = `<p class="warn">No hosts allowed yet, so every outbound call is refused.
+    Add the API your agent needs to reach.</p>`;
+
+  return `<div class="card">
+    <p class="eyebrow">Hosts your agents may call</p>
+    <p style="margin:0;color:var(--ink-soft);font-size:.875rem">
+      Exact hostnames only, no paths and no wildcards. Anything not on this list is denied
+      before a request is made.
+    </p>
+    ${hosts.length === 0 ? empty : `<ul class="hosts">${rows}</ul>`}
+    <form class="addhost" method="POST" action="/dashboard/policy/hosts">
+      ${field}
+      <input type="text" name="add" placeholder="api.github.com" aria-label="Hostname to allow" required>
+      <button type="submit">Allow</button>
+    </form>
+  </div>`;
+}
+
+/**
+ * Approve and deny, in place.
+ *
+ * POST, with the action id in the path and a CSRF token in the body. Deciding
+ * on GET would mean a link preview or a prefetcher could release an action,
+ * which is the same reason the emailed approval link only ever renders a page.
+ */
+function decideButtons(actionId: string, csrf: string): string {
+  const field = `<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">`;
+  const target = `/dashboard/actions/${encodeURIComponent(actionId)}/decision`;
+
+  return `<div class="decide">
+    <form method="POST" action="${target}">
+      ${field}<input type="hidden" name="decision" value="approve">
+      <button class="yes" type="submit">Approve</button>
+    </form>
+    <form method="POST" action="${target}">
+      ${field}<input type="hidden" name="decision" value="deny">
+      <button class="no" type="submit">Deny</button>
+    </form>
+  </div>`;
+}
+
+function actionRow(entry: DashboardAction, csrf: string): string {
   const { action } = entry;
   const { headline, detail, mono } = describe(action);
 
@@ -194,13 +295,18 @@ function actionRow(entry: DashboardAction): string {
             : "A model flagged this for you"
         } — ${escapeHtml(entry.classifier.reason)}</div>`;
 
+  const state =
+    action.status === "pending_approval"
+      ? decideButtons(action.id, csrf)
+      : pill(action.status);
+
   return `<tr>
     <td>
       <div class="what${mono ? " mono" : ""}">${escapeHtml(headline)}</div>
       <div class="sub">${escapeHtml(detail)}</div>
       ${byModel}
     </td>
-    <td>${pill(action.status)}</td>
+    <td>${state}</td>
     <td class="when">${escapeHtml(when(action.createdAt))}</td>
   </tr>`;
 }
@@ -225,8 +331,14 @@ export function renderDashboard(view: DashboardView): string {
       ? `<div class="card"><p class="empty">${escapeHtml(emptyText)}</p></div>`
       : `<div class="card"><table>
           <thead><tr><th>What</th><th>State</th><th>When</th></tr></thead>
-          <tbody>${rows.map(actionRow).join("")}</tbody>
+          <tbody>${rows.map((r) => actionRow(r, view.csrf)).join("")}</tbody>
         </table></div>`;
+
+  const flash = view.flash
+    ? `<p class="flash${view.flash.kind === "denied" ? " flash-deny" : ""}">${escapeHtml(
+        view.flash.text,
+      )}</p>`
+    : "";
 
   const body = `
   <header class="bar">
@@ -244,6 +356,7 @@ export function renderDashboard(view: DashboardView): string {
   <h1>${escapeHtml(view.projectName)}</h1>
   <p class="lede">Everything your agents asked to do, and what Adeia did about it.</p>
 
+  ${flash}
   ${keyBlock}
 
   <div class="stats">
@@ -257,6 +370,9 @@ export function renderDashboard(view: DashboardView): string {
 
   <h2>Recent activity</h2>
   ${table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here.")}
+
+  <h2>Policy</h2>
+  ${hostsCard(view.allowedHosts, view.csrf)}
   `;
 
   return shell(`${view.projectName} — Adeia`, body);

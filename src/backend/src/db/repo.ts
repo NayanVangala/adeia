@@ -799,3 +799,24 @@ export function classifierVerdictsFor(db: Db, actionIds: string[]): Map<string, 
 
   return found;
 }
+
+/**
+ * Replaces one policy's config blob.
+ *
+ * Whole-object rather than a merge: the config is the fence for an action type,
+ * and a partial write that silently kept an old key is how an allowlist ends up
+ * containing something nobody remembers adding.
+ */
+export function updatePolicyConfig(
+  db: Db,
+  policyId: string,
+  config: Record<string, unknown>,
+): PolicyRow | null {
+  const [row] = db
+    .update(policies)
+    .set({ config: JSON.stringify(config) })
+    .where(eq(policies.id, policyId))
+    .returning()
+    .all();
+  return row ?? null;
+}

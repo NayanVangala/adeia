@@ -1,8 +1,10 @@
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
+import { isBlockedHost } from "@adeia/shared";
+import { approveAction, denyAction, NotPendingApprovalError } from "../actions/service.ts";
 import type { AppEnv } from "../appEnv.ts";
 import { generateApiKey, hashApiKey } from "../auth/apiKey.ts";
-import { resolveSession, SESSION_COOKIE } from "../auth/session.ts";
+import { csrfMatches, resolveSession, SESSION_COOKIE } from "../auth/session.ts";
 import {
   renderDashboard,
   renderSignIn,
@@ -13,10 +15,14 @@ import {
   classifierVerdictsFor,
   countActionsByStatus,
   countActionsByStatusToday,
+  getAction,
+  getPolicy,
   insertPolicy,
   insertProject,
   listActionsByProject,
   listProjectsByOwner,
+  toPolicy,
+  updatePolicyConfig,
   type Project,
 } from "../db/repo.ts";
 
@@ -61,6 +67,36 @@ export const STARTER_HTTP_POLICY = {
   },
 } as const;
 
+/**
+ * Turns what someone typed into a hostname, or null.
+ *
+ * Accepts a bare host and also a pasted URL, because pasting the endpoint you
+ * were looking at is the obvious thing to do. Rejects anything with a path,
+ * a wildcard or a space: the allowlist is compared against a parsed hostname,
+ * so a value that could never match is a mistake worth naming now.
+ */
+export function normaliseHost(raw: string): string | null {
+  const trimmed = raw.trim().toLowerCase();
+  if (trimmed === "") return null;
+
+  // A pasted URL. Take its hostname and discard the rest.
+  if (trimmed.includes("://")) {
+    try {
+      return new URL(trimmed).hostname || null;
+    } catch {
+      return null;
+    }
+  }
+
+  if (/[/\s?#*]/.test(trimmed)) return null;
+  // Hostname shape: labels of letters, digits and hyphens, at least one dot.
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(trimmed)) {
+    return null;
+  }
+
+  return trimmed;
+}
+
 /** Creates the project, both policies and the first key. Returns the key once. */
 function provisionProject(
   db: Db,
@@ -88,6 +124,122 @@ function provisionProject(
 export function createDashboardRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
 
+  /**
+   * Deciding an action from the dashboard.
+   *
+   * Three gates, in this order, and the middle one is the important one:
+   *
+   * 1. A live session. No cookie, no decision.
+   * 2. The action belongs to a project this user owns. Without this check the
+   *    action id — which is not secret, it appears in API responses and logs —
+   *    would be enough for any signed-in stranger to release someone else's
+   *    payment.
+   * 3. A matching CSRF token, so a form on another site cannot approve
+   *    something using a cookie the browser attaches on its own.
+   */
+  routes.post("/dashboard/actions/:id/decision", async (c) => {
+    const deps = c.get("deps");
+    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const action = getAction(deps.db, c.req.param("id"));
+    const owned = listProjectsByOwner(deps.db, session.user.id).map((p) => p.id);
+    // 404 rather than 403: someone probing action ids learns nothing about
+    // whether the id exists.
+    if (!action || !owned.includes(action.projectId)) {
+      return c.text("Not found.", 404);
+    }
+
+    const decision = form["decision"];
+    if (decision !== "approve" && decision !== "deny") return c.text("Unknown decision.", 400);
+
+    // Recorded as `decided_by`. A GitHub login the session proves, rather than
+    // the emailed flow's "whoever held the token".
+    const decidedBy = `github:${session.user.login}`;
+
+    try {
+      if (decision === "approve") {
+        await approveAction(deps, action.id, decidedBy);
+      } else {
+        await denyAction(deps, action.id, decidedBy);
+      }
+    } catch (err) {
+      // Already decided elsewhere — the emailed link, or a double-submitted
+      // form. Not an error worth a stack trace; say so and move on.
+      if (err instanceof NotPendingApprovalError) {
+        return c.redirect("/dashboard?decided=already", 302);
+      }
+      throw err;
+    }
+
+    return c.redirect(`/dashboard?decided=${decision}`, 302);
+  });
+
+  /**
+   * Editing the host allowlist.
+   *
+   * The validation here is not the security boundary — `evaluate()` rejects a
+   * private host before the allowlist is even consulted, and the adapter
+   * re-resolves DNS at execution time. It exists so a mistake is refused with a
+   * sentence the person can act on, rather than silently accepted and then
+   * mysteriously never working.
+   */
+  routes.post("/dashboard/policy/hosts", async (c) => {
+    const deps = c.get("deps");
+    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const project = listProjectsByOwner(deps.db, session.user.id)[0];
+    if (!project) return c.redirect("/dashboard", 302);
+
+    const row = getPolicy(deps.db, project.id, "http");
+    if (!row) return c.redirect("/dashboard", 302);
+
+    const policy = toPolicy(row);
+    if (policy.actionType !== "http") return c.redirect("/dashboard", 302);
+
+    let hosts = [...policy.allowedHosts];
+
+    const remove = form["remove"];
+    if (typeof remove === "string") {
+      hosts = hosts.filter((h) => h !== remove.toLowerCase());
+    }
+
+    const add = form["add"];
+    if (typeof add === "string" && add.trim() !== "") {
+      const candidate = normaliseHost(add);
+      if (!candidate) {
+        return c.redirect("/dashboard?policy=invalid", 302);
+      }
+      if (isBlockedHost(candidate)) {
+        // Refused here as well as in the engine, because "I added it and
+        // nothing happened" is a worse experience than being told why.
+        return c.redirect("/dashboard?policy=private", 302);
+      }
+      if (!hosts.includes(candidate)) hosts.push(candidate);
+    }
+
+    updatePolicyConfig(deps.db, row.id, {
+      allowedHosts: hosts,
+      approvalMethods: policy.approvalMethods,
+      classifyMethods: policy.classifyMethods,
+      deniedMethods: policy.deniedMethods,
+      maxCallsPerDay: policy.maxCallsPerDay,
+    });
+
+    return c.redirect("/dashboard?policy=saved", 302);
+  });
+
   routes.get("/dashboard", (c) => {
     const deps = c.get("deps");
     const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
@@ -108,6 +260,15 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     // switcher later needs a selector, not a different data path.
     const project = projects[0]!;
 
+    // Read back rather than assumed, so the card always shows what the engine
+    // will actually enforce.
+    const httpRow = getPolicy(deps.db, project.id, "http");
+    let allowedHosts: string[] = [];
+    if (httpRow) {
+      const parsed = toPolicy(httpRow);
+      if (parsed.actionType === "http") allowedHosts = parsed.allowedHosts;
+    }
+
     const records = listActionsByProject(deps.db, project.id);
     const verdicts = classifierVerdictsFor(
       deps.db,
@@ -118,6 +279,31 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       action,
       classifier: verdicts.get(action.id) ?? null,
     }));
+
+    // Set by the redirect after a decision, so the page confirms what happened
+    // rather than looking identical to a reload.
+    const decided = c.req.query("decided");
+    const policyResult = c.req.query("policy");
+    const flash =
+      decided === "approve"
+        ? { text: "Approved. The action is running now.", kind: "approved" as const }
+        : decided === "deny"
+          ? { text: "Denied. It was never sent.", kind: "denied" as const }
+          : decided === "already"
+            ? { text: "That one had already been decided.", kind: "denied" as const }
+            : policyResult === "saved"
+              ? { text: "Policy updated.", kind: "approved" as const }
+              : policyResult === "invalid"
+                ? {
+                    text: "That is not a hostname. Use something like api.github.com — no paths, no wildcards.",
+                    kind: "denied" as const,
+                  }
+                : policyResult === "private"
+                  ? {
+                      text: "That address is private, loopback or link-local. Adeia refuses those everywhere, so allowing it here would not work anyway.",
+                      kind: "denied" as const,
+                    }
+                  : undefined;
 
     return c.html(
       renderDashboard({
@@ -130,6 +316,9 @@ export function createDashboardRoutes(): Hono<AppEnv> {
           refusedToday: countActionsByStatusToday(deps.db, project.id, "denied"),
         },
         freshApiKey,
+        csrf: session.csrf,
+        flash,
+        allowedHosts,
       }),
     );
   });
