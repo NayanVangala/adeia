@@ -95,12 +95,13 @@
           <h1 class="display cap-hero__title">What each part refuses to do</h1>
 
           <p class="lead cap-hero__body">
-            Four pieces, and the interesting thing about each one is not the
+            Six pieces, and the interesting thing about each one is not the
             feature — it is the constraint. The policy engine cannot read a
             clock. The approval token cannot be replayed. The audit write cannot
-            throw. The SDK will not retry on your behalf. Each refusal is a
-            decision someone had to defend, and each one is why the layer above
-            it can be trusted.
+            throw. The SDK will not retry on your behalf. The risk classifier
+            cannot open a door you left shut. Each refusal is a decision someone
+            had to defend, and each one is why the layer above it can be
+            trusted.
           </p>
         </div>
       </section>
@@ -475,6 +476,72 @@
       </section>
 
       <!-- ===========================================================
+           05 Risk classifier — ink
+           =========================================================== -->
+      <section
+        class="ground ground--ink section cap-part"
+        id="classifier"
+        aria-labelledby="classifier-title"
+      >
+        <div class="container">
+          <header class="cap-part__head">
+            <p class="label quiet">05 — Risk classifier</p>
+            <h2 class="h2 cap-part__title" id="classifier-title">
+              A model that decides inside a band you opened
+            </h2>
+            <p class="body cap-part__intro">
+              Stopping every write for a human buries the approval that matters
+              under the ones that do not. The classifier narrows that — without
+              handing a model any authority you did not give it.
+            </p>
+          </header>
+
+          <h3 class="h3 cap-part__sub">It is never asked about a refusal</h3>
+
+          <p class="body cap-part__copy">
+            <span class="cap-code">evaluate()</span> gained a fourth outcome,
+            <span class="cap-code">classify</span>, and the ordering already in
+            the engine is what makes it safe. Every deny rule runs first. By the
+            time a model can be consulted, the host allowlist, the private
+            address check, the denied methods and the daily cap have all already
+            answered. Injected text can win inside a band you opened. It cannot
+            open one.
+          </p>
+
+          <p class="body cap-part__copy">
+            You choose the band. Put <span class="cap-code">DELETE</span> in
+            <span class="cap-code">approvalMethods</span> and it stops for a
+            person forever, whatever any model concludes. That is a floor, and
+            it is yours.
+          </p>
+
+          <h3 class="h3 cap-part__sub">It never reads the agent's excuse</h3>
+
+          <p class="body cap-part__copy">
+            The classifier sees the method, the URL and the body. It does not
+            see the agent's description of what it is doing, because that
+            sentence is written by the party under evaluation and exists to
+            persuade a reader. An agent that is confused or compromised will
+            label a <span class="cap-code">DELETE</span> "just reading some
+            data". The endpoint cannot be talked around; the excuse can.
+          </p>
+
+          <p class="body cap-part__copy">
+            Every failure means ask. Timeout, malformed answer, dead API key, a
+            verdict nobody recognises — all of them send the action to a person.
+            A classifier that cannot answer must never mean yes.
+          </p>
+
+          <p class="body cap-part__copy">
+            And when a model is what let something through, the audit trail and
+            the dashboard both say so in those words. "A model judged this low
+            risk and let it run" is a defensible sentence. "It was approved"
+            would be a lie.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===========================================================
            05 Adapters — forest
            =========================================================== -->
       <section
@@ -484,7 +551,7 @@
       >
         <div class="container">
           <header class="cap-part__head">
-            <p class="label quiet">05 — Adapters</p>
+            <p class="label quiet">06 — Adapters</p>
             <h2 class="h2 cap-part__title" id="adapters-title">
               The seam, deliberately empty
             </h2>
@@ -514,27 +581,39 @@
           </p>
 
           <p class="body cap-part__copy">
-            <span class="cap-code">payment</span> is the only action type that
-            exists. The request schema is a discriminated union with exactly one
-            member, so anything else is a validation error today — not a missing
-            adapter, a missing type.
+            The second adapter does move. <span class="cap-code">http</span> is
+            an action type in its own right, and its adapter makes the call for
+            real — an agent can file an issue, add a DNS record, or delete one,
+            with the same fence in front of it.
           </p>
 
           <p class="body cap-part__copy">
-            Two of the three layers are ready for a second one. The adapter
-            registry takes any number of them, and the policy is stored against
-            an action type and refuses to answer for a different one. The layer
-            that is not ready is the rule set: every rule the engine has is a
-            money rule — per-action limit, daily cap, hard ceiling, recipient
-            allowlist — and its parameters are typed as payment parameters.
+            That needed a second rule set, not just a second adapter, because a
+            payment has an amount and a call does not.
+            <span class="cap-code">DELETE /zones/{id}</span> and
+            <span class="cap-code">GET /zones</span> differ by one word and one
+            of them ends a website, so what gets bounded is reach rather than
+            size: an explicit host allowlist, and a decision per method.
           </p>
 
           <p class="body cap-part__copy">
-            So "delete these records" or "email this list" would need more than
-            an adapter. It would need a policy shape that fences something other
-            than an amount: a row count, a recipient count, a blast radius. That
-            is a real piece of design work rather than a configuration change,
-            and it has not been done.
+            The defences run in order, and each one exists because the one
+            before it can be lied to. The schema demands https and refuses a
+            private or loopback address. The policy checks the host against a
+            list you wrote. Then the adapter resolves the hostname
+            <em>again</em>, at the moment of the call, and refuses if it now
+            points somewhere private — because a name that resolved to a public
+            address when you wrote the policy can resolve to
+            <span class="cap-code">169.254.169.254</span> by the time the
+            request runs, and that address hands out cloud credentials to
+            anything that asks.
+          </p>
+
+          <p class="body cap-part__copy">
+            It never follows a redirect, and it never returns the request
+            headers. The first would let a 302 walk it into your own network.
+            The second is where the credential is, and an approval page gets
+            left open, screenshotted and read over a shoulder.
           </p>
         </div>
       </section>

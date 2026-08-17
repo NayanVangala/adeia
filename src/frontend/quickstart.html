@@ -279,10 +279,24 @@ export ADEIA_URL=http://localhost:3000</code></pre>
                   <span class="label qs-check__tag">Check</span>
                   <span class="body qs-check__text"
                     >Copy the key before you clear the terminal. Only its sha256
-                    hash is stored, so it genuinely cannot be shown again — a
-                    lost key means seeding a new project, not recovering the old
-                    one.</span
+                    hash is stored, so it genuinely cannot be shown again.</span
                   >
+                </p>
+
+                <p class="body quiet qs-step__copy">
+                  Or skip this step. <a href="/dashboard">Sign in with GitHub</a>
+                  and Adeia creates the project, both policies and a key for
+                  you, and shows the key once. The dashboard is also where you
+                  replace a key you have lost — the seed script has no way to
+                  do that, because it only ever knew the hash either.
+                </p>
+
+                <p class="body quiet qs-step__copy">
+                  A project made that way starts with an <em>empty</em> host
+                  allowlist, which refuses every outbound call until you add a
+                  host. That is deliberate — guessing which hosts you trust is
+                  not something to do on your behalf — and the dashboard has a
+                  field for it.
                 </p>
               </div>
             </li>
