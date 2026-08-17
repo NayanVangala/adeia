@@ -61,7 +61,10 @@ const STYLE = `
   .explain-label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #48505E; margin: 0 0 .625rem; }
   .explain-headline { font-weight: 600; margin: 0 0 .5rem; }
   .explain-what { margin: 0; color: #48505E; font-size: .9375rem; }
-  .explain-warning { margin: .75rem 0 0; padding: .625rem .75rem; background: #FBF3E7; border-left: 3px solid #B3701C; font-size: .875rem; }
+  /* Both of these paint a fixed pale background, so they must state a fixed
+     dark ink too. Inheriting --fg means near-white text on pale yellow the
+     moment the page renders in dark mode — which is exactly what happened. */
+  .explain-warning { margin: .75rem 0 0; padding: .625rem .75rem; background: #FBF3E7; border-left: 3px solid #B3701C; font-size: .875rem; color: #0B0E14; }
   /* Visually separate from .explain above it: that is derived from the
      request, this is only what the agent said about itself. */
   .claim { margin: 0 0 .25rem; font-size: .9375rem; }
