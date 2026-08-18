@@ -1,0 +1,245 @@
+/* ---------------------------------------------------------------
+   Adeia — section-level pieces that are not the hero.
+
+   Split panels, the step list, notes, and the footer.
+   --------------------------------------------------------------- */
+
+.stack-lg {
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.grid {
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.card__eyebrow {
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 1rem;
+}
+
+/* The classifier's cards wear its colour rather than the mark's, so
+   the one place a model decides is visible before it is read. */
+.card--model .card__title {
+  color: var(--slate);
+}
+
+.card--model::before {
+  background: radial-gradient(
+    22rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--slate) 12%, transparent),
+    transparent 60%
+  );
+}
+
+.tag--model {
+  border-color: var(--slate-deep);
+  color: var(--slate);
+  background: color-mix(in srgb, var(--slate) 7%, transparent);
+}
+
+.thread--model {
+  background: linear-gradient(to bottom, var(--slate), transparent);
+}
+
+/* ---------- the split panel ---------- */
+
+.split {
+  display: grid;
+  gap: 1.125rem;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+}
+
+.split__half {
+  padding: 2rem;
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  background: var(--deep);
+}
+
+/* The right-hand half is the one you want, so it carries the mark. */
+.split__half--lit {
+  border-color: var(--orchid-deep);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--orchid) 8%, var(--raised)),
+    var(--deep) 70%
+  );
+}
+
+.split__label {
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 1.25rem;
+}
+
+.split__half--lit .split__label {
+  color: var(--orchid);
+}
+
+.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.plain li {
+  position: relative;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.6;
+}
+
+.plain li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 1px;
+  background: var(--faint);
+}
+
+.split__half--lit .plain li::before {
+  background: var(--orchid);
+}
+
+/* ---------- the step list ---------- */
+
+.steps {
+  list-style: none;
+  margin: clamp(2.5rem, 6vh, 4.5rem) 0 0;
+  padding: 0;
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--hair);
+}
+
+.step:last-child {
+  border-bottom: 1px solid var(--hair);
+}
+
+.step__n {
+  font-size: var(--t-small);
+  color: var(--orchid);
+  padding-top: 0.25rem;
+}
+
+.step__title {
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- a standalone remark ---------- */
+
+.note {
+  margin: clamp(2rem, 5vh, 3rem) auto 0;
+  max-width: 44rem;
+  padding: 1.25rem 1.5rem;
+  border-left: 2px solid var(--orchid-deep);
+  background: color-mix(in srgb, var(--orchid) 5%, transparent);
+  color: var(--muted);
+  font-size: var(--t-small);
+  border-radius: 0 6px 6px 0;
+}
+
+.note .mono {
+  color: var(--orchid);
+}
+
+/* ---------- closing ---------- */
+
+.closing {
+  padding-block: clamp(6rem, 16vh, 12rem);
+  position: relative;
+  isolation: isolate;
+}
+
+/* A quieter echo of the hero's bloom, so the page closes the way it
+   opened without repeating the whole trick. */
+.closing::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    44rem circle at 50% 78%,
+    color-mix(in srgb, var(--orchid) 15%, transparent),
+    transparent 65%
+  );
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+/* ---------- footer ---------- */
+
+.foot {
+  border-top: 1px solid var(--hair);
+  padding-block: 3rem 4rem;
+}
+
+.foot__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2.5rem;
+}
+
+.foot__mark {
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.foot__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.foot__nav a {
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--quick) var(--ease-cursor);
+}
+
+.foot__nav a:hover {
+  color: var(--orchid);
+}
+
+.foot__note {
+  margin-inline-start: auto;
+  font-size: var(--t-micro);
+  color: var(--faint);
+}
+
+.foot__count:not(:empty)::before {
+  content: "";
+}
+
+@media (max-width: 48rem) {
+  .foot__note {
+    margin-inline-start: 0;
+  }
+  .step {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

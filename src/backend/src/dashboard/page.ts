@@ -14,125 +14,207 @@ import { escapeHtml } from "../approvals/page.ts";
  */
 
 const STYLE = `
+  /* The dashboard wears the same clothes as the rest of Adeia.
+     Grounds, marks and inks come from styles/tokens.css, which the server
+     already serves from this origin — imported rather than copied so the
+     two cannot drift, and so a contrast ratio verified once stays verified. */
+  @import url("/styles/tokens.css");
+
   :root {
-    --paper: #E9EBEE; --ink: #0B0E14; --ink-soft: #48505E;
-    --rule: #C6CBD2; --surface: #FFFFFF;
-    --held: #B3701C; --exec: #3F6A4C; --deny: #97362D; --model: #4A5578;
-    --bg: var(--paper); --fg: var(--ink);
+    --bg: var(--void);
+    --fg: var(--paper);
+    --quiet: var(--faint);
+    --surface: var(--raised);
+    --rule: var(--hair);
+    /* Outcomes. Each is a fixed pair, because a pill paints its own
+       background and must therefore state its own ink. */
+    --ran: #d7e5d9;      --ran-ink: #1f3325;
+    --held: #f4e4cd;     --held-ink: #5a3a0d;
+    --refused: #f2dcd9;  --refused-ink: #5e1d17;
+    --idle: #dcdcdc;     --idle-ink: #333333;
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #0B0E14; --fg: #E9EBEE; --ink-soft: #98A0AE;
-            --rule: #2A303B; --surface: #141922; --model: #8B96BC; }
-  }
+
   * { box-sizing: border-box; }
+
   body {
-    margin: 0; padding: 2rem 1.25rem 4rem; background: var(--bg); color: var(--fg);
-    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 2rem 1.25rem 5rem;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
   }
-  main { width: 100%; max-width: 54rem; margin: 0 auto; }
+
+  main { width: 100%; max-width: 56rem; margin: 0 auto; }
   a { color: inherit; }
+
+  /* ---------- masthead ---------- */
   header.bar {
     display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-    padding-bottom: 1.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--rule);
-  }
-  .wordmark { font-weight: 600; letter-spacing: -.01em; font-size: 1.125rem; margin: 0; }
-  .bar-spacer { flex: 1 1 auto; }
-  .who { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--ink-soft); }
-  .who img { width: 24px; height: 24px; border-radius: 50%; }
-  .linkbtn {
-    background: none; border: 0; padding: 0; font: inherit; font-size: .875rem;
-    color: var(--ink-soft); text-decoration: underline; cursor: pointer;
-  }
-  h1 { font-size: 1.5rem; margin: 0 0 .25rem; line-height: 1.2; }
-  h2 { font-size: 1rem; margin: 2.5rem 0 .75rem; }
-  .lede { color: var(--ink-soft); margin: 0 0 2rem; }
-  .eyebrow {
-    font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--ink-soft); margin: 0 0 .5rem;
-  }
-  .card {
-    background: var(--surface); border: 1px solid var(--rule);
-    border-radius: 12px; padding: 1.25rem 1.5rem; margin: 0 0 1rem;
-  }
-  .stats { display: flex; gap: 2.5rem; flex-wrap: wrap; margin: 0 0 2rem; }
-  .stat-n { font-size: 1.75rem; font-weight: 600; line-height: 1; }
-  .stat-l { font-size: .8125rem; color: var(--ink-soft); margin-top: .25rem; }
-  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-  th {
-    text-align: left; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--ink-soft); font-weight: 500; padding: 0 .75rem .5rem 0;
+    padding-bottom: 1.25rem; margin-bottom: 2.5rem;
     border-bottom: 1px solid var(--rule);
   }
-  td { padding: .75rem .75rem .75rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .wordmark {
+    margin: 0; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .bar-spacer { flex: 1 1 auto; }
+  .who { display: flex; align-items: center; gap: 0.625rem; font-size: 0.875rem; color: var(--quiet); }
+  .who img { width: 26px; height: 26px; border-radius: 50%; }
+  .linkbtn {
+    background: none; border: 0; padding: 0; font: inherit; font-size: 0.8125rem;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--quiet);
+    cursor: pointer; transition: color 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+  }
+  .linkbtn:hover { color: var(--orchid); }
+
+  /* ---------- headings ---------- */
+  h1 {
+    font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
+    font-weight: 500; letter-spacing: -0.02em; line-height: 1.1;
+    margin: 0 0 0.375rem; color: var(--orchid);
+  }
+  h2 {
+    font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 600; color: var(--quiet); margin: 3rem 0 0.875rem;
+  }
+  .lede { color: var(--quiet); margin: 0 0 2.5rem; max-width: 34rem; }
+  .eyebrow {
+    font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--quiet); margin: 0 0 0.625rem;
+  }
+
+  /* ---------- surfaces ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 1.5rem 1.75rem; margin: 0 0 1rem;
+  }
+
+  /* ---------- the three figures ---------- */
+  .stats { display: flex; gap: 3rem; flex-wrap: wrap; margin: 0 0 2.5rem; }
+  .stat-n {
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-size: 2.25rem; font-weight: 400; line-height: 1; letter-spacing: -0.03em;
+  }
+  .stat-l {
+    font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--quiet); margin-top: 0.5rem;
+  }
+
+  /* ---------- the ledger ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th {
+    text-align: left; font-size: 0.6875rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--quiet); font-weight: 500;
+    padding: 0 1rem 0.75rem 0; border-bottom: 1px solid var(--rule);
+  }
+  td {
+    padding: 1rem 1rem 1rem 0; border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
   tr:last-child td { border-bottom: 0; }
-  .what { font-weight: 500; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-ligatures: none; }
-  .sub { color: var(--ink-soft); font-size: .8125rem; margin-top: .125rem; word-break: break-word; }
-  .when { color: var(--ink-soft); white-space: nowrap; }
+  .what { font-weight: 500; font-size: 0.9375rem; }
+  .mono {
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-variant-ligatures: none; letter-spacing: -0.01em;
+  }
+  .sub { color: var(--quiet); font-size: 0.8125rem; margin-top: 0.25rem; word-break: break-word; }
+  .when { color: var(--quiet); white-space: nowrap; font-size: 0.8125rem; }
+
+  /* ---------- outcomes ---------- */
   .pill {
-    display: inline-block; padding: .1875rem .5rem; border-radius: 999px;
-    font-size: .75rem; font-weight: 500; white-space: nowrap;
+    display: inline-block; padding: 0.25rem 0.625rem; border-radius: 999px;
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; white-space: nowrap;
   }
-  /* Fixed backgrounds, so each states its own ink rather than inheriting a
-     --fg that flips to near-white in dark mode. */
-  .pill-exec { background: #E4EDE7; color: #26452F; }
-  .pill-held { background: #FBF3E7; color: #6B4310; }
-  .pill-deny { background: #F6E4E2; color: #6B211A; }
-  .pill-fail { background: #EDEEF0; color: #3A414D; }
-  /* The classifier's mark. Deliberately distinct from every human state: a
-     reader must never mistake a model's verdict for someone's decision. */
+  .pill-exec { background: var(--ran); color: var(--ran-ink); }
+  .pill-held { background: var(--held); color: var(--held-ink); }
+  .pill-deny { background: var(--refused); color: var(--refused-ink); }
+  .pill-fail { background: var(--idle); color: var(--idle-ink); }
+
+  /* The classifier's mark, in the colour tokens.css reserved for it.
+     Cooler than everything else on purpose: it marks the one place a model
+     decided rather than a rule, and that should register before the words
+     are read. --slate on --ink clears AA. */
   .by-model {
-    display: inline-block; margin-top: .25rem; font-size: .75rem;
-    color: var(--model); border-left: 2px solid var(--model); padding-left: .5rem;
+    display: block; margin-top: 0.5rem; padding-left: 0.75rem;
+    border-left: 2px solid var(--slate); color: var(--slate);
+    font-size: 0.8125rem; line-height: 1.45;
   }
-  .empty { color: var(--ink-soft); padding: 2rem 0; text-align: center; }
-  .decide { display: flex; gap: .5rem; }
+
+  .empty { color: var(--quiet); padding: 2.5rem 0; text-align: center; font-size: 0.875rem; }
+
+  /* ---------- decide ---------- */
+  .decide { display: flex; gap: 0.5rem; }
   .decide form { margin: 0; }
   .decide button {
-    padding: .4rem .875rem; font-size: .8125rem; font-weight: 600; font-family: inherit;
-    border-radius: 6px; cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+    padding: 0.4375rem 0.9375rem; font-family: inherit; font-size: 0.75rem;
+    font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    border-radius: 3px; border: 1px solid transparent; cursor: pointer;
+    white-space: nowrap; transition: all 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-  .decide .yes { background: var(--exec); color: #fff; }
-  .decide .no { background: transparent; color: var(--deny); border-color: var(--deny); }
+  .decide .yes { background: var(--orchid); color: var(--void); }
+  .decide .yes:hover { background: var(--orchid-lit); }
+  .decide .no { background: transparent; color: var(--quiet); border-color: var(--rule); }
+  .decide .no:hover { color: var(--refused); border-color: var(--refused); }
+
+  /* ---------- credential ---------- */
+  .key {
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.8125rem; background: var(--void); border: 1px solid var(--rule);
+    border-radius: 3px; padding: 0.875rem; word-break: break-all;
+    margin: 1rem 0; color: var(--orchid);
+  }
+
+  /* Fixed background, so it states a fixed ink rather than inheriting one
+     that is near-white on this ground. */
+  .warn {
+    background: var(--held); color: var(--held-ink);
+    border-left: 3px solid var(--held-ink);
+    padding: 0.875rem 1rem; border-radius: 0 3px 3px 0;
+    font-size: 0.8125rem; margin: 1rem 0 0;
+  }
+
+  .btn {
+    display: inline-block; background: var(--orchid); color: var(--void);
+    text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 3px;
+    font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.06em;
+    text-transform: uppercase; border: 0; font-family: inherit; cursor: pointer;
+    transition: background 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+  }
+  .btn:hover { background: var(--orchid-lit); }
+
   .flash {
-    border: 1px solid var(--rule); border-left: 3px solid var(--exec);
-    background: var(--surface); border-radius: 0 8px 8px 0;
-    padding: .875rem 1rem; margin: 0 0 1.5rem; font-size: .875rem;
+    border: 1px solid var(--rule); border-left: 3px solid var(--orchid);
+    background: var(--surface); border-radius: 0 3px 3px 0;
+    padding: 0.875rem 1.125rem; margin: 0 0 1.5rem; font-size: 0.875rem;
   }
-  .flash-deny { border-left-color: var(--deny); }
-  .hosts { list-style: none; margin: .75rem 0 0; padding: 0; }
+  .flash-deny { border-left-color: var(--refused); }
+
+  /* ---------- the host allowlist ---------- */
+  .hosts { list-style: none; margin: 0 0 1rem; padding: 0; }
   .hosts li {
-    display: flex; align-items: center; gap: .75rem;
-    padding: .5rem 0; border-bottom: 1px solid var(--rule); font-size: .875rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.625rem 0; border-bottom: 1px solid var(--rule); font-size: 0.875rem;
   }
   .hosts li:last-child { border-bottom: 0; }
   .hosts form { margin: 0 0 0 auto; }
-  .addhost { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
-  .addhost input {
-    flex: 1 1 16rem; min-width: 0; padding: .55rem .75rem; font: inherit; font-size: .875rem;
-    background: var(--bg); color: var(--fg);
-    border: 1px solid var(--rule); border-radius: 6px;
+  .addhost { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0; }
+  .addhost input[type="text"] {
+    flex: 1 1 16rem; padding: 0.625rem 0.75rem; border-radius: 3px;
+    border: 1px solid var(--rule); background: var(--void); color: var(--fg);
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace; font-size: 0.8125rem;
   }
-  .addhost button {
-    padding: .55rem 1rem; font: inherit; font-size: .875rem; font-weight: 600;
-    background: var(--exec); color: #fff; border: 0; border-radius: 6px; cursor: pointer;
+  .addhost input[type="text"]:focus-visible {
+    outline: 2px solid var(--orchid); outline-offset: 1px;
   }
-  .key {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8125rem;
-    background: var(--bg); border: 1px solid var(--rule); border-radius: 6px;
-    padding: .75rem; word-break: break-all; margin: .75rem 0;
+
+  code {
+    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.8125rem; color: var(--orchid);
   }
-  .warn {
-    background: #FBF3E7; border-left: 3px solid #B3701C; color: #0B0E14;
-    padding: .75rem 1rem; border-radius: 0 6px 6px 0; font-size: .875rem; margin: .75rem 0 0;
-  }
-  .btn {
-    display: inline-block; background: var(--exec); color: #fff; text-decoration: none;
-    padding: .8rem 1.5rem; border-radius: 8px; font-weight: 600; border: 0;
-    font-family: inherit; font-size: 1rem; cursor: pointer;
-  }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8125rem; }
-  .steps { padding-left: 1.25rem; line-height: 1.7; }
+  .steps { padding-left: 1.25rem; line-height: 1.8; }
 `;
 
 function shell(title: string, body: string): string {

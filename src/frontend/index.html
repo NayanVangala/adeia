@@ -1,876 +1,357 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- No adeia-api meta: the server serves this page and /v1 from one
-     origin, so the visit counter calls a relative path. -->
-<title>Adeia — agents that act, inside a fence you set</title>
-<link rel="canonical" href="https://adeia.xyz/">
-<meta name="description" content="Adeia sits between your agent and the real world. Actions inside the budget you set run immediately. Anything past it stops, emails a human, and waits.">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Adeia — agents that act, inside a fence you set</title>
+    <meta
+      name="description"
+      content="A permission layer for AI agents. Spend limits, host allowlists, human approval, and an append-only audit trail — so an agent can act without being trusted."
+    />
+    <link rel="preconnect" href="/" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787031285552" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787031321408" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787031619168" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787031483941" />
+  </head>
 
-<link rel="stylesheet" href="styles/tokens.css?v=1786945306">
-<link rel="stylesheet" href="styles/base.css?v=1786649098">
-<link rel="stylesheet" href="styles/hero.css?v=1786982382">
-<link rel="stylesheet" href="styles/capability.css?v=1786945310">
-<link rel="stylesheet" href="styles/statement.css?v=1786649098">
-<link rel="stylesheet" href="styles/proof.css?v=1786649098">
-<link rel="stylesheet" href="styles/closing.css?v=1786649098">
-<link rel="stylesheet" href="styles/motion.css?v=1786649098">
-<link rel="stylesheet" href="styles/quickstart.css?v=1786650028">
-<link rel="stylesheet" href="styles/menu.css?v=1786982391">
-</head>
+  <body>
+    <a class="sr-only" href="#main">Skip to content</a>
 
-<body>
-<main>
-  <!-- @@HERO@@ -->
-<!-- ---------------------------------------------------------------
-     Adeia — hero
-
-     Fragment. Pasted straight inside <main>: no <html>, no <head>,
-     no stylesheet links, no <script>. Styling comes from
-     styles/hero.css; the canvas is driven by particles.js.
-
-     The masthead sits inside <main> because that is where this
-     fragment lands. It is a <header> scoped to <main> rather than a
-     page banner landmark, which is the correct mapping for that
-     position — the site header proper is a later pass's problem.
-     --------------------------------------------------------------- -->
-
-<header class="masthead">
-  <a class="masthead__mark" href="#hero">Adeia</a>
-
-  <!-- The way in. GitHub OAuth has no separate sign-up: a first
-       sign-in is the registration, so there is one button, not two. -->
-  <a class="masthead__signin" href="/dashboard">Sign in</a>
-
-  <button
-    class="plus-link masthead__menu"
-    type="button"
-    id="menu-button"
-    aria-expanded="false"
-    aria-controls="menu-panel"
-  >
-    <span class="masthead__menu-label" data-menu-label>Menu</span>
-    <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-  </button>
-</header>
-
-<!-- Every entry is a page of its own, not an anchor back into this one.
-     Each page carries material the landing section does not. -->
-<div class="menu" id="menu-panel" data-menu-panel hidden>
-  <nav class="container menu__nav" aria-label="Sections">
-    <ol class="menu__list">
-      <li class="menu__item">
-        <a class="menu__link" href="/capability"
-          ><span class="label menu__num">01</span
-          ><span class="display menu__word">Capability</span></a
-        >
-      </li>
-      <li class="menu__item">
-        <a class="menu__link" href="/approach"
-          ><span class="label menu__num">02</span
-          ><span class="display menu__word">Approach</span></a
-        >
-      </li>
-      <li class="menu__item">
-        <a class="menu__link" href="/proof"
-          ><span class="label menu__num">03</span
-          ><span class="display menu__word">Proof</span></a
-        >
-      </li>
-      <li class="menu__item">
-        <a class="menu__link" href="/policy"
-          ><span class="label menu__num">04</span
-          ><span class="display menu__word">Policy</span></a
-        >
-      </li>
-      <li class="menu__item">
-        <a class="menu__link" href="/quickstart"
-          ><span class="label menu__num">05</span
-          ><span class="display menu__word">Quickstart</span></a
-        >
-      </li>
-      <li class="menu__item">
-        <a class="menu__link" href="/contact"
-          ><span class="label menu__num">06</span
-          ><span class="display menu__word">Contact</span></a
-        >
-      </li>
-      <!-- Not a marketing page. This is the running application, so it is
-           served by the API rather than sitting in this directory. -->
-      <li class="menu__item">
-        <a class="menu__link" href="/dashboard"
-          ><span class="label menu__num">07</span
-          ><span class="display menu__word">Dashboard</span></a
-        >
-      </li>
-    </ol>
-
-    <p class="label quiet menu__note">
-      No payment processor is attached &middot; nothing settles
-    </p>
-  </nav>
-</div>
-
-<section class="hero ground ground--ink" id="hero">
-  <canvas class="hero__canvas" id="particles" aria-hidden="true"></canvas>
-
-  <!-- One heading, two blocks. The sentence stays whole for a screen
-       reader; the gap between the blocks is where the body shows through.
-       Sentence case in the source, uppercased by .display — screen
-       readers mispronounce runs of capitals. -->
-  <h1 class="display hero__title">
-    <span class="hero__title-block hero__title-block--start">
-      <span class="hero__title-line">Agents</span>
-      <span class="hero__title-line">that act</span>
-    </span>
-    <span class="hero__title-block hero__title-block--end">
-      <span class="hero__title-line">inside a</span>
-      <span class="hero__title-line">fence</span>
-    </span>
-  </h1>
-
-  <div class="hero__readout">
-    <div class="hero__readout-main">
-      <span class="label hero__readout-label">Policy check</span>
-      <p class="hero__figures">
-        <span class="mono hero__amount" id="ro-amount">$0.00</span>
-        <span class="hero__verdict" id="ro-verdict" data-state="executed">Executed</span>
-      </p>
-    </div>
-
-    <!-- The readout animates a payment because an amount is the one thing that
-         reads instantly on a moving dial. The second sentence is there so the
-         demonstration is not mistaken for the whole product. -->
-    <p class="body hero__hint">
-      Distance from the centre is the amount requested. The per-action
-      limit is $50.00; the hard ceiling is $1,000.00. Money is one kind of
-      action — the same fence bounds every call an agent makes.
-    </p>
-  </div>
-</section>
-<!-- @@END-HERO@@ -->
-  <!-- @@CAPABILITY@@ -->
-<!-- ===========================================================
-     Section 3 — Capability
-     A row of vertical colour bands. Hover, focus or click expands
-     one into a dark panel. Markup is the resting state: band one
-     is already open, so the section reads correctly with no JS.
-     =========================================================== -->
-<section class="ground ground--bone section capability" id="capability">
-  <div class="container">
-    <header class="capability__head">
-      <p class="label quiet">Capability</p>
-      <h2 class="h3 capability__title">Five parts. Each does one thing.</h2>
-      <p class="label quiet capability__hint">
-        Hover a band, or tab through them
-      </p>
-    </header>
-
-    <div
-      class="capability__accordion"
-      role="group"
-      aria-label="What Adeia is made of"
-    >
-      <!-- 01 -->
-      <div
-        class="capability__band capability__band--policy"
-        data-cap-band
-        data-open="true"
-      >
-        <button
-          type="button"
-          class="capability__trigger"
-          data-cap-trigger
-          id="cap-trigger-policy"
-          aria-expanded="true"
-          aria-controls="cap-panel-policy"
-        >
-          <span class="plus-link__box capability__mark" aria-hidden="true">
-            <span class="capability__glyph">+</span>
-          </span>
-          <span class="label capability__label">Policy engine</span>
-        </button>
-        <div
-          class="capability__panel"
-          data-cap-panel
-          id="cap-panel-policy"
-          role="region"
-          aria-labelledby="cap-trigger-policy"
-        >
-          <div class="capability__body">
-            <p class="capability__copy">
-              It takes an action request and what has been used today, and hands
-              back allow, hold or deny with the rule that produced it. Money is
-              bounded by amount; an outbound call is bounded by which hosts it
-              may reach and which methods change something. It reads no clock,
-              no database and no network, so every rule in it can be tested on
-              its own.
-            </p>
-            <p class="capability__note mono">pure function &middot; no i/o</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 01b — the classifier. Sits beside the policy engine because it only
-           ever answers questions the engine handed it. -->
-      <div
-        class="capability__band capability__band--classifier"
-        data-cap-band
-        data-open="false"
-      >
-        <button
-          type="button"
-          class="capability__trigger"
-          data-cap-trigger
-          id="cap-trigger-classifier"
-          aria-expanded="false"
-          aria-controls="cap-panel-classifier"
-        >
-          <span class="plus-link__box capability__mark" aria-hidden="true">
-            <span class="capability__glyph">+</span>
-          </span>
-          <span class="label capability__label">Risk classifier</span>
-        </button>
-        <div
-          class="capability__panel"
-          data-cap-panel
-          id="cap-panel-classifier"
-          role="region"
-          aria-labelledby="cap-trigger-classifier"
-          aria-hidden="true"
-        >
-          <div class="capability__body">
-            <p class="capability__copy">
-              Asking about every write buries the one that mattered. So you name
-              the methods a model may judge, and it decides those — filing an
-              issue runs, repointing a DNS record still stops. It never sees a
-              call the rules already refused, and it never reads the agent's own
-              description of what it is doing. That sentence exists to persuade,
-              and persuasion is the attack.
-            </p>
-            <p class="capability__note mono">
-              judges inside your band &middot; never widens it
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 02 -->
-      <div
-        class="capability__band capability__band--approval"
-        data-cap-band
-        data-open="false"
-      >
-        <button
-          type="button"
-          class="capability__trigger"
-          data-cap-trigger
-          id="cap-trigger-approval"
-          aria-expanded="false"
-          aria-controls="cap-panel-approval"
-        >
-          <span class="plus-link__box capability__mark" aria-hidden="true">
-            <span class="capability__glyph">+</span>
-          </span>
-          <span class="label capability__label">Approval flow</span>
-        </button>
-        <div
-          class="capability__panel"
-          data-cap-panel
-          id="cap-panel-approval"
-          role="region"
-          aria-labelledby="cap-trigger-approval"
-          aria-hidden="true"
-        >
-          <div class="capability__body">
-            <p class="capability__copy">
-              An action over the limit stops where it stands, emails a named
-              human, and waits. The decision is a POST from a page whose token
-              is single-use and stored only as a hash, and nothing downstream is
-              contacted until someone says yes.
-            </p>
-            <p class="capability__note mono">
-              post only &middot; single-use token
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 03 -->
-      <div
-        class="capability__band capability__band--audit"
-        data-cap-band
-        data-open="false"
-      >
-        <button
-          type="button"
-          class="capability__trigger"
-          data-cap-trigger
-          id="cap-trigger-audit"
-          aria-expanded="false"
-          aria-controls="cap-panel-audit"
-        >
-          <span class="plus-link__box capability__mark" aria-hidden="true">
-            <span class="capability__glyph">+</span>
-          </span>
-          <span class="label capability__label">Audit log</span>
-        </button>
-        <div
-          class="capability__panel"
-          data-cap-panel
-          id="cap-panel-audit"
-          role="region"
-          aria-labelledby="cap-trigger-audit"
-          aria-hidden="true"
-        >
-          <div class="capability__body">
-            <p class="capability__copy">
-              Every state change appends an event — requested, evaluated, held,
-              approved, executed — and nothing is ever edited or removed. Keys
-              and tokens are stripped as the row is written, not as it is read.
-            </p>
-            <p class="capability__note mono">
-              append-only &middot; redacted at write
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- 04 -->
-      <div
-        class="capability__band capability__band--sdk"
-        data-cap-band
-        data-open="false"
-      >
-        <button
-          type="button"
-          class="capability__trigger"
-          data-cap-trigger
-          id="cap-trigger-sdk"
-          aria-expanded="false"
-          aria-controls="cap-panel-sdk"
-        >
-          <span class="plus-link__box capability__mark" aria-hidden="true">
-            <span class="capability__glyph">+</span>
-          </span>
-          <span class="label capability__label">The SDK</span>
-        </button>
-        <div
-          class="capability__panel"
-          data-cap-panel
-          id="cap-panel-sdk"
-          role="region"
-          aria-labelledby="cap-trigger-sdk"
-          aria-hidden="true"
-        >
-          <div class="capability__body">
-            <p class="capability__copy">
-              One call to requestAction returns an action that has already been
-              decided, so the agent is never left guessing. If it comes back
-              held, waitForAction blocks until the human answers and then
-              returns the outcome.
-            </p>
-            <p class="capability__note mono">
-              requestAction() &middot; waitForAction()
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===========================================================
-     Section 4 — Approach
-     Three steps, in the order an action actually travels through
-     them. The numbers are the sequence, not decoration.
-     =========================================================== -->
-<section class="ground ground--bone section approach" id="approach">
-  <div class="container">
-    <header class="approach__head">
-      <p class="label quiet">Approach</p>
-      <h2 class="h1 approach__title">How an action moves</h2>
-    </header>
-
-    <ol class="approach__steps">
-      <li class="approach__step">
-        <span class="mono approach__ordinal" aria-hidden="true">01</span>
-        <h3 class="h3 approach__step-title">Request</h3>
-        <p class="body quiet approach__copy">
-          The agent calls requestAction with a type, an amount and a recipient.
-          Nothing has moved yet — the call asks for permission, it does not give
-          an instruction.
-        </p>
-      </li>
-
-      <li class="approach__step">
-        <span class="mono approach__ordinal" aria-hidden="true">02</span>
-        <h3 class="h3 approach__step-title">Evaluate</h3>
-        <p class="body quiet approach__copy">
-          The policy engine measures the amount against the $50.00 per-action
-          limit, the $2,000.00 daily cap and the recipient allowlist. It returns
-          a single decision together with the reason that produced it.
-        </p>
-      </li>
-
-      <li class="approach__step">
-        <span class="mono approach__ordinal" aria-hidden="true">03</span>
-        <h3 class="h3 approach__step-title">Settle</h3>
-        <p class="body quiet approach__copy">
-          In bounds it executes at once and the result is recorded. Over the
-          limit it holds for a human; past the $1,000.00 ceiling it is denied,
-          and no approval can move it.
-        </p>
-      </li>
-    </ol>
-  </div>
-</section>
-<!-- @@END-CAPABILITY@@ -->
-  <!-- @@STATEMENT@@ -->
-<!-- ---------------------------------------------------------------
-     Statement — three photographs, one per rule.
-
-     Fragment: paste inside <main>. Styles in styles/statement.css.
-
-     The images are load-bearing, not decoration. Each one stands for a
-     specific number in the policy, and the caption under it names that
-     number — so the section reads as an explanation of the fence rather
-     than as three pictures of concrete.
-
-     Every <img> carries width/height and a srcset. Phones take the
-     1200px file; the 2000px one only ships to wide viewports.
-     --------------------------------------------------------------- -->
-
-<section
-  class="ground ground--paper section statement"
-  id="statement"
-  aria-labelledby="statement-title"
->
-  <div class="container">
-    <header class="statement__head">
-      <p class="label quiet statement__eyebrow">The shape of it</p>
-      <h2 class="h2 statement__title js-split" id="statement-title">
-        A fence is three decisions.
-      </h2>
-    </header>
-
-    <ol class="statement__set">
-      <li class="statement__item js-reveal">
-        <figure class="statement__figure">
-          <img
-            class="statement__img"
-            src="images/fence-1200.jpg"
-            srcset="images/fence-1200.jpg 1200w, images/fence-2000.jpg 2000w"
-            sizes="(min-width: 62rem) 30vw, 100vw"
-            width="1200"
-            height="800"
-            loading="lazy"
-            decoding="async"
-            alt="A plain metal railing running along the top of a blank concrete wall."
-          />
-          <figcaption class="statement__caption">
-            <p class="mono statement__num">$50.00</p>
-            <p class="label statement__label">Per action</p>
-            <p class="body quiet statement__gloss">
-              The most one request may spend on its own. Over it, nothing
-              happens until a person says so.
-            </p>
-          </figcaption>
-        </figure>
-      </li>
-
-      <li class="statement__item js-reveal" data-delay="120">
-        <figure class="statement__figure">
-          <img
-            class="statement__img"
-            src="images/limit-line-1200.jpg"
-            srcset="images/limit-line-1200.jpg 1200w, images/limit-line-2000.jpg 2000w"
-            sizes="(min-width: 62rem) 30vw, 100vw"
-            width="1200"
-            height="800"
-            loading="lazy"
-            decoding="async"
-            alt="A single hard diagonal shadow falling across a flat grey concrete surface."
-          />
-          <figcaption class="statement__caption">
-            <p class="mono statement__num">$1,000.00</p>
-            <p class="label statement__label">Hard ceiling</p>
-            <p class="body quiet statement__gloss">
-              The one line nobody moves. Past it the action is refused
-              outright — no email is sent, and there is no button that lets a
-              tired human wave it through.
-            </p>
-          </figcaption>
-        </figure>
-      </li>
-
-      <li class="statement__item js-reveal" data-delay="240">
-        <figure class="statement__figure">
-          <img
-            class="statement__img"
-            src="images/passage-1200.jpg"
-            srcset="images/passage-1200.jpg 1200w, images/passage-2000.jpg 2000w"
-            sizes="(min-width: 62rem) 30vw, 100vw"
-            width="1200"
-            height="800"
-            loading="lazy"
-            decoding="async"
-            alt="A concrete passage lit from one end, the light falling in a hard band across the floor."
-          />
-          <figcaption class="statement__caption">
-            <p class="mono statement__num">$2,000.00</p>
-            <p class="label statement__label">Daily cap</p>
-            <p class="body quiet statement__gloss">
-              The running total for the day, counted per currency. Inside all
-              three, an action executes immediately and nobody is asked
-              anything.
-            </p>
-          </figcaption>
-        </figure>
-      </li>
-    </ol>
-  </div>
-</section>
-<!-- @@END-STATEMENT@@ -->
-  <!-- @@PROOF@@ -->
-<!-- =========================================================================
-     Proof — the live action ledger
-     Policy — the four numbers that make the fence
-
-     Fragment only: paste inside <main>. Styles in styles/proof.css,
-     behaviour in ledger.js. The ledger rows are empty in the markup on
-     purpose — ledger.js renders both the played sequence and the static
-     reduced-motion state, so there is one source for the numbers.
-     ========================================================================= -->
-
-<section
-  class="proof ground ground--paper section"
-  id="proof"
-  aria-labelledby="proof-title"
->
-  <div class="container">
-    <header class="proof__head">
-      <p class="label proof__eyebrow">Proof — live ledger</p>
-      <h2 class="h2 proof__title" id="proof-title">
-        Two payments clear. The third waits for a person.
-      </h2>
-      <!-- Extensionless: the Node server rewrites /quickstart to the file,
-           and Pages does the same, so there is one URL per page rather than
-           a clean one and a .html one that redirects. -->
-      <a class="plus-link proof__link" href="/quickstart">
-        <span class="plus-link__box" aria-hidden="true">+</span>
-        <span>READ THE QUICKSTART</span>
+    <!-- ============================================================
+         Masthead — fixed, blurred, gains a hairline once the hero is
+         behind it.
+         ============================================================ -->
+    <header class="mast">
+      <a class="mast__back" href="/capability">
+        <span aria-hidden="true">→</span>
+        <span>Capability</span>
       </a>
+
+      <a class="mast__mark" href="/">Adeia</a>
+
+      <div class="mast__end">
+        <a class="btn" href="/dashboard" data-magnet>Sign in</a>
+      </div>
     </header>
 
-    <div class="proof__stage" data-ledger>
-      <div class="proof__panel">
-        <div class="proof__panelhead">
-          <p class="label proof__panellabel">Action ledger · project demo</p>
+    <main id="main">
+      <!-- ==========================================================
+           Hero
+           ========================================================== -->
+      <section class="hero" data-bloom>
+        <div class="hero__bloom" aria-hidden="true"></div>
+        <div class="hero__grain" aria-hidden="true"></div>
 
-          <ul class="proof__policyset">
-            <li class="proof__policyitem">
-              <span class="label quiet">Per action</span>
-              <span class="mono proof__policyval">$50.00</span>
+        <div class="hero__inner">
+          <h1 class="display hero__title">
+            <span class="rise"><span style="--i: 0">Agents</span></span>
+            <span class="rise"><span style="--i: 1">that</span></span>
+            <span class="rise"><span style="--i: 2">act,</span></span>
+            <span class="rise"><span style="--i: 3">inside</span></span>
+            <span class="rise"><span style="--i: 4">a</span></span>
+            <span class="rise"><span style="--i: 5">fence</span></span>
+            <span class="rise"><span style="--i: 6">you</span></span>
+            <span class="rise"><span style="--i: 7">set</span></span>
+          </h1>
+
+          <p class="hero__sub" data-reveal>
+            An agent asks Adeia before it spends money or calls an API. Rules
+            you wrote decide: run it, refuse it, or stop and ask you. Every
+            outcome is recorded, including which ones a model decided.
+          </p>
+
+          <div class="hero__cta" data-reveal data-reveal-delay="120">
+            <a class="btn" href="/quickstart" data-magnet>Get started</a>
+            <a class="btn btn--ghost" href="/capability" data-magnet
+              >See what it refuses to do</a
+            >
+          </div>
+        </div>
+
+        <p class="hero__readout" aria-label="Live policy figures">
+          <span>Per-action limit <b>$50.00</b> · Hard ceiling <b>$1,000.00</b></span>
+        </p>
+      </section>
+
+      <!-- ==========================================================
+           The shape of it — what the three layers are
+           ========================================================== -->
+      <section class="section" aria-labelledby="shape-title">
+        <div class="wrap">
+          <div class="tag-rail" data-reveal>
+            <span class="tag">The shape of it</span>
+            <span class="thread" aria-hidden="true"></span>
+          </div>
+
+          <div class="section-head">
+            <h2 class="h2" id="shape-title" data-reveal>
+              Three layers, and each one assumes the last can be lied to
+            </h2>
+          </div>
+
+          <div class="grid stack-lg">
+            <article class="card" data-reveal>
+              <p class="mono card__eyebrow">01 — Schema</p>
+              <h3 class="h3 card__title">Refuse before you think</h3>
+              <p class="card__body">
+                https only. No private, loopback or link-local address. A body
+                small enough that a person can read it. These are cheap and they
+                run first, so the expensive checks never see the obvious cases.
+              </p>
+            </article>
+
+            <article class="card" data-reveal data-reveal-delay="90">
+              <p class="mono card__eyebrow">02 — Policy</p>
+              <h3 class="h3 card__title">A pure function that cannot cheat</h3>
+              <p class="card__body">
+                Reads no clock, no database, no network. Today's spend is passed
+                in rather than looked up, which is what lets every rule be
+                tested on its own with no fixtures and no fake timers.
+              </p>
+            </article>
+
+            <article class="card" data-reveal data-reveal-delay="180">
+              <p class="mono card__eyebrow">03 — Adapter</p>
+              <h3 class="h3 card__title">Check again at the last moment</h3>
+              <p class="card__body">
+                Re-resolves the hostname as the call goes out and refuses if it
+                now points somewhere private. A name that was public when you
+                wrote the policy can point at the metadata endpoint by the time
+                the request runs.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           The problem
+           ========================================================== -->
+      <section class="section" aria-labelledby="problem-title">
+        <div class="wrap">
+          <div class="tag-rail" data-reveal>
+            <span class="tag">The problem</span>
+            <span class="thread" aria-hidden="true"></span>
+          </div>
+
+          <div class="section-head">
+            <h2 class="h2" id="problem-title" data-reveal>
+              An agent with an API key has no idea what it is about to cost you
+            </h2>
+            <p class="lede" data-reveal data-reveal-delay="90">
+              <span class="val">DELETE /zones/{id}</span> and
+              <span class="val">GET /zones</span> differ by one word, and one of
+              them ends a website. The model cannot tell the difference in any
+              way you can rely on, and by the time it has run there is nothing
+              to inspect — the thing you would inspect is gone.
+            </p>
+          </div>
+
+          <div class="split" data-reveal>
+            <div class="split__half">
+              <p class="mono split__label">Without a fence</p>
+              <ul class="plain">
+                <li>A retry loop spends the budget in ninety seconds.</li>
+                <li>A confused agent deletes the wrong record and says it succeeded.</li>
+                <li>Prompt-injected text points a call at a host you never approved.</li>
+                <li>Nothing is written down, so nobody can say what happened.</li>
+              </ul>
+            </div>
+            <div class="split__half split__half--lit">
+              <p class="mono split__label">With one</p>
+              <ul class="plain">
+                <li>Over the limit, it stops and asks a person.</li>
+                <li>Off the allowlist, it is refused before any request goes out.</li>
+                <li>Private addresses are blocked at three separate layers.</li>
+                <li>Every decision is in an append-only trail, with its reason.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           The classifier
+           ========================================================== -->
+      <section class="section" aria-labelledby="model-title">
+        <div class="wrap">
+          <div class="tag-rail" data-reveal>
+            <span class="tag tag--model">The model's part</span>
+            <span class="thread thread--model" aria-hidden="true"></span>
+          </div>
+
+          <div class="section-head">
+            <h2 class="h2" id="model-title" data-reveal>
+              A model decides, but only inside a band you opened
+            </h2>
+            <p class="lede" data-reveal data-reveal-delay="90">
+              Stopping every write for a human buries the approval that matters
+              under the ones that do not. So a classifier judges the ordinary
+              ones — and it is never consulted about a call the fence already
+              refused.
+            </p>
+          </div>
+
+          <div class="grid">
+            <article class="card card--model" data-reveal>
+              <h3 class="h3 card__title">It cannot open a door you shut</h3>
+              <p class="card__body">
+                Every deny rule runs first. By the time a model can be asked,
+                the host allowlist, the private-address check and the daily cap
+                have already answered. Injected text can win inside a band you
+                opened. It cannot open one.
+              </p>
+            </article>
+
+            <article class="card card--model" data-reveal data-reveal-delay="90">
+              <h3 class="h3 card__title">It never reads the excuse</h3>
+              <p class="card__body">
+                The classifier sees the method, the URL and the body — never the
+                agent's description of what it is doing. That sentence is
+                written by the party under evaluation and exists to persuade.
+                The endpoint cannot be talked around.
+              </p>
+            </article>
+
+            <article class="card card--model" data-reveal data-reveal-delay="180">
+              <h3 class="h3 card__title">Failing means asking</h3>
+              <p class="card__body">
+                Timeout, malformed answer, dead key, a verdict nobody
+                recognises — all of them send the action to a person. A
+                classifier that cannot answer must never mean yes.
+              </p>
+            </article>
+          </div>
+
+          <p class="note" data-reveal>
+            <span class="mono">DELETE</span> stays with a person forever,
+            whatever any model concludes. That is a floor, and it is yours.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           How it works — the journey of one action
+           ========================================================== -->
+      <section class="section" aria-labelledby="works-title">
+        <div class="wrap">
+          <div class="tag-rail" data-reveal>
+            <span class="tag">How it works</span>
+            <span class="thread" aria-hidden="true"></span>
+          </div>
+
+          <div class="section-head">
+            <h2 class="h2" id="works-title" data-reveal>
+              What happens between asking and doing
+            </h2>
+          </div>
+
+          <ol class="steps" data-reveal>
+            <li class="step">
+              <span class="step__n mono">01</span>
+              <div>
+                <h3 class="h3 step__title">The agent asks</h3>
+                <p class="body">
+                  It calls <span class="val">requestAction</span> with an
+                  idempotency key. It holds no card and no credential of its
+                  own — only the ability to ask.
+                </p>
+              </div>
             </li>
-            <li class="proof__policyitem">
-              <span class="label quiet">Daily cap</span>
-              <span class="mono proof__policyval">$2,000.00</span>
+            <li class="step">
+              <span class="step__n mono">02</span>
+              <div>
+                <h3 class="h3 step__title">The rules answer</h3>
+                <p class="body">
+                  Deny rules first, always. A $2,000,000 payment to an unknown
+                  recipient is refused outright rather than offered to a tired
+                  human as a button to click.
+                </p>
+              </div>
             </li>
-            <li class="proof__policyitem">
-              <span class="label quiet">Spent today</span>
-              <span
-                class="mono proof__policyval proof__policyval--live"
-                data-ledger-spent
-                >$0.00</span
+            <li class="step">
+              <span class="step__n mono">03</span>
+              <div>
+                <h3 class="h3 step__title">A person decides, if one must</h3>
+                <p class="body">
+                  An email, and a page that states what the request will
+                  actually do in plain words — derived from the method and URL,
+                  never from the agent's own description of itself.
+                </p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step__n mono">04</span>
+              <div>
+                <h3 class="h3 step__title">It runs, or it does not</h3>
+                <p class="body">
+                  The adapter re-resolves DNS, refuses redirects, and never
+                  returns the request headers — that is where the credential is,
+                  and an approval page gets screenshotted.
+                </p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step__n mono">05</span>
+              <div>
+                <h3 class="h3 step__title">It is written down</h3>
+                <p class="body">
+                  Append-only, secrets stripped at write time, and the trail
+                  says whether a person or a model decided. Those must never
+                  read the same.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           Closing
+           ========================================================== -->
+      <section class="section closing" aria-labelledby="closing-title">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 class="h1" id="closing-title" data-reveal>
+              Give your agent hands, not your credentials
+            </h2>
+            <p class="lede" data-reveal data-reveal-delay="90">
+              Sign in with GitHub and you get a project, a policy and a key in
+              about ten seconds.
+            </p>
+            <div class="hero__cta" data-reveal data-reveal-delay="180">
+              <a class="btn" href="/dashboard" data-magnet>Sign in with GitHub</a>
+              <a class="btn btn--ghost" href="/quickstart" data-magnet
+                >Read the quickstart</a
               >
-            </li>
-          </ul>
+            </div>
+          </div>
         </div>
+      </section>
+    </main>
 
-        <ol
-          class="proof__rows"
-          data-ledger-rows
-          aria-label="Actions evaluated against this policy"
-        ></ol>
-
-        <div class="proof__tail">
-          <p class="proof__foot" data-ledger-foot role="status">
-            Waiting for the agent's first request.
-          </p>
-
-          <ul class="proof__key" aria-label="How each outcome is marked">
-            <li class="proof__keyitem" data-outcome="executed">
-              <span class="mono proof__keyamt">$25.00</span>
-              <span class="proof__keytext">inside the fence, runs</span>
-            </li>
-            <li class="proof__keyitem" data-outcome="held">
-              <span class="mono proof__keyamt">$500.00</span>
-              <span class="proof__keytext">over the limit, stops</span>
-            </li>
-            <li class="proof__keyitem" data-outcome="denied">
-              <span class="mono proof__keyamt">$5,000.00</span>
-              <span class="proof__keytext">past the ceiling, refused</span>
-            </li>
-          </ul>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <p class="mono foot__mark">Adeia</p>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">
+          Source available under BSL 1.1 ·
+          <span id="visit-count" class="foot__count"></span>
+        </p>
       </div>
+    </footer>
 
-      <aside
-        class="proof__verdict"
-        data-ledger-verdict
-        data-state="idle"
-        aria-labelledby="proof-verdict-label"
-      >
-        <p class="label proof__verdictlabel" id="proof-verdict-label">Verdict</p>
-        <p class="mono proof__verdictamt" data-ledger-verdict-amt></p>
-        <p class="proof__verdictrule" data-ledger-verdict-rule>
-          Nothing is waiting. Every request so far sat inside the fence, so no
-          one was asked.
-        </p>
-        <p class="mono proof__verdictreason" data-ledger-verdict-reason></p>
-        <p class="proof__verdictwho" data-ledger-verdict-who></p>
-        <p class="proof__verdictnote">
-          Written to the append-only audit log. Nothing settles — Adeia has no
-          payment processor attached.
-        </p>
-      </aside>
-    </div>
-  </div>
-</section>
-
-<section
-  class="policy ground ground--paper section"
-  id="policy"
-  aria-labelledby="policy-title"
->
-  <div class="container">
-    <header class="policy__head">
-      <p class="label policy__eyebrow">Policy — the fence</p>
-      <h2 class="h2 policy__title" id="policy-title">Four numbers, set once.</h2>
-    </header>
-
-    <ul class="policy__figures">
-      <li class="policy__fig">
-        <p class="mono policy__num">$50.00</p>
-        <p class="label policy__figlabel">Per-action limit</p>
-        <p class="policy__gloss quiet">
-          Over it, the action stops and a person decides.
-        </p>
-      </li>
-      <li class="policy__fig">
-        <p class="mono policy__num">$2,000.00</p>
-        <p class="label policy__figlabel">Daily cap</p>
-        <p class="policy__gloss quiet">
-          The running total for the day, counted per currency.
-        </p>
-      </li>
-      <li class="policy__fig">
-        <p class="mono policy__num">$1,000.00</p>
-        <p class="label policy__figlabel">Hard ceiling</p>
-        <p class="policy__gloss quiet">
-          The most any single action may ask for. No exceptions.
-        </p>
-      </li>
-      <li class="policy__fig">
-        <p class="mono policy__num policy__num--word">optional</p>
-        <p class="label policy__figlabel">Recipient allowlist</p>
-        <p class="policy__gloss quiet">
-          Leave it unset and every recipient is in scope.
-        </p>
-      </li>
-    </ul>
-
-    <p class="body policy__note">
-      A denial is not an error. The request was well formed and the call
-      succeeded; the answer was no. Adeia returns that answer with the figure
-      that produced it —
-      <code class="policy__code">amount 500000 exceeds hard maximum 100000</code>
-      — so your agent can read the reason, say it out loud to whoever asked, and
-      stop, instead of retrying a call that will never pass. The hard ceiling is
-      the one line nobody gets to move: past it the action is refused outright,
-      no approval request is sent, and there is no button anywhere that lets a
-      tired human wave it through.
-    </p>
-  </div>
-</section>
-<!-- @@END-PROOF@@ -->
-  <!-- @@QUICKSTART@@ -->
-<!-- ---------------------------------------------------------------
-     Quickstart — ink
-
-     The one section that shows what a person actually types. It sits
-     between the policy figures and the closing so the page answers
-     "how do I use it" before it asks for anything.
-
-     Ink ground on purpose: it separates the two paper sections above
-     from the forest below, and terminal output belongs on a dark
-     surface. The steps are numbered because they are a real sequence —
-     seed cannot run before install, dev cannot run before seed.
-
-     Every command here is the one in README.md. If they drift, the
-     README is the source of truth.
-     --------------------------------------------------------------- -->
-
-<section
-  class="ground ground--ink section quickstart"
-  id="quickstart"
-  aria-labelledby="quickstart-title"
->
-  <div class="container">
-    <header class="quickstart__head">
-      <p class="label quiet">Quickstart</p>
-      <h2 class="h2 quickstart__title" id="quickstart-title">
-        Three commands, then your agent asks.
-      </h2>
-      <p class="body quickstart__intro">
-        Adeia is source available and self-hosted. You run the server, it holds your
-        policy and your audit log, and nothing leaves your machine unless you
-        send it there.
-      </p>
-    </header>
-
-    <ol class="quickstart__steps">
-      <li class="quickstart__step">
-        <p class="label quickstart__ordinal">01</p>
-        <div class="quickstart__stepbody">
-          <pre class="quickstart__cmd"><code>git clone https://github.com/NayanVangala/adeia.git
-cd adeia &amp;&amp; npm install</code></pre>
-          <p class="quickstart__gloss quiet">Node 22 or newer.</p>
-        </div>
-      </li>
-
-      <li class="quickstart__step">
-        <p class="label quickstart__ordinal">02</p>
-        <div class="quickstart__stepbody">
-          <pre class="quickstart__cmd"><code>npm run seed</code></pre>
-          <p class="quickstart__gloss quiet">
-            Creates a project, a policy, and an API key. The key is printed once
-            and stored only as a hash — copy it when you see it.
-          </p>
-        </div>
-      </li>
-
-      <li class="quickstart__step">
-        <p class="label quickstart__ordinal">03</p>
-        <div class="quickstart__stepbody">
-          <pre class="quickstart__cmd"><code>npm run dev</code></pre>
-          <p class="quickstart__gloss quiet">
-            Refuses to start without somewhere to send approval mail, so an
-            over-limit action can never pause with nobody told.
-          </p>
-        </div>
-      </li>
-    </ol>
-
-    <div class="quickstart__call">
-      <p class="label quickstart__calllabel">Then, from your agent</p>
-
-      <div class="quickstart__code" tabindex="0" role="group" aria-label="Requesting an action from the SDK">
-<pre class="quickstart__pre"><code><span class="t-dim">const</span> action = <span class="t-dim">await</span> adeia.requestAction({
-  <span class="t-key">type</span>: <span class="t-str">"payment"</span>,
-  <span class="t-key">params</span>: {
-    <span class="t-key">amountCents</span>: <span class="t-num">50_000</span>,
-    <span class="t-key">currency</span>: <span class="t-str">"usd"</span>,
-    <span class="t-key">recipient</span>: <span class="t-str">"acct_contractor"</span>,
-  },
-});
-
-<span class="t-dim">// "executed" | "pending_approval" | "denied"</span>
-<span class="t-dim">if</span> (action.status === <span class="t-str">"pending_approval"</span>) {
-  <span class="t-dim">const</span> settled = <span class="t-dim">await</span> adeia.waitForAction(action.id);
-}</code></pre>
-      </div>
-
-      <p class="quickstart__note quiet">
-        Under the per-action limit it has already run by the time this resolves.
-        Over it, a human has been emailed and
-        <span class="mono">waitForAction</span> blocks until they decide.
-      </p>
-
-      <p class="quickstart__cta">
-        <a class="plus-link" href="/quickstart">
-          <span class="plus-link__box" aria-hidden="true">+</span>
-          <span>FULL QUICKSTART</span>
-        </a>
-      </p>
-    </div>
-  </div>
-</section>
-<!-- @@END-QUICKSTART@@ -->
-  <!-- @@CLOSING@@ -->
-<!-- ---------------------------------------------------------------
-     Closing CTA + footer. Both sit on the deep green ground, the last
-     of the four the page moves through. The dot bowl behind the CTA is
-     drawn by dither.js into [data-dither]; the veil above it keeps the
-     text at full contrast no matter how dense the dots get.
-     --------------------------------------------------------------- -->
-
-<section class="ground ground--forest closing" id="contact">
-  <canvas class="closing__field" data-dither aria-hidden="true"></canvas>
-  <div class="closing__veil" aria-hidden="true"></div>
-
-  <div class="container closing__inner">
-    <p class="label closing__eyebrow js-reveal">Start here</p>
-
-    <h2 class="display closing__title js-split">Give your agent hands</h2>
-
-    <p class="lead closing__body js-reveal" data-delay="120">
-      Adeia is developer infrastructure for teams shipping agents — spend
-      limits, a human approval step and an append-only audit trail, so the
-      guardrails are not yours to build. It is source available and self-hosted:
-      clone it, seed a project, point your agent at it.
-    </p>
-
-    <p class="closing__cta js-reveal" data-delay="240">
-      <a class="plus-link" href="https://github.com/NayanVangala/adeia">
-        <span class="plus-link__box" aria-hidden="true">+</span>
-        <span>READ THE SOURCE</span>
-      </a>
-    </p>
-  </div>
-</section>
-
-<footer class="ground ground--forest site-footer">
-  <div class="container">
-    <div class="site-footer__inner">
-      <!-- Four links, four destinations. These were href="#" placeholders,
-           then anchors on this page while the pages were being written; now
-           each one has a page of its own. -->
-      <nav class="site-footer__nav" aria-label="Documentation">
-        <a class="site-footer__link" href="/quickstart">Quickstart</a>
-        <a class="site-footer__link" href="/sdk">SDK</a>
-        <a class="site-footer__link" href="/policy">Policy</a>
-        <a class="site-footer__link" href="/audit">Audit</a>
-      </nav>
-
-      <p class="label site-footer__meta">
-        Adeia &middot; agent execution &amp; permissions layer &middot; 2026
-        <!-- Hidden until the backend answers. A visit counter that invents a
-             number when it cannot reach its source is worse than no counter. -->
-        <span class="site-footer__visits" data-visits hidden>
-          &middot; <span class="mono" data-visits-total>—</span> visits
-        </span>
-      </p>
-
-      <p class="site-footer__note">
-        No payment processor is attached. Payments are authorised and recorded;
-        nothing settles.
-      </p>
-    </div>
-  </div>
-</footer>
-<!-- @@END-CLOSING@@ -->
-</main>
-
-<script src="particles.js?v=1786649098"></script>
-<script src="accordion.js?v=1786649098"></script>
-<script src="ledger.js?v=1786649098"></script>
-<script src="dither.js?v=1786649098"></script>
-<script src="motion.js?v=1786649098"></script>
-<script src="visits.js?v=1786649098"></script>
-<script src="nav.js?v=1786649098"></script>
-</body>
+    <script src="/cursor.js?v=1787031394254" type="module"></script>
+    <script src="/visits.js?v=1786649098421" type="module"></script>
+  </body>
 </html>

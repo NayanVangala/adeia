@@ -1,15 +1,14 @@
 /**
- * Assembles src/frontend/index.html from the fragments in partials/.
+ * Cache-busts the landing page's local assets.
  *
- * The landing page is four fragments pasted into one document. They were
- * being pasted by hand, which meant a fix could land in a partial and
- * never reach the page — so this does the pasting, and the marker pairs
- * already in index.html are what it writes between.
+ * Rewrites the `?v=` on every same-origin stylesheet and script to that
+ * file's modification time, so a changed asset can never be served from
+ * a stale cache. Idempotent: running it twice on unchanged input
+ * produces byte-identical output.
  *
- * It also rewrites the ?v= on every local stylesheet and script to the
- * file's modification time, so a changed asset cannot be served from a
- * stale cache. Both steps are idempotent: running it twice on unchanged
- * input produces byte-identical output.
+ * It used to also paste fragments from partials/ into index.html. The
+ * redesign made index.html a single document, so that half is gone and
+ * so are the fragments.
  *
  *   node scripts/build-site.mjs          write index.html
  *   node scripts/build-site.mjs --check  exit 1 if it would change
@@ -22,75 +21,48 @@ import path from "node:path";
 const FRONTEND = fileURLToPath(new URL("../src/frontend/", import.meta.url));
 const PAGE = path.join(FRONTEND, "index.html");
 
-/** Marker name in index.html -> fragment file in partials/. */
-const SECTIONS = {
-  HERO: "hero.html",
-  CAPABILITY: "capability.html",
-  STATEMENT: "statement.html",
-  PROOF: "proof.html",
-  QUICKSTART: "quickstart.html",
-  CLOSING: "closing.html",
-};
+/** `/styles/v2.css` or `/styles/v2.css?v=123` -> the file on disk. */
+const ASSET = /(?:href|src)="(\/[^"?]+\.(?:css|js))(?:\?v=\d+)?"/g;
 
-/** Escape a string for use inside a RegExp. */
-function escape(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-async function assemble(html) {
+async function stamp(html) {
+  const matches = [...html.matchAll(ASSET)];
   let out = html;
 
-  for (const [marker, file] of Object.entries(SECTIONS)) {
-    const open = `<!-- @@${marker}@@ -->`;
-    const close = `<!-- @@END-${marker}@@ -->`;
+  for (const match of matches) {
+    const assetPath = match[1];
+    // Leading slash is an origin-relative URL, not a filesystem path.
+    const onDisk = path.join(FRONTEND, assetPath.replace(/^\//, ""));
 
-    if (!out.includes(open) || !out.includes(close)) {
-      throw new Error(`index.html is missing the ${marker} marker pair`);
-    }
-
-    const fragment = await readFile(path.join(FRONTEND, "partials", file), "utf8");
-    const block = new RegExp(`${escape(open)}[\\s\\S]*?${escape(close)}`);
-    // $ is special in a replacement string; a function body is not.
-    out = out.replace(block, () => `${open}\n${fragment.trim()}\n${close}`);
-  }
-
-  return out;
-}
-
-async function bustCaches(html) {
-  const refs = [...html.matchAll(/(href|src)="([a-z0-9/._-]+\.(?:css|js))(\?v=\d+)?"/gi)];
-  let out = html;
-
-  for (const [, attr, asset] of refs) {
-    let mtime;
+    let version;
     try {
-      mtime = (await stat(path.join(FRONTEND, asset))).mtime;
+      version = Math.floor((await stat(onDisk)).mtimeMs);
     } catch {
-      // A reference to a file that does not exist is a broken page, not a
-      // cache problem. Say so rather than papering over it with a version.
-      throw new Error(`index.html references ${asset}, which does not exist`);
+      // An asset that is not on disk is served from somewhere else, or is
+      // a mistake worth seeing in the browser rather than hiding here.
+      continue;
     }
-    const version = Math.floor(mtime.getTime() / 1000);
-    const pattern = new RegExp(`${attr}="${escape(asset)}(?:\\?v=\\d+)?"`, "g");
-    out = out.replace(pattern, `${attr}="${asset}?v=${version}"`);
+
+    const attr = match[0].startsWith("href") ? "href" : "src";
+    out = out.replace(match[0], `${attr}="${assetPath}?v=${version}"`);
   }
 
   return out;
 }
 
-const check = process.argv.includes("--check");
-const before = await readFile(PAGE, "utf8");
-const after = await bustCaches(await assemble(before));
+const html = await readFile(PAGE, "utf8");
+const next = await stamp(html);
 
-if (before === after) {
+if (process.argv.includes("--check")) {
+  if (next !== html) {
+    console.error("index.html is out of date — run: node scripts/build-site.mjs");
+    process.exit(1);
+  }
   console.log("index.html is up to date");
-  process.exit(0);
+} else {
+  if (next === html) {
+    console.log("index.html is up to date");
+  } else {
+    await writeFile(PAGE, next);
+    console.log("index.html asset versions stamped");
+  }
 }
-
-if (check) {
-  console.error("index.html is stale — run: npm run site:build");
-  process.exit(1);
-}
-
-await writeFile(PAGE, after);
-console.log("index.html rebuilt from partials/");

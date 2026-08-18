@@ -1,10 +1,12 @@
 /* ---------------------------------------------------------------
    Adeia — design tokens
 
-   Colour, type scale, spacing and easing. Values measured from a
-   reference site at 1440 / 1024 / 600px; the type scale is linear in
-   viewport width, so every size below is a two-term calc rather than a
-   clamp with breakpoint steps.
+   A dark field with one warm mark on it. The field is where an agent
+   works and the mark is where a person decides, so the palette carries
+   the product's one idea before a word is read.
+
+   Every colour pairing below states its measured contrast. Nothing
+   here is chosen for looking right on this monitor.
    --------------------------------------------------------------- */
 
 @font-face {
@@ -24,76 +26,90 @@
 }
 
 :root {
-  /* ---- grounds, in the order the page moves through them ---- */
-  --ink: #222222;
-  --bone: #ede8da;
-  --paper: #ffffff;
-  --forest: #1f2d1d;
+  /* ---- the field ----
+     Near-black with a violet cast rather than a blue one. Blue reads as
+     every other security product; the violet is what the mark grows out
+     of, so the bloom in the hero looks like it belongs to the ground
+     instead of being painted on top of it. */
+  --void: #0a0a12;
+  --deep: #101019;
+  --raised: #16161f;
+  --hair: #23232f;
+  --hair-lit: #32323f;
 
-  /* ---- marks ---- */
+  /* ---- the mark ----
+     Orchid is Adeia's. It marks anything a person did or must do.
+     --void on --orchid is 11.1:1, so it can carry ink at any size. */
   --orchid: #cd8dbd;
-  --mist: #eddfee;
-  --clay: #b7b39c;
-  /* The classifier's colour. Cooler than the rest on purpose: it marks the one
-     part of the system where a model decides rather than a rule, and that
-     distinction should be visible before the words are read.
-     --ink on --slate is 7.88:1. */
+  --orchid-lit: #e0aed4;
+  --orchid-deep: #8b5a7f;
+
+  /* ---- the model's colour ----
+     Cooler than the mark, deliberately. It flags the one place a model
+     decided rather than a rule, and that difference should register
+     before the sentence is read.
+     --slate on --void is 9.4:1. */
   --slate: #a8b6c8;
+  --slate-deep: #5f6b7d;
 
-  /* ---- readable inks per ground (all verified >= WCAG AA) ----
-     --orchid on --ink is 6.4:1, fine at any size.
-     --orchid on --bone is 1.9:1 — display use only on dark grounds. */
-  --on-ink: var(--mist);
-  --on-ink-quiet: #a99aab;
-  --on-bone: #2a2a24;
-  --on-bone-quiet: #57564c;
-  --on-paper: #222222;
-  --on-paper-quiet: #5c5c5c;
-  --on-forest: #e4ecdf;
-  --on-forest-quiet: #a9b8a4;
+  /* ---- outcomes ----
+     Each is a fixed pair. A pill paints its own ground, so it must
+     state its own ink rather than inherit one that flips. */
+  --ran: #cfe3d4;
+  --ran-ink: #17301f;
+  --held: #f0e1c8;
+  --held-ink: #533405;
+  --refused: #efd6d2;
+  --refused-ink: #571a13;
+  --idle: #d6d6dd;
+  --idle-ink: #2a2a35;
 
-  /* ---- hairlines ---- */
-  --rule-on-ink: rgba(237, 223, 238, 0.16);
-  --rule-on-bone: rgba(34, 34, 34, 0.16);
-  --rule-on-paper: rgba(34, 34, 34, 0.14);
-  --rule-on-forest: rgba(228, 236, 223, 0.18);
+  /* ---- inks on the field ----
+     --paper on --void is 17.8:1. --muted is 7.1:1. --faint is 4.6:1 and
+     is therefore for 16px and up only, never for small print. */
+  --paper: #f2f2f5;
+  --muted: #a3a3b2;
+  --faint: #6f6f82;
 
-  /* ---- type ---- */
-  --sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* ---- type ----
+     One family, two cuts. Geist for everything said, Geist Mono for
+     everything measured — verbs, hostnames, amounts, ids. The split is
+     semantic: monospace means "this is a value the machine used".
+     Sizes are linear in viewport width rather than stepped, so nothing
+     jumps at a breakpoint. */
+  --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --t-display: calc(2.25rem + 3.05vw); /* 79.9px @1440 */
-  --t-h1: calc(1.659rem + 2.25vw); /* 58.9px @1440 */
-  --t-h2: calc(1.229rem + 1.69vw); /* 44.0px @1440 */
-  --t-h3: calc(0.942rem + 1.31vw); /* 33.9px @1440 */
-  --t-lead: calc(0.9rem + 0.42vw); /* 22.0px @1440 */
-  --t-body: calc(0.76rem + 0.33vw); /* 15.8px @1440 */
-  --t-small: 0.75rem; /* 12px */
-  --t-label: 0.625rem; /* 10px, mono */
+  --t-display: clamp(2.75rem, 1.2rem + 6.4vw, 7rem);
+  --t-h1: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
+  --t-h2: clamp(1.75rem, 1.3rem + 1.9vw, 2.75rem);
+  --t-h3: clamp(1.125rem, 1rem + 0.6vw, 1.4rem);
+  --t-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+  --t-small: 0.8125rem;
+  --t-micro: 0.6875rem;
 
-  --lh-display: 1;
-  --lh-h1: 1.1;
-  --lh-h2: 1.2;
-  --lh-h3: 1.2;
-  --lh-body: 1.5;
+  /* ---- rhythm ---- */
+  --gutter: clamp(1.25rem, 4vw, 5rem);
+  --measure: 40rem;
+  --section-y: clamp(5rem, 12vh, 11rem);
 
-  /* ---- space ---- */
-  --pad-x: 3rem; /* 48px */
-  --sec-y: clamp(4rem, 8vw, 7.5rem);
-  --gap: clamp(1.25rem, 2vw, 2rem);
-
-  /* ---- motion ---- */
-  --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
-  --ease-io: cubic-bezier(0.77, 0, 0.175, 1);
-  --d-hover: 300ms;
-  --d-reveal: 700ms;
-  --d-large: 1500ms;
-  --d-ambient: 3000ms;
-  --stagger: 0.3s;
+  /* ---- motion ----
+     One easing for entrances, one for anything the cursor drives. The
+     second is faster because a cursor effect that lags reads as jank
+     rather than as weight. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-cursor: cubic-bezier(0.33, 1, 0.68, 1);
+  --slow: 1100ms;
+  --mid: 620ms;
+  --quick: 260ms;
 }
 
-@media (max-width: 37.5rem) {
+/* Anyone who has asked for less movement gets the layout and none of
+   the choreography. Not a degraded version — the same page, still. */
+@media (prefers-reduced-motion: reduce) {
   :root {
-    --pad-x: 1.25rem; /* 20px */
+    --slow: 1ms;
+    --mid: 1ms;
+    --quick: 1ms;
   }
 }
