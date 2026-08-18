@@ -22,7 +22,8 @@
     "site:build": "node scripts/build-site.mjs",
     "site:check": "node scripts/build-site.mjs --check",
     "demo": "npm run -w @adeia/demo-agent start",
-    "db:generate": "npm run -w @adeia/server db:generate"
+    "db:generate": "npm run -w @adeia/server db:generate",
+    "demo:video": "node --experimental-strip-types scripts/demo.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
