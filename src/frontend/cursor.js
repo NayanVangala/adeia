@@ -1,96 +1,118 @@
 /**
- * Adeia — cursor and scroll choreography.
+ * Adeia — cursor, scroll and interaction choreography.
  *
- * Four effects, one animation frame. Everything the pointer drives is
+ * Six behaviours, one animation frame. Anything the pointer drives is
  * written to CSS custom properties inside a single rAF loop rather than
- * on the move event itself, because a mousemove handler that touches
- * the DOM fires far more often than the screen refreshes and spends
- * the difference on forced layout.
+ * on the event itself: a pointermove handler that touches the DOM fires
+ * far more often than the screen refreshes, and spends the difference
+ * on forced layout.
  *
- * Anyone who has asked for reduced motion gets none of this. The page
- * is already complete without it — every effect here is addition.
+ * Reduced motion gets none of it. The page is complete without every
+ * effect here.
  */
 
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+const canHover = window.matchMedia("(hover: hover)");
 
 /* ------------------------------------------------------------------ *
- * 1. The bloom follows the cursor.
+ * A single pointer loop.
  *
- * Eased rather than pinned: the wash trails the pointer, which reads as
- * weight. Pinning it exactly makes the page feel like a flashlight.
+ * Everything that needs the cursor subscribes here, so the page has one
+ * rAF rather than one per effect. Each subscriber gets eased, normalised
+ * coordinates: -1..1 from centre, and 0..100 as a percentage.
  * ------------------------------------------------------------------ */
 
-function bloom() {
-  const hero = document.querySelector("[data-bloom]");
-  if (!hero || reduced.matches) return;
+const subscribers = [];
+let targetNx = 0;
+let targetNy = 0;
+let nx = 0;
+let ny = 0;
+let looping = false;
 
-  // Percentages, matching the CSS defaults so the first frame does not jump.
-  let targetX = 50;
-  let targetY = 42;
-  let x = targetX;
-  let y = targetY;
-  let running = false;
-
-  const onMove = (event) => {
-    const rect = hero.getBoundingClientRect();
-    targetX = ((event.clientX - rect.left) / rect.width) * 100;
-    targetY = ((event.clientY - rect.top) / rect.height) * 100;
-    if (!running) {
-      running = true;
-      requestAnimationFrame(step);
-    }
-  };
-
-  function step() {
-    // Critically damped enough to settle without ringing.
-    x += (targetX - x) * 0.075;
-    y += (targetY - y) * 0.075;
-
-    hero.style.setProperty("--bx", `${x.toFixed(2)}%`);
-    hero.style.setProperty("--by", `${y.toFixed(2)}%`);
-
-    // Stop once it has arrived, so an idle tab burns nothing.
-    if (Math.abs(targetX - x) > 0.05 || Math.abs(targetY - y) > 0.05) {
-      requestAnimationFrame(step);
-    } else {
-      running = false;
-    }
+function onPointer(event) {
+  targetNx = (event.clientX / window.innerWidth) * 2 - 1;
+  targetNy = (event.clientY / window.innerHeight) * 2 - 1;
+  if (!looping) {
+    looping = true;
+    requestAnimationFrame(tick);
   }
+}
 
-  hero.addEventListener("pointermove", onMove, { passive: true });
+function tick() {
+  nx += (targetNx - nx) * 0.08;
+  ny += (targetNy - ny) * 0.08;
 
-  // Drift home when the pointer leaves, rather than freezing mid-corner.
-  hero.addEventListener(
-    "pointerleave",
-    () => {
-      targetX = 50;
-      targetY = 42;
-      if (!running) {
-        running = true;
-        requestAnimationFrame(step);
-      }
-    },
-    { passive: true },
-  );
+  for (const fn of subscribers) fn(nx, ny);
+
+  // Stop once it has arrived, so an idle tab costs nothing.
+  if (Math.abs(targetNx - nx) > 0.001 || Math.abs(targetNy - ny) > 0.001) {
+    requestAnimationFrame(tick);
+  } else {
+    looping = false;
+  }
+}
+
+function onCursor(fn) {
+  subscribers.push(fn);
+}
+
+if (!reduced.matches && canHover.matches) {
+  window.addEventListener("pointermove", onPointer, { passive: true });
 }
 
 /* ------------------------------------------------------------------ *
- * 2. Cards light up under the cursor.
+ * 1. The gradient sweep tracks the cursor.
  *
- * The gradient itself lives in CSS; this only reports where the pointer
- * is, in the card's own coordinates.
+ * The headline's gradient is wider than the text, so moving its
+ * background-position slides different stops across the glyphs. The
+ * word under your cursor is a different colour than it was a moment
+ * ago, which is the effect the reference does not have.
  * ------------------------------------------------------------------ */
 
-function cardSheen() {
+function gradientSweep() {
+  const swept = document.querySelectorAll(".sweep");
+  if (!swept.length) return;
+
+  onCursor((x) => {
+    // -1..1 mapped into a band that never runs the gradient off the end.
+    const pos = 46 + x * 30;
+    for (const el of swept) el.style.setProperty("--sweep-x", `${pos.toFixed(1)}%`);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. The floating frames drift at different depths.
+ *
+ * Each frame declares its own --depth, so they separate as the pointer
+ * moves and the backdrop reads as space rather than wallpaper.
+ * ------------------------------------------------------------------ */
+
+function frameParallax() {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+
+  onCursor((x, y) => {
+    hero.style.setProperty("--px", x.toFixed(3));
+    hero.style.setProperty("--py", y.toFixed(3));
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Cards and bento cells light from wherever the pointer is.
+ *
+ * Local coordinates, so this cannot go through the shared loop.
+ * ------------------------------------------------------------------ */
+
+function localSheen() {
   if (reduced.matches) return;
 
-  for (const card of document.querySelectorAll(".card")) {
-    card.addEventListener(
+  for (const el of document.querySelectorAll(".card, .bento__cell")) {
+    el.addEventListener(
       "pointermove",
       (event) => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
-        card.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
+        el.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
       },
       { passive: true },
     );
@@ -98,18 +120,17 @@ function cardSheen() {
 }
 
 /* ------------------------------------------------------------------ *
- * 3. Magnetic buttons.
+ * 4. Magnetic buttons.
  *
- * The button leans toward the cursor within a small radius. Capped at a
- * few pixels — enough to feel alive, not enough to make the target move
- * out from under someone trying to click it.
+ * Capped at a few pixels: enough to feel alive, not enough to move the
+ * target out from under someone trying to click it.
  * ------------------------------------------------------------------ */
 
-const MAGNET_PULL = 0.28;
-const MAGNET_MAX = 7;
+const MAGNET_PULL = 0.3;
+const MAGNET_MAX = 8;
 
 function magnetic() {
-  if (reduced.matches || !window.matchMedia("(hover: hover)").matches) return;
+  if (reduced.matches || !canHover.matches) return;
 
   for (const el of document.querySelectorAll("[data-magnet]")) {
     el.addEventListener(
@@ -125,22 +146,51 @@ function magnetic() {
       { passive: true },
     );
 
-    el.addEventListener(
-      "pointerleave",
-      () => {
-        el.style.transform = "";
-      },
-      { passive: true },
-    );
+    el.addEventListener("pointerleave", () => (el.style.transform = ""), { passive: true });
   }
 }
 
 /* ------------------------------------------------------------------ *
- * 4. Reveal on scroll, and the masthead's hairline.
+ * 5. The sticky rail.
  *
- * The observer adds .is-in and stops watching. If IntersectionObserver
- * is missing, everything is revealed at once — the content is the point
- * and the animation is not.
+ * Buttons rather than links, because nothing navigates — this swaps a
+ * panel. Full keyboard support: arrows move, and selection follows
+ * focus the way a tablist should.
+ * ------------------------------------------------------------------ */
+
+function rail() {
+  for (const group of document.querySelectorAll("[data-rail]")) {
+    const tabs = [...group.querySelectorAll("[role='tab']")];
+    const panels = [...group.querySelectorAll("[role='tabpanel']")];
+    if (!tabs.length) continue;
+
+    const select = (index) => {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute("aria-selected", String(on));
+        tab.tabIndex = on ? 0 : -1;
+        panels[i]?.toggleAttribute("hidden", !on);
+      });
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(i));
+      tab.addEventListener("keydown", (event) => {
+        const step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const next = (i + step + tabs.length) % tabs.length;
+        tabs[next].focus();
+        select(next);
+      });
+    });
+
+    select(0);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Reveal on scroll, and the masthead hairline.
  * ------------------------------------------------------------------ */
 
 function reveal() {
@@ -155,13 +205,12 @@ function reveal() {
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        // Stagger siblings so a row of cards arrives in sequence.
         const delay = Number(entry.target.dataset.revealDelay ?? 0);
         setTimeout(() => entry.target.classList.add("is-in"), delay);
         observer.unobserve(entry.target);
       }
     },
-    { rootMargin: "0px 0px -12% 0px", threshold: 0.1 },
+    { rootMargin: "0px 0px -10% 0px", threshold: 0.08 },
   );
 
   for (const el of items) observer.observe(el);
@@ -169,19 +218,19 @@ function reveal() {
 
 function masthead() {
   const mast = document.querySelector(".mast");
-  if (!mast) return;
-
-  const sentinel = document.querySelector("[data-bloom]") ?? document.body;
-  if (!("IntersectionObserver" in window)) return;
+  const hero = document.querySelector(".hero");
+  if (!mast || !hero || !("IntersectionObserver" in window)) return;
 
   new IntersectionObserver(
     ([entry]) => mast.classList.toggle("is-stuck", !entry.isIntersecting),
     { rootMargin: "-70px 0px 0px 0px" },
-  ).observe(sentinel);
+  ).observe(hero);
 }
 
-bloom();
-cardSheen();
+gradientSweep();
+frameParallax();
+localSheen();
 magnetic();
+rail();
 reveal();
 masthead();

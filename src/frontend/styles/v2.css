@@ -1,9 +1,9 @@
 /* ---------------------------------------------------------------
-   Adeia — the page itself.
+   Adeia — base and components.
 
-   Reads tokens.css for every value. Layout, components and the two
-   pieces of visual signature live here: the bloom behind the hero and
-   the hairline that stitches one section to the next.
+   Reads every value from tokens.css. The signatures live here: the
+   gradient-clipped headline, the floating outlined frames, the sticky
+   rail, and the bento grid.
    --------------------------------------------------------------- */
 
 *,
@@ -19,11 +19,10 @@ html {
 
 body {
   margin: 0;
-  background: var(--void);
+  background: var(--black);
   color: var(--paper);
   font-family: var(--sans);
   font-size: var(--t-body);
-  font-weight: 400;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -42,12 +41,11 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--orchid);
+  outline: 2px solid var(--warm);
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
-/* Anything visually hidden but still spoken. */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -62,7 +60,7 @@ a {
 
 .wrap {
   width: 100%;
-  max-width: 78rem;
+  max-width: 80rem;
   margin: 0 auto;
   padding-inline: var(--gutter);
 }
@@ -72,11 +70,9 @@ a {
 h1,
 h2,
 h3 {
-  /* 300 across the board. At display size a heavier cut reads as
-     shouting; the size is already doing the emphasis. */
-  font-weight: 300;
-  letter-spacing: -0.025em;
-  line-height: 1.05;
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
+  line-height: 1;
   margin: 0;
   text-wrap: balance;
 }
@@ -92,7 +88,7 @@ h3 {
 }
 .h3 {
   font-size: var(--t-h3);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--tracking-tight);
   line-height: 1.25;
 }
 
@@ -101,10 +97,11 @@ p {
 }
 
 .lede {
-  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
+  font-size: clamp(1rem, 0.95rem + 0.45vw, 1.25rem);
   color: var(--muted);
   max-width: var(--measure);
-  line-height: 1.65;
+  line-height: 1.6;
+  letter-spacing: -0.005em;
 }
 
 .body {
@@ -118,66 +115,81 @@ p {
   letter-spacing: -0.01em;
 }
 
-/* A value the machine used — a verb, a host, an id. */
+/* A value the machine used. */
 .val {
   font-family: var(--mono);
-  font-size: 0.9em;
-  color: var(--orchid);
+  font-size: 0.92em;
+  color: var(--cold);
   font-variant-ligatures: none;
 }
 
-/* ---------- the section label ----------
-   A bordered monospace pill, centred, with a hairline dropping out of
-   it into the section below. The line is the through-thread of the
-   whole page: one continuous path an action travels. */
+/* ---------- the gradient headline ----------
+   The one piece of the reference that has to be exact. Clipped to the
+   glyphs, sized larger than the text so the sweep is not compressed
+   into a single word, and animated by cursor.js through --sweep-x. */
 
-.tag {
+.sweep {
+  background-image: var(--sweep);
+  /* Wider than the text so the cursor can slide unseen stops across the
+     glyphs, but not so wide that any one reading shows a single hue. */
+  background-size: 165% 100%;
+  background-position: var(--sweep-x, 46%) center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  transition: background-position var(--mid-dur) var(--ease-cursor);
+}
+
+/* Safari repaints clipped text badly during transform; this pins it. */
+@supports (-webkit-touch-callout: none) {
+  .sweep {
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* ---------- buttons ---------- */
+
+.btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.4375rem 0.9375rem;
-  border: 1px solid var(--orchid-deep);
-  border-radius: 4px;
-  font-family: var(--mono);
-  font-size: var(--t-micro);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--orchid);
-  background: color-mix(in srgb, var(--orchid) 7%, transparent);
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--black);
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background var(--quick) var(--ease-cursor),
+    transform var(--quick) var(--ease-cursor),
+    box-shadow var(--mid-dur) var(--ease-cursor);
 }
 
-.tag-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+.btn:hover {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warm) 50%, transparent),
+    0 8px 40px -8px color-mix(in srgb, var(--warm) 55%, transparent);
 }
 
-/* The hairline. Scaled from the top by scroll-linked animation where
-   the browser supports it, so it draws itself as the section arrives. */
-.thread {
-  width: 1px;
-  height: clamp(3rem, 7vh, 6rem);
-  background: linear-gradient(to bottom, var(--orchid), transparent);
-  transform-origin: top;
+.btn--ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--hair-lit);
 }
 
-@supports (animation-timeline: view()) {
-  .thread {
-    animation: thread-draw linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 22%;
-  }
-  @keyframes thread-draw {
-    from {
-      transform: scaleY(0);
-    }
-    to {
-      transform: scaleY(1);
-    }
-  }
+.btn--ghost:hover {
+  border-color: color-mix(in srgb, var(--warm) 55%, transparent);
+  background: color-mix(in srgb, var(--warm) 8%, transparent);
 }
 
-/* ---------- sections ---------- */
+/* ---------- section scaffolding ---------- */
 
 .section {
   padding-block: var(--section-y);
@@ -189,48 +201,76 @@ p {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 1.75rem;
+  gap: 1.5rem;
 }
 
-.section-head .h2,
-.section-head .h1 {
-  max-width: 22ch;
+.section-head .h1,
+.section-head .h2 {
+  max-width: 20ch;
+}
+
+/* A small gradient-bordered label above a section. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.9375rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--raised);
+  border: 1px solid var(--hair);
+}
+
+.eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--warm);
+}
+
+.eyebrow--machine::before {
+  background: var(--cold);
 }
 
 /* ---------- cards ---------- */
 
 .grid {
   display: grid;
-  gap: 1.125rem;
+  gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
 }
 
 .card {
   position: relative;
   padding: 1.75rem;
   border: 1px solid var(--hair);
-  border-radius: 12px;
-  background: linear-gradient(160deg, var(--raised), var(--deep) 60%);
+  border-radius: var(--radius);
+  background: var(--near);
+  overflow: hidden;
   transition:
     border-color var(--quick) var(--ease-cursor),
-    transform var(--quick) var(--ease-cursor);
+    background var(--quick) var(--ease-cursor);
 }
 
-/* A cursor-tracked sheen. --mx/--my are written by cursor.js as
-   percentages; with no JS the fallback centre keeps it invisible
-   rather than misplaced. */
+/* Cursor-tracked wash. --mx/--my come from cursor.js. */
 .card::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(
-    22rem circle at var(--mx, 50%) var(--my, 50%),
-    color-mix(in srgb, var(--orchid) 11%, transparent),
-    transparent 60%
+    20rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--warm) 10%, transparent),
+    transparent 62%
   );
   opacity: 0;
-  transition: opacity var(--mid) var(--ease-cursor);
+  transition: opacity var(--mid-dur) var(--ease-cursor);
   pointer-events: none;
 }
 
@@ -242,15 +282,24 @@ p {
   opacity: 1;
 }
 
-.card__icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-bottom: 1.25rem;
-  color: var(--orchid);
+.card--machine::before {
+  background: radial-gradient(
+    20rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--cold) 10%, transparent),
+    transparent 62%
+  );
+}
+
+.card__label {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 1rem;
 }
 
 .card__title {
-  color: var(--orchid);
   margin-bottom: 0.625rem;
 }
 
@@ -260,52 +309,11 @@ p {
   line-height: 1.65;
 }
 
-/* ---------- buttons ---------- */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8125rem 1.5rem;
-  border: 0;
-  border-radius: 6px;
-  background: var(--paper);
-  color: var(--void);
-  font-family: var(--mono);
-  font-size: var(--t-small);
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background var(--quick) var(--ease-cursor),
-    transform var(--quick) var(--ease-cursor);
-}
-
-.btn:hover {
-  background: var(--orchid-lit);
-}
-
-.btn--ghost {
-  background: transparent;
-  color: var(--paper);
-  border: 1px solid var(--hair-lit);
-}
-
-.btn--ghost:hover {
-  background: color-mix(in srgb, var(--orchid) 12%, transparent);
-  border-color: var(--orchid-deep);
-}
-
-/* ---------- reveal ----------
-   Everything marked [data-reveal] starts down and dim and is released
-   by an IntersectionObserver. Declared here rather than inline so a
-   page with JS disabled shows the content: .is-in is additive, and the
-   observer adds it immediately if it never fires. */
+/* ---------- reveal ---------- */
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(1.25rem);
+  transform: translateY(1.5rem);
   transition:
     opacity var(--slow) var(--ease),
     transform var(--slow) var(--ease);

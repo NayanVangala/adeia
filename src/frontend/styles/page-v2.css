@@ -1,54 +1,135 @@
 /* ---------------------------------------------------------------
-   Adeia — section-level pieces that are not the hero.
-
-   Split panels, the step list, notes, and the footer.
+   Adeia — the remaining pieces: the dashboard mock in the hero shot,
+   the split panel, the FAQ, notes, closing and footer.
    --------------------------------------------------------------- */
 
-.stack-lg {
-  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+/* ---------- the dashboard mock ----------
+   Drawn rather than screenshotted, so it stays sharp at any width and
+   cannot go stale when the real dashboard changes. */
+
+.mock__stats {
+  display: flex;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--hair);
 }
 
-.grid {
-  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+.mock__stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.card__eyebrow {
+.mock__stats b {
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.mock__stats span {
   font-size: var(--t-micro);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--faint);
-  margin-bottom: 1rem;
 }
 
-/* The classifier's cards wear its colour rather than the mark's, so
-   the one place a model decides is visible before it is read. */
-.card--model .card__title {
-  color: var(--slate);
+.mock__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-small);
 }
 
-.card--model::before {
-  background: radial-gradient(
-    22rem circle at var(--mx, 50%) var(--my, 50%),
-    color-mix(in srgb, var(--slate) 12%, transparent),
-    transparent 60%
-  );
+.mock__table th {
+  text-align: left;
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--faint);
+  padding: 0 1rem 0.75rem 0;
+  border-bottom: 1px solid var(--hair);
 }
 
-.tag--model {
-  border-color: var(--slate-deep);
-  color: var(--slate);
-  background: color-mix(in srgb, var(--slate) 7%, transparent);
+.mock__table td {
+  padding: 0.875rem 1rem 0.875rem 0;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: top;
 }
 
-.thread--model {
-  background: linear-gradient(to bottom, var(--slate), transparent);
+.mock__table tr:last-child td {
+  border-bottom: 0;
 }
 
-/* ---------- the split panel ---------- */
+.mock__what {
+  display: block;
+  color: var(--paper);
+  font-size: 0.8125rem;
+}
+
+.mock__sub {
+  display: block;
+  color: var(--faint);
+  font-size: var(--t-micro);
+  margin-top: 0.25rem;
+}
+
+/* The classifier's line, in the cold end of the gradient. A model
+   deciding and a person deciding must never look alike. */
+.mock__model {
+  display: block;
+  margin-top: 0.5rem;
+  padding-left: 0.625rem;
+  border-left: 2px solid var(--cold);
+  color: var(--cold);
+  font-size: var(--t-micro);
+  line-height: 1.4;
+}
+
+.mock__when {
+  color: var(--faint);
+  font-size: var(--t-micro);
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pill--ran {
+  background: var(--ran);
+  color: var(--ran-ink);
+}
+.pill--held {
+  background: var(--held);
+  color: var(--held-ink);
+}
+.pill--deny {
+  background: var(--refused);
+  color: var(--refused-ink);
+}
+
+@media (max-width: 48rem) {
+  .mock__table th:nth-child(3),
+  .mock__table td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* ---------- split panel ---------- */
 
 .split {
   display: grid;
-  gap: 1.125rem;
+  gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
   margin-top: clamp(2.5rem, 6vh, 4.5rem);
 }
@@ -56,17 +137,17 @@
 .split__half {
   padding: 2rem;
   border: 1px solid var(--hair);
-  border-radius: 12px;
-  background: var(--deep);
+  border-radius: var(--radius);
+  background: var(--near);
 }
 
-/* The right-hand half is the one you want, so it carries the mark. */
+/* The half you want carries the warm end of the gradient. */
 .split__half--lit {
-  border-color: var(--orchid-deep);
+  border-color: color-mix(in srgb, var(--warm) 40%, transparent);
   background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--orchid) 8%, var(--raised)),
-    var(--deep) 70%
+    165deg,
+    color-mix(in srgb, var(--warm) 9%, var(--raised)),
+    var(--near) 72%
   );
 }
 
@@ -79,7 +160,7 @@
 }
 
 .split__half--lit .split__label {
-  color: var(--orchid);
+  color: var(--warm);
 }
 
 .plain {
@@ -92,7 +173,7 @@
 
 .plain li {
   position: relative;
-  padding-left: 1.25rem;
+  padding-left: 1.375rem;
   color: var(--muted);
   font-size: var(--t-small);
   line-height: 1.6;
@@ -102,86 +183,140 @@
   content: "";
   position: absolute;
   left: 0;
-  top: 0.6em;
-  width: 5px;
+  top: 0.62em;
+  width: 6px;
   height: 1px;
   background: var(--faint);
 }
 
 .split__half--lit .plain li::before {
-  background: var(--orchid);
+  background: var(--warm);
+  width: 10px;
 }
 
-/* ---------- the step list ---------- */
+/* ---------- rail panel type ---------- */
 
-.steps {
-  list-style: none;
-  margin: clamp(2.5rem, 6vh, 4.5rem) 0 0;
-  padding: 0;
-  max-width: 46rem;
-  margin-inline: auto;
+.rail__title {
+  margin-bottom: 1.25rem;
 }
 
-.step {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1.5rem;
-  padding: 1.75rem 0;
-  border-top: 1px solid var(--hair);
+.rail__body + .rail__body {
+  margin-top: 1rem;
 }
 
-.step:last-child {
-  border-bottom: 1px solid var(--hair);
+.rail__body {
+  max-width: 44rem;
 }
 
-.step__n {
-  font-size: var(--t-small);
-  color: var(--orchid);
-  padding-top: 0.25rem;
-}
-
-.step__title {
-  margin-bottom: 0.5rem;
-}
-
-/* ---------- a standalone remark ---------- */
+/* ---------- note ---------- */
 
 .note {
   margin: clamp(2rem, 5vh, 3rem) auto 0;
   max-width: 44rem;
   padding: 1.25rem 1.5rem;
-  border-left: 2px solid var(--orchid-deep);
-  background: color-mix(in srgb, var(--orchid) 5%, transparent);
+  border-left: 2px solid var(--warm);
+  background: color-mix(in srgb, var(--warm) 6%, transparent);
   color: var(--muted);
   font-size: var(--t-small);
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 .note .mono {
-  color: var(--orchid);
+  color: var(--warm);
+}
+
+/* ---------- FAQ ---------- */
+
+.faq {
+  max-width: 48rem;
+  margin: clamp(2.5rem, 6vh, 4.5rem) auto 0;
+  border-top: 1px solid var(--hair);
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--hair);
+}
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.375rem 0;
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  cursor: pointer;
+  list-style: none;
+  transition: color var(--quick) var(--ease-cursor);
+}
+
+.faq__q::-webkit-details-marker {
+  display: none;
+}
+
+.faq__q::after {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-right: 1.5px solid var(--faint);
+  border-bottom: 1.5px solid var(--faint);
+  rotate: 45deg;
+  transition:
+    rotate var(--mid-dur) var(--ease),
+    border-color var(--quick) var(--ease-cursor);
+}
+
+.faq__item[open] .faq__q {
+  color: var(--warm);
+}
+
+.faq__item[open] .faq__q::after {
+  rotate: 225deg;
+  border-color: var(--warm);
+}
+
+.faq__a {
+  padding: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.7;
+  max-width: 42rem;
+}
+
+.faq__a .mono {
+  color: var(--cold);
 }
 
 /* ---------- closing ---------- */
 
 .closing {
-  padding-block: clamp(6rem, 16vh, 12rem);
   position: relative;
+  padding-block: clamp(6rem, 16vh, 12rem);
   isolation: isolate;
+  overflow: hidden;
 }
 
-/* A quieter echo of the hero's bloom, so the page closes the way it
-   opened without repeating the whole trick. */
+/* An echo of the hero orb, so the page closes the way it opened. */
 .closing::before {
   content: "";
   position: absolute;
-  inset: 0;
+  left: 50%;
+  bottom: -70%;
+  width: min(120vw, 70rem);
+  aspect-ratio: 1;
+  translate: -50% 0;
   z-index: -1;
+  border-radius: 50%;
   background: radial-gradient(
-    44rem circle at 50% 78%,
-    color-mix(in srgb, var(--orchid) 15%, transparent),
-    transparent 65%
+    circle at 50% 40%,
+    color-mix(in srgb, var(--warm) 65%, transparent) 0%,
+    color-mix(in srgb, var(--mid) 45%, transparent) 40%,
+    transparent 68%
   );
-  filter: blur(28px);
+  filter: blur(34px);
+  opacity: 0.42;
   pointer-events: none;
 }
 
@@ -199,14 +334,6 @@
   gap: 1.5rem 2.5rem;
 }
 
-.foot__mark {
-  font-size: 0.875rem;
-  letter-spacing: 0.3em;
-  text-indent: 0.3em;
-  text-transform: uppercase;
-  color: var(--paper);
-}
-
 .foot__nav {
   display: flex;
   flex-wrap: wrap;
@@ -221,7 +348,7 @@
 }
 
 .foot__nav a:hover {
-  color: var(--orchid);
+  color: var(--warm);
 }
 
 .foot__note {
@@ -230,16 +357,8 @@
   color: var(--faint);
 }
 
-.foot__count:not(:empty)::before {
-  content: "";
-}
-
-@media (max-width: 48rem) {
+@media (max-width: 60rem) {
   .foot__note {
     margin-inline-start: 0;
-  }
-  .step {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
   }
 }

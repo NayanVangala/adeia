@@ -21,7 +21,7 @@ const STYLE = `
   @import url("/styles/tokens.css");
 
   :root {
-    --bg: var(--void);
+    --bg: var(--black);
     --fg: var(--paper);
     --quiet: var(--faint);
     --surface: var(--raised);
@@ -67,13 +67,13 @@ const STYLE = `
     letter-spacing: 0.06em; text-transform: uppercase; color: var(--quiet);
     cursor: pointer; transition: color 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-  .linkbtn:hover { color: var(--orchid); }
+  .linkbtn:hover { color: var(--warm); }
 
   /* ---------- headings ---------- */
   h1 {
     font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
     font-weight: 500; letter-spacing: -0.02em; line-height: 1.1;
-    margin: 0 0 0.375rem; color: var(--orchid);
+    margin: 0 0 0.375rem; color: var(--warm);
   }
   h2 {
     font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
@@ -139,7 +139,7 @@ const STYLE = `
      are read. --slate on --ink clears AA. */
   .by-model {
     display: block; margin-top: 0.5rem; padding-left: 0.75rem;
-    border-left: 2px solid var(--slate); color: var(--slate);
+    border-left: 2px solid var(--cold); color: var(--cold);
     font-size: 0.8125rem; line-height: 1.45;
   }
 
@@ -154,17 +154,17 @@ const STYLE = `
     border-radius: 3px; border: 1px solid transparent; cursor: pointer;
     white-space: nowrap; transition: all 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-  .decide .yes { background: var(--orchid); color: var(--void); }
-  .decide .yes:hover { background: var(--orchid-lit); }
+  .decide .yes { background: var(--warm); color: var(--black); }
+  .decide .yes:hover { background: var(--hot); }
   .decide .no { background: transparent; color: var(--quiet); border-color: var(--rule); }
   .decide .no:hover { color: var(--refused); border-color: var(--refused); }
 
   /* ---------- credential ---------- */
   .key {
     font-family: "Geist Mono", ui-monospace, Menlo, monospace;
-    font-size: 0.8125rem; background: var(--void); border: 1px solid var(--rule);
+    font-size: 0.8125rem; background: var(--black); border: 1px solid var(--rule);
     border-radius: 3px; padding: 0.875rem; word-break: break-all;
-    margin: 1rem 0; color: var(--orchid);
+    margin: 1rem 0; color: var(--warm);
   }
 
   /* Fixed background, so it states a fixed ink rather than inheriting one
@@ -177,16 +177,16 @@ const STYLE = `
   }
 
   .btn {
-    display: inline-block; background: var(--orchid); color: var(--void);
+    display: inline-block; background: var(--warm); color: var(--black);
     text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 3px;
     font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.06em;
     text-transform: uppercase; border: 0; font-family: inherit; cursor: pointer;
     transition: background 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-  .btn:hover { background: var(--orchid-lit); }
+  .btn:hover { background: var(--hot); }
 
   .flash {
-    border: 1px solid var(--rule); border-left: 3px solid var(--orchid);
+    border: 1px solid var(--rule); border-left: 3px solid var(--warm);
     background: var(--surface); border-radius: 0 3px 3px 0;
     padding: 0.875rem 1.125rem; margin: 0 0 1.5rem; font-size: 0.875rem;
   }
@@ -203,16 +203,16 @@ const STYLE = `
   .addhost { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0; }
   .addhost input[type="text"] {
     flex: 1 1 16rem; padding: 0.625rem 0.75rem; border-radius: 3px;
-    border: 1px solid var(--rule); background: var(--void); color: var(--fg);
+    border: 1px solid var(--rule); background: var(--black); color: var(--fg);
     font-family: "Geist Mono", ui-monospace, Menlo, monospace; font-size: 0.8125rem;
   }
   .addhost input[type="text"]:focus-visible {
-    outline: 2px solid var(--orchid); outline-offset: 1px;
+    outline: 2px solid var(--warm); outline-offset: 1px;
   }
 
   code {
     font-family: "Geist Mono", ui-monospace, Menlo, monospace;
-    font-size: 0.8125rem; color: var(--orchid);
+    font-size: 0.8125rem; color: var(--warm);
   }
   .steps { padding-left: 1.25rem; line-height: 1.8; }
 `;
@@ -326,7 +326,7 @@ function hostsCard(hosts: string[], csrf: string): string {
 
   return `<div class="card">
     <p class="eyebrow">Hosts your agents may call</p>
-    <p style="margin:0;color:var(--ink-soft);font-size:.875rem">
+    <p style="margin:0;color:var(--faint);font-size:.875rem">
       Exact hostnames only, no paths and no wildcards. Anything not on this list is denied
       before a request is made.
     </p>

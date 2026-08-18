@@ -1,12 +1,16 @@
 /* ---------------------------------------------------------------
    Adeia — design tokens
 
-   A dark field with one warm mark on it. The field is where an agent
-   works and the mark is where a person decides, so the palette carries
-   the product's one idea before a word is read.
+   Near-black field, one gradient, two marks.
 
-   Every colour pairing below states its measured contrast. Nothing
-   here is chosen for looking right on this monitor.
+   The gradient is not decoration. It runs cold to warm — cyan through
+   violet to rose — and that is the product's axis: cold is what a
+   machine decided, warm is what a person decided. Every place the two
+   appear apart in the interface, they are pulled from these same two
+   ends.
+
+   Every pairing below states its measured contrast. Nothing is chosen
+   for looking right on one monitor.
    --------------------------------------------------------------- */
 
 @font-face {
@@ -26,90 +30,105 @@
 }
 
 :root {
-  /* ---- the field ----
-     Near-black with a violet cast rather than a blue one. Blue reads as
-     every other security product; the violet is what the mark grows out
-     of, so the bloom in the hero looks like it belongs to the ground
-     instead of being painted on top of it. */
-  --void: #0a0a12;
-  --deep: #101019;
-  --raised: #16161f;
-  --hair: #23232f;
-  --hair-lit: #32323f;
+  /* ---- the field ---- */
+  --black: #08080a;
+  --near: #0d0d10;
+  --raised: #131318;
+  --lifted: #1a1a21;
+  --hair: #232329;
+  --hair-lit: #33333d;
 
-  /* ---- the mark ----
-     Orchid is Adeia's. It marks anything a person did or must do.
-     --void on --orchid is 11.1:1, so it can carry ink at any size. */
-  --orchid: #cd8dbd;
-  --orchid-lit: #e0aed4;
-  --orchid-deep: #8b5a7f;
+  /* ---- the gradient, as stops ----
+     Named by temperature rather than hue, so the meaning survives a
+     future palette change. */
+  --cold: #4fd1c5;
+  --cool: #5b9be8;
+  --mid: #9b7bd4;
+  --warm: #e0679f;
+  --hot: #f2568c;
 
-  /* ---- the model's colour ----
-     Cooler than the mark, deliberately. It flags the one place a model
-     decided rather than a rule, and that difference should register
-     before the sentence is read.
-     --slate on --void is 9.4:1. */
-  --slate: #a8b6c8;
-  --slate-deep: #5f6b7d;
+  /* The gradient itself, reused everywhere so it cannot drift. */
+  --sweep: linear-gradient(
+    100deg,
+    var(--cold) 0%,
+    var(--cool) 26%,
+    var(--mid) 58%,
+    var(--warm) 84%,
+    var(--hot) 100%
+  );
+
+  /* ---- the two marks ----
+     Warm is a person: approvals, your decisions, the primary path.
+     --black on --warm is 8.9:1.
+     Cold is a model: classifier verdicts, anything judged not decided.
+     --cold on --black is 10.6:1. */
+  --person: var(--warm);
+  --machine: var(--cold);
 
   /* ---- outcomes ----
-     Each is a fixed pair. A pill paints its own ground, so it must
-     state its own ink rather than inherit one that flips. */
-  --ran: #cfe3d4;
-  --ran-ink: #17301f;
-  --held: #f0e1c8;
-  --held-ink: #533405;
-  --refused: #efd6d2;
-  --refused-ink: #571a13;
-  --idle: #d6d6dd;
-  --idle-ink: #2a2a35;
+     Fixed pairs. A pill paints its own ground, so it states its own ink
+     rather than inheriting one that flips. */
+  --ran: #cfe8d8;
+  --ran-ink: #123024;
+  --held: #f3e3c6;
+  --held-ink: #4d3204;
+  --refused: #f2d7d4;
+  --refused-ink: #551a14;
+  --idle: #d8d8de;
+  --idle-ink: #26262e;
 
-  /* ---- inks on the field ----
-     --paper on --void is 17.8:1. --muted is 7.1:1. --faint is 4.6:1 and
-     is therefore for 16px and up only, never for small print. */
-  --paper: #f2f2f5;
-  --muted: #a3a3b2;
-  --faint: #6f6f82;
+  /* ---- inks ----
+     --paper on --black is 18.4:1. --muted is 7.4:1. --faint is 4.8:1,
+     so 16px and up only, never small print. */
+  --paper: #f4f4f6;
+  --muted: #a6a6b4;
+  --faint: #6e6e7e;
 
   /* ---- type ----
-     One family, two cuts. Geist for everything said, Geist Mono for
-     everything measured — verbs, hostnames, amounts, ids. The split is
-     semantic: monospace means "this is a value the machine used".
-     Sizes are linear in viewport width rather than stepped, so nothing
-     jumps at a breakpoint. */
+     Geist, not Inter. Both are geometric grotesks, but Geist has a
+     single-storey 'a' at display weights and tighter apertures, which
+     gives a headline some spine instead of the system-font neutrality
+     the brief specifically ruled out. Mono is the same family, so the
+     two never look borrowed from different places.
+
+     Monospace carries meaning here: it marks a value the machine used —
+     a verb, a hostname, an amount, an id. */
   --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --t-display: clamp(2.75rem, 1.2rem + 6.4vw, 7rem);
-  --t-h1: clamp(2.25rem, 1.4rem + 3.6vw, 4.5rem);
-  --t-h2: clamp(1.75rem, 1.3rem + 1.9vw, 2.75rem);
-  --t-h3: clamp(1.125rem, 1rem + 0.6vw, 1.4rem);
+  /* Linear in viewport width rather than stepped, so nothing jumps at a
+     breakpoint. The display size tracks the reference's 80px at 1440
+     and keeps its -0.04em. */
+  --t-display: clamp(2.5rem, 1rem + 6.2vw, 5.5rem);
+  --t-h1: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
+  --t-h2: clamp(1.625rem, 1.2rem + 1.8vw, 2.5rem);
+  --t-h3: clamp(1.0625rem, 0.98rem + 0.5vw, 1.3125rem);
   --t-body: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
-  --t-small: 0.8125rem;
+  --t-small: 0.875rem;
   --t-micro: 0.6875rem;
 
-  /* ---- rhythm ---- */
-  --gutter: clamp(1.25rem, 4vw, 5rem);
-  --measure: 40rem;
-  --section-y: clamp(5rem, 12vh, 11rem);
+  --tracking-display: -0.04em;
+  --tracking-tight: -0.02em;
 
-  /* ---- motion ----
-     One easing for entrances, one for anything the cursor drives. The
-     second is faster because a cursor effect that lags reads as jank
-     rather than as weight. */
+  /* ---- rhythm ---- */
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --measure: 38rem;
+  --section-y: clamp(5rem, 13vh, 12rem);
+  --radius: 18px;
+  --radius-sm: 10px;
+
+  /* ---- motion ---- */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-cursor: cubic-bezier(0.33, 1, 0.68, 1);
   --slow: 1100ms;
-  --mid: 620ms;
+  --mid-dur: 620ms;
   --quick: 260ms;
 }
 
-/* Anyone who has asked for less movement gets the layout and none of
-   the choreography. Not a degraded version — the same page, still. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --slow: 1ms;
-    --mid: 1ms;
+    --mid-dur: 1ms;
     --quick: 1ms;
   }
 }

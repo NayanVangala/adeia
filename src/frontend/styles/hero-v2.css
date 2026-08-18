@@ -1,9 +1,6 @@
 /* ---------------------------------------------------------------
-   Adeia — masthead and hero.
-
-   The bloom is the page's one piece of theatre. It is a radial wash
-   painted behind the headline that drifts toward the cursor, so the
-   field feels like it is being looked at rather than displayed.
+   Adeia — masthead, hero, and the two structural patterns lifted from
+   the reference: the sticky rail and the bento grid.
    --------------------------------------------------------------- */
 
 /* ---------- masthead ---------- */
@@ -11,64 +8,80 @@
 .mast {
   position: fixed;
   inset: 0 0 auto;
-  z-index: 40;
+  z-index: 50;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.125rem var(--gutter);
-  /* No solid ground: a blur lets the bloom show through while still
-     holding the wordmark above 4.5:1 over anything that scrolls under. */
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: color-mix(in srgb, var(--void) 62%, transparent);
+  gap: 2rem;
+  padding: 1rem var(--gutter);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--black) 55%, transparent);
   border-bottom: 1px solid transparent;
   transition:
-    border-color var(--mid) var(--ease),
-    background var(--mid) var(--ease);
+    border-color var(--mid-dur) var(--ease),
+    background var(--mid-dur) var(--ease);
 }
 
-/* Written by cursor.js once the page has left the hero. */
 .mast.is-stuck {
   border-bottom-color: var(--hair);
-  background: color-mix(in srgb, var(--void) 88%, transparent);
+  background: color-mix(in srgb, var(--black) 90%, transparent);
 }
 
-.mast__back {
-  display: inline-flex;
+/* The wordmark. Two lines, tight, with the gradient on the second —
+   the reference's logo does the same thing with its own mark. */
+.mast__mark {
+  display: flex;
+  flex-direction: column;
+  line-height: 0.95;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.mast__mark span:last-child {
+  background-image: var(--sweep);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mast__nav {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--mono);
+  gap: 1.75rem;
+  margin-inline: auto;
+}
+
+.mast__nav a {
   font-size: var(--t-small);
   color: var(--muted);
   text-decoration: none;
   transition: color var(--quick) var(--ease-cursor);
 }
 
-.mast__back:hover {
-  color: var(--paper);
-}
-
-/* Centred absolutely rather than by flex, so the wordmark stays put
-   when the left and right sides differ in width. */
-.mast__mark {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  letter-spacing: 0.34em;
-  text-indent: 0.34em;
-  text-transform: uppercase;
-  text-decoration: none;
+.mast__nav a:hover {
   color: var(--paper);
 }
 
 .mast__end {
-  margin-inline-start: auto;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.mast .btn {
+  padding: 0.625rem 1.25rem;
+}
+
+@media (max-width: 60rem) {
+  .mast__nav {
+    display: none;
+  }
+  .mast__end {
+    margin-inline-start: auto;
+  }
 }
 
 /* ---------- hero ---------- */
@@ -76,57 +89,122 @@
 .hero {
   position: relative;
   min-height: 100svh;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 8rem var(--gutter) 4rem;
+  padding: 9rem var(--gutter) 0;
   overflow: hidden;
   isolation: isolate;
 }
 
-/* The bloom. Two stacked radials: a tight warm core and a wide cool
-   halo, so the edge falls off unevenly the way real light does.
-   --bx/--by are driven by cursor.js and default to a resting position
-   that looks deliberate with no JS at all. */
-.hero__bloom {
+/* The orb. A wide gradient disc rising from below the fold, exactly as
+   the reference does it — the page's light source sits off-screen. */
+.hero__orb {
   position: absolute;
-  inset: -20%;
-  z-index: -1;
-  background:
-    /* A small hot centre, so the light has a source rather than being an
-       even wash. */
-    radial-gradient(
-      16rem circle at var(--bx, 50%) var(--by, 40%),
-      color-mix(in srgb, var(--orchid-lit) 62%, transparent),
-      transparent 70%
-    ),
-    /* The body of it. */
-    radial-gradient(
-      42rem circle at var(--bx, 50%) var(--by, 40%),
-      color-mix(in srgb, var(--orchid) 46%, transparent),
-      transparent 66%
-    ),
-    /* A cool outer halo, offset so the falloff is uneven the way real
-       light is. */
-    radial-gradient(
-      66rem circle at calc(var(--bx, 50%) + 8%) calc(var(--by, 40%) + 12%),
-      color-mix(in srgb, var(--slate) 26%, transparent),
-      transparent 70%
-    );
-  filter: blur(46px);
-  transition: background var(--mid) var(--ease-cursor);
-  pointer-events: none;
+  left: 50%;
+  bottom: -26vh;
+  width: min(88vw, 46rem);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  z-index: -2;
+  border-radius: 50%;
+  /* Sits low and stays small. It is a light source below the fold, not
+     a wash over the page — a big one drowns the headline it is meant to
+     sit behind, which is exactly what the first attempt did. */
+  background: radial-gradient(
+    circle at 50% 45%,
+    var(--warm) 0%,
+    var(--mid) 38%,
+    color-mix(in srgb, var(--cool) 45%, transparent) 62%,
+    transparent 74%
+  );
+  filter: blur(56px);
+  opacity: 0.5;
+  /* Breathes. Slow enough to notice only if you look. */
+  animation: orb-breathe 13s ease-in-out infinite;
 }
 
-/* Grain. Without it the gradient bands visibly on an 8-bit panel,
-   which is the one artefact that makes a dark page look cheap. */
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.055);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__orb {
+    animation: none;
+  }
+}
+
+/* Grain, so the gradient does not band on an 8-bit panel. */
 .hero__grain {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.038;
+  opacity: 0.04;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- floating outlined frames ----------
+   The reference scatters glowing rounded rectangles behind the
+   headline. They drift on the pointer at different depths, which is
+   what turns a flat backdrop into a space. --px/--py are written by
+   cursor.js in the range -1..1. */
+
+.frame {
+  position: absolute;
+  z-index: -1;
+  border-radius: 20px;
+  border: 1px solid;
+  pointer-events: none;
+  translate: calc(var(--px, 0) * var(--depth, 10px))
+    calc(var(--py, 0) * var(--depth, 10px));
+  transition: translate var(--mid-dur) var(--ease-cursor);
+}
+
+.frame--a {
+  top: 14%;
+  left: -8%;
+  width: 26rem;
+  height: 14rem;
+  border-color: color-mix(in srgb, var(--cold) 40%, transparent);
+  box-shadow: 0 0 60px -20px var(--cold);
+  --depth: 26px;
+}
+
+.frame--b {
+  top: 10%;
+  right: -6%;
+  width: 22rem;
+  height: 16rem;
+  border-color: color-mix(in srgb, var(--hot) 42%, transparent);
+  box-shadow: 0 0 60px -20px var(--hot);
+  --depth: 18px;
+}
+
+.frame--c {
+  top: 26%;
+  right: -14%;
+  width: 24rem;
+  height: 18rem;
+  border-color: color-mix(in srgb, var(--cool) 34%, transparent);
+  box-shadow: 0 0 70px -24px var(--cool);
+  --depth: 34px;
+}
+
+@media (max-width: 60rem) {
+  .frame {
+    display: none;
+  }
 }
 
 .hero__inner {
@@ -134,20 +212,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  max-width: 60rem;
+  gap: 1.75rem;
+  max-width: 56rem;
 }
 
 .hero__title {
-  /* Slightly tighter than the reference. At this weight the counters
-     stay open, so the line can close up without turning into a wall. */
   line-height: 0.98;
 }
 
 .hero__sub {
   color: var(--muted);
-  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
-  max-width: 34rem;
+  font-size: clamp(1rem, 0.95rem + 0.45vw, 1.1875rem);
+  max-width: 36rem;
   line-height: 1.6;
 }
 
@@ -159,72 +235,246 @@
   margin-top: 0.5rem;
 }
 
-/* ---------- the readout ----------
-   Bottom-right, monospace, with a vertical hairline beside it. Lifted
-   in spirit from the reference's signed-and-sealed marker, but here it
-   carries a live figure rather than a slogan. */
+/* ---------- the product shot ----------
+   The reference puts its app on the orb straight after the hero. Ours
+   is the real dashboard, in a browser chrome that is drawn rather than
+   screenshotted so it stays sharp at any width. */
 
-.hero__readout {
-  position: absolute;
-  right: var(--gutter);
-  bottom: clamp(2rem, 6vh, 4.5rem);
+.shot {
+  position: relative;
+  /* The hero centres its text; a table of records must not inherit that. */
+  text-align: left;
+  margin-top: clamp(3rem, 9vh, 7rem);
+  width: 100%;
+  max-width: 66rem;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+  overflow: hidden;
+  box-shadow: 0 40px 120px -40px color-mix(in srgb, var(--mid) 60%, transparent);
+}
+
+.shot__bar {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--hair);
+  background: var(--raised);
+}
+
+.shot__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--hair-lit);
+}
+
+.shot__url {
+  margin-inline-start: 0.75rem;
   font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--faint);
+}
+
+.shot__body {
+  padding: 1.5rem;
+}
+
+/* ---------- sticky rail ----------
+   Left column names the layers and stays put; the right column holds
+   the panel. Straight from the reference, and it suits a system whose
+   whole argument is that the layers run in order. */
+
+.rail {
+  display: grid;
+  grid-template-columns: 14rem 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  align-items: start;
+}
+
+.rail__nav {
+  position: sticky;
+  top: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 1px solid var(--hair);
+}
+
+.rail__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0 0.625rem 1.25rem;
   font-size: var(--t-small);
-  color: var(--muted);
+  color: var(--faint);
+  background: none;
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition: color var(--quick) var(--ease-cursor);
 }
 
-.hero__readout::after {
+.rail__item::before {
   content: "";
-  width: 1px;
-  height: 5.5rem;
-  background: linear-gradient(to bottom, transparent, var(--orchid-deep));
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 2px;
+  height: 0;
+  background: var(--warm);
+  transition: height var(--mid-dur) var(--ease);
 }
 
-.hero__readout b {
-  color: var(--orchid);
-  font-weight: 500;
+.rail__item[aria-selected="true"] {
+  color: var(--paper);
 }
 
-@media (max-width: 48rem) {
-  .hero__readout {
-    display: none;
+.rail__item[aria-selected="true"]::before {
+  height: 1.5rem;
+}
+
+.rail__panel {
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.rail__panel[hidden] {
+  display: none;
+}
+
+@media (max-width: 60rem) {
+  .rail {
+    grid-template-columns: 1fr;
   }
-  .mast__mark {
-    font-size: 0.8125rem;
-    letter-spacing: 0.24em;
+  .rail__nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    border-left: 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .rail__item {
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+  }
+  .rail__item::before {
+    left: 0;
+    top: auto;
+    bottom: -1px;
+    translate: 0;
+    width: 0;
+    height: 2px;
+    transition: width var(--mid-dur) var(--ease);
+  }
+  .rail__item[aria-selected="true"]::before {
+    width: 100%;
+    height: 2px;
   }
 }
 
-/* ---------- word-level entrance ----------
-   Each word rises on its own small delay, set inline as --i by the
-   markup. Cheaper than splitting characters and it keeps the words
-   selectable and readable to a screen reader. */
+/* ---------- bento ----------
+   Uneven grid with hairline seams and deliberate empty cells, as the
+   reference uses. The gaps are the composition, not an oversight. */
 
-.rise {
-  display: inline-block;
+.bento {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
   overflow: hidden;
-  vertical-align: bottom;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
 }
 
-.rise > span {
-  display: inline-block;
-  transform: translateY(105%);
-  animation: rise-in var(--slow) var(--ease) forwards;
-  animation-delay: calc(var(--i, 0) * 70ms + 120ms);
+.bento__cell {
+  position: relative;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  min-height: 15rem;
+  border-right: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-@keyframes rise-in {
-  to {
-    transform: none;
+.bento__cell:nth-child(3n) {
+  border-right: 0;
+}
+
+.bento__cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    18rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--warm) 9%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity var(--mid-dur) var(--ease-cursor);
+  pointer-events: none;
+}
+
+.bento__cell:hover::before {
+  opacity: 1;
+}
+
+.bento__cell--wide {
+  grid-column: span 2;
+}
+
+.bento__cell--lead .h2 {
+  max-width: 14ch;
+}
+
+.bento__cell--empty {
+  min-height: 15rem;
+}
+
+.bento__icon {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--lifted);
+  color: var(--warm);
+  margin-bottom: 1.25rem;
+}
+
+.bento__cell--machine .bento__icon {
+  color: var(--cold);
+}
+
+.bento__title {
+  margin-bottom: 0.75rem;
+}
+
+.bento__body {
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.65;
+  margin-top: auto;
+}
+
+@media (max-width: 60rem) {
+  .bento {
+    grid-template-columns: 1fr;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rise > span {
-    transform: none;
-    animation: none;
+  .bento__cell {
+    border-right: 0;
+  }
+  .bento__cell--wide {
+    grid-column: auto;
+  }
+  .bento__cell--empty {
+    display: none;
   }
 }
