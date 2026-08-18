@@ -14,7 +14,17 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Smooth by default, for anchor jumps and for anyone whose browser
+     never runs motion.js. */
   scroll-behavior: smooth;
+}
+
+/* But not once the inertia loop is driving. The two compound: every
+   scrollTo starts its own browser animation while rAF issues the next
+   one, and the page runs away past its target. The class is added by
+   motion.js only after it takes over. */
+html.has-inertia {
+  scroll-behavior: auto;
 }
 
 body {

@@ -362,3 +362,196 @@
     margin-inline-start: 0;
   }
 }
+
+/* ---------------------------------------------------------------
+   Code and terminal.
+
+   The most persuasive picture a developer tool can show is its own
+   output. Both of these are hand-marked rather than highlighted by a
+   library: the sample is fixed, so shipping a parser to colour eleven
+   lines would be weight for nothing.
+   --------------------------------------------------------------- */
+
+.showcase {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  align-items: start;
+}
+
+.pane {
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+  overflow: hidden;
+}
+
+.pane__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1rem;
+  border-bottom: 1px solid var(--hair);
+  background: var(--raised);
+}
+
+.pane__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--hair-lit);
+}
+
+.pane__name {
+  margin-inline-start: 0.625rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--faint);
+}
+
+.pane__body {
+  margin: 0;
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  color: var(--muted);
+  tab-size: 2;
+}
+
+.pane__body code {
+  font-family: inherit;
+}
+
+/* Syntax. Kept to five roles — more colours than that stops being
+   information and starts being noise. */
+.tok-key {
+  color: var(--mid);
+}
+.tok-fn {
+  color: var(--cool);
+}
+.tok-str {
+  color: var(--cold);
+}
+.tok-num {
+  color: var(--warm);
+}
+.tok-com {
+  color: var(--faint);
+  font-style: italic;
+}
+
+/* Terminal output states, matching the pills elsewhere. */
+.out-ok {
+  color: #7fd4a0;
+}
+.out-hold {
+  color: #e8c07a;
+}
+.out-model {
+  color: var(--cold);
+}
+.out-dim {
+  color: var(--faint);
+}
+
+/* The line the whole demo exists to produce. */
+.pane__body mark {
+  background: color-mix(in srgb, var(--warm) 16%, transparent);
+  color: var(--paper);
+  padding: 0.0625rem 0.25rem;
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------------
+   The flow diagram.
+
+   An action's path through the fence, drawn rather than described. The
+   stroke animates on entry where the browser supports it.
+   --------------------------------------------------------------- */
+
+.flow {
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+}
+
+.flow svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.flow__node {
+  fill: var(--raised);
+  stroke: var(--hair-lit);
+  stroke-width: 1;
+}
+
+.flow__node--warm {
+  stroke: color-mix(in srgb, var(--warm) 60%, transparent);
+}
+
+.flow__node--cold {
+  stroke: color-mix(in srgb, var(--cold) 60%, transparent);
+}
+
+.flow__label {
+  fill: var(--paper);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.flow__sub {
+  fill: var(--faint);
+  font-family: var(--sans);
+  font-size: 11px;
+}
+
+.flow__line {
+  stroke: var(--hair-lit);
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  /* Drawn on entry. pathLength="1" on the element makes the dash
+     arithmetic independent of the path's real length. */
+  animation: flow-draw 1.4s var(--ease) forwards;
+}
+
+.flow__line--warm {
+  stroke: color-mix(in srgb, var(--warm) 70%, transparent);
+}
+
+.flow__line--cold {
+  stroke: color-mix(in srgb, var(--cold) 70%, transparent);
+}
+
+@keyframes flow-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow__line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (max-width: 48rem) {
+  .flow {
+    overflow-x: auto;
+  }
+  .flow svg {
+    min-width: 34rem;
+  }
+}

@@ -9,9 +9,10 @@
       content="A permission layer for AI agents. Spend limits, host allowlists, human approval, and an append-only audit trail — so an agent can act without being trusted."
     />
     <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
-    <link rel="stylesheet" href="/styles/v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033151784" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
   <body>
@@ -242,6 +243,107 @@
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           Showcase — the code, and what it prints
+           ========================================================== -->
+      <section class="section" aria-labelledby="see-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow" data-reveal>See it</span>
+            <h2 class="h1" id="see-title" data-reveal data-reveal-delay="80">
+              Eleven lines, and a delete that
+              <span class="sweep">waits for you</span>
+            </h2>
+          </div>
+
+          <div class="showcase">
+            <div class="pane" data-reveal>
+              <div class="pane__bar" aria-hidden="true">
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__name">agent.ts</span>
+              </div>
+              <pre class="pane__body"><code><span class="tok-key">import</span> { AdeiaClient } <span class="tok-key">from</span> <span class="tok-str">"@adeia/sdk"</span>;
+
+<span class="tok-key">const</span> adeia = <span class="tok-key">new</span> <span class="tok-fn">AdeiaClient</span>({ apiKey });
+
+<span class="tok-com">// The agent holds no credential of its own.</span>
+<span class="tok-com">// It can only ask.</span>
+<span class="tok-key">const</span> action = <span class="tok-key">await</span> adeia.<span class="tok-fn">requestAction</span>({
+  type: <span class="tok-str">"http"</span>,
+  params: {
+    method: <span class="tok-str">"DELETE"</span>,
+    url: <span class="tok-str">"https://api.cloudflare.com/…/dns_records/…"</span>,
+  },
+});
+
+action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
+            </div>
+
+            <div class="pane" data-reveal data-reveal-delay="120">
+              <div class="pane__bar" aria-hidden="true">
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__name">npm run demo</span>
+              </div>
+              <pre class="pane__body"><code><span class="out-dim">the agent reads the repo</span>
+<span class="tok-key">GET</span> api.github.com/repos/…
+<span class="out-ok">✓  executed</span>
+
+<span class="out-dim">the agent files an issue</span>
+<span class="tok-key">POST</span> api.github.com/…/issues
+<span class="out-model">⚖  model: creates an ordinary issue,
+   easily noticed and reversible</span>
+<span class="out-ok">✓  executed</span>
+
+<span class="out-dim">the agent tries to delete a DNS record</span>
+<span class="tok-key">DELETE</span> api.cloudflare.com/…
+<span class="out-hold">⏸  waiting on a human</span>
+
+<mark>Nothing has been sent.</mark></code></pre>
+            </div>
+          </div>
+
+          <!-- The same journey, drawn. -->
+          <div class="flow" data-reveal>
+            <svg viewBox="0 0 900 174" role="img" aria-label="An action's path: the agent asks, the schema checks, the policy decides, then it either runs, goes to the classifier, or stops for a person.">
+              <path class="flow__line" pathLength="1" d="M126 60 H196" />
+              <path class="flow__line" pathLength="1" d="M310 60 H380" />
+              <path class="flow__line flow__line--cold" pathLength="1" d="M494 60 H564" />
+              <path class="flow__line flow__line--warm" pathLength="1" d="M452 88 V140 H564" />
+              <path class="flow__line" pathLength="1" d="M678 60 H748" />
+              <path class="flow__line flow__line--warm" pathLength="1" d="M678 140 H714 V74" />
+
+              <rect class="flow__node" x="16" y="36" width="110" height="48" rx="8" />
+              <text class="flow__label" x="71" y="59" text-anchor="middle">Agent</text>
+              <text class="flow__sub" x="71" y="74" text-anchor="middle">asks</text>
+
+              <rect class="flow__node" x="196" y="36" width="114" height="48" rx="8" />
+              <text class="flow__label" x="253" y="59" text-anchor="middle">Schema</text>
+              <text class="flow__sub" x="253" y="74" text-anchor="middle">https, not private</text>
+
+              <rect class="flow__node" x="380" y="36" width="114" height="48" rx="8" />
+              <text class="flow__label" x="437" y="59" text-anchor="middle">Policy</text>
+              <text class="flow__sub" x="437" y="74" text-anchor="middle">deny rules first</text>
+
+              <rect class="flow__node flow__node--cold" x="564" y="36" width="114" height="48" rx="8" />
+              <text class="flow__label" x="621" y="59" text-anchor="middle">Model</text>
+              <text class="flow__sub" x="621" y="74" text-anchor="middle">inside the band</text>
+
+              <rect class="flow__node flow__node--warm" x="564" y="116" width="114" height="48" rx="8" />
+              <text class="flow__label" x="621" y="139" text-anchor="middle">You</text>
+              <text class="flow__sub" x="621" y="154" text-anchor="middle">approve or refuse</text>
+
+              <rect class="flow__node" x="748" y="36" width="136" height="48" rx="8" />
+              <text class="flow__label" x="816" y="59" text-anchor="middle">Adapter</text>
+              <text class="flow__sub" x="816" y="74" text-anchor="middle">re-resolves, then runs</text>
+            </svg>
           </div>
         </div>
       </section>
@@ -512,6 +614,7 @@
     </footer>
 
     <script src="/cursor.js?v=1787033278425" type="module"></script>
+    <script src="/motion.js?v=1787033833289" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>

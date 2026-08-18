@@ -1,0 +1,128 @@
+/* ---------------------------------------------------------------
+   Adeia — the custom cursor.
+
+   Two parts. A small square that tracks the pointer exactly, and a
+   larger outlined square that lags behind it. The lag is the whole
+   effect: the ring arriving a moment late is what makes the pointer
+   feel like it has mass.
+
+   The native cursor is hidden by a class on <html> that only JavaScript
+   adds. If the script fails, throws, or never loads, the class is never
+   set and the real cursor is still there. A page that can lose its
+   pointer to a syntax error is not a page, it is a trap.
+   --------------------------------------------------------------- */
+
+.has-cursor,
+.has-cursor * {
+  cursor: none;
+}
+
+/* Anything still worth a system cursor keeps one: text you can select
+   and fields you can type in, where the caret is doing real work. */
+.has-cursor input,
+.has-cursor textarea,
+.has-cursor select,
+.has-cursor [contenteditable] {
+  cursor: auto;
+}
+
+.cursor,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
+  /* Positioned entirely from JS; these are the resting values so the
+     first paint does not flash at the origin. */
+  translate: -50% -50%;
+  opacity: 0;
+  transition: opacity var(--quick) var(--ease-cursor);
+}
+
+.has-cursor .cursor,
+.has-cursor .cursor-ring {
+  opacity: 1;
+}
+
+/* The point. Small, solid, exact — this is where the click lands, so it
+   never lags and never grows. */
+.cursor {
+  width: 6px;
+  height: 6px;
+  background: var(--paper);
+  border-radius: 1px;
+}
+
+/* The ring. Outlined, larger, late. */
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--paper) 45%, transparent);
+  border-radius: 4px;
+  transition:
+    width var(--quick) var(--ease-cursor),
+    height var(--quick) var(--ease-cursor),
+    border-color var(--quick) var(--ease-cursor),
+    border-radius var(--quick) var(--ease-cursor),
+    rotate var(--mid-dur) var(--ease),
+    opacity var(--quick) var(--ease-cursor);
+}
+
+/* Over something clickable: the ring opens up, takes the warm end of
+   the gradient, and turns 45° so the state change is legible in shape
+   as well as colour — not everyone reads the colour. */
+.cursor-ring.is-hot {
+  width: 52px;
+  height: 52px;
+  border-color: var(--warm);
+  border-radius: 6px;
+  rotate: 45deg;
+}
+
+/* Over the classifier's material, it takes the cold end instead. Same
+   distinction the rest of the interface makes. */
+.cursor-ring.is-cold {
+  border-color: var(--cold);
+}
+
+/* Pressed. */
+.cursor-ring.is-down {
+  width: 26px;
+  height: 26px;
+}
+
+/* Over text worth reading, it becomes a thin bar rather than a box. */
+.cursor-ring.is-text {
+  width: 2px;
+  height: 26px;
+  border-radius: 1px;
+  border-color: var(--warm);
+  background: var(--warm);
+  rotate: 0deg;
+}
+
+.cursor-ring.is-text + .cursor,
+.cursor.is-hidden {
+  opacity: 0;
+}
+
+/* Off the window entirely. */
+.cursor.is-out,
+.cursor-ring.is-out {
+  opacity: 0;
+}
+
+/* No custom cursor on touch, and none for anyone who asked for less
+   movement — a pointer that eases is movement they did not ask for. */
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .has-cursor,
+  .has-cursor * {
+    cursor: auto;
+  }
+  .cursor,
+  .cursor-ring {
+    display: none;
+  }
+}

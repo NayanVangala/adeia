@@ -1,384 +1,225 @@
-/* ---------------------------------------------------------------
-   Adeia — page motion
+/**
+ * Adeia — the custom cursor and inertial scrolling.
+ *
+ * Both are opt-in at runtime. Neither is applied on a touch device or
+ * for anyone who has asked for reduced motion, and the native cursor is
+ * only hidden after this file has successfully run — so a throw, a
+ * failed load, or a browser that chokes on any of it leaves the page
+ * working exactly as it did before.
+ */
 
-   Three things, in this order of importance:
+const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+const canHover = window.matchMedia("(hover: hover)");
+const enabled = canHover.matches && !reduced.matches;
 
-   1. Nothing here may leave text invisible. The resting states in
-      motion.css only apply while <html> carries .motion-ready, which
-      this file adds and, on any failure, takes away again. A watchdog
-      does the same if the vendor bundles never arrive. That is the
-      whole safety story: if motion dies, the page renders plainly.
-   2. Reveals. Headings split into masked lines and rise from 100%;
-      anything with .js-reveal fades and rises 24px.
-   3. Grounds. The page background eases between section ground
-      colours over 1500ms so the four grounds flow rather than abut.
+/* ------------------------------------------------------------------ *
+ * The cursor.
+ *
+ * A point that tracks exactly and a ring that lags. The lag is the
+ * effect — a ring arriving a moment late is what gives the pointer
+ * mass. The point never lags, because that is where the click lands and
+ * an eased hit target is a broken one.
+ * ------------------------------------------------------------------ */
 
-   Loads GSAP, ScrollTrigger, SplitText and Lenis from ./vendor by
-   relative path. Works loaded as a module or as a classic script.
-   --------------------------------------------------------------- */
+function cursor() {
+  if (!enabled) return;
 
-(function () {
-  "use strict";
+  const point = document.createElement("div");
+  point.className = "cursor";
+  const ring = document.createElement("div");
+  ring.className = "cursor-ring";
+  document.body.append(ring, point);
 
-  var root = document.documentElement;
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let px = window.innerWidth / 2;
+  let py = window.innerHeight / 2;
+  let rx = px;
+  let ry = py;
+  let running = false;
 
-  /* Where this file lives, so ./vendor resolves the same whether the
-     page loads us as a module or a classic script. */
-  var HERE = (document.currentScript && document.currentScript.src) || null;
-  function vendorUrl(name) {
-    return HERE ? new URL("vendor/" + name, HERE).href : "./vendor/" + name;
-  }
-
-  var REVEAL_SEL = ".js-reveal";
-  var SPLIT_SEL = ".js-split";
-  var GROUNDS = { ink: "--ink", bone: "--bone", paper: "--paper", forest: "--forest" };
-
-  var aborted = false;
-  var watchdog = 0;
-  var splits = [];
-  var lenis = null;
-
-  /* Resting states go on before anything else so there is no flash of
-     un-animated content, and come off the moment anything is wrong. */
-  if (!reduced.matches) {
-    root.classList.add("motion-ready");
-    watchdog = window.setTimeout(function () {
-      unlock("vendor bundles did not load in time");
-    }, 3000);
-  }
-
-  /* The single recovery path. Strips every resting state and any
-     inline style GSAP may have left, so all content renders plainly. */
-  function unlock(reason) {
-    aborted = true;
-    if (watchdog) {
-      clearTimeout(watchdog);
-      watchdog = 0;
+  const move = (event) => {
+    px = event.clientX;
+    py = event.clientY;
+    // The point is written immediately: it must never trail the pointer.
+    point.style.transform = `translate(${px}px, ${py}px)`;
+    if (!running) {
+      running = true;
+      requestAnimationFrame(step);
     }
-    root.classList.remove("motion-ready", "ground-driven");
+  };
 
-    for (var i = 0; i < splits.length; i++) {
-      try {
-        splits[i].revert();
-      } catch (err) {
-        /* nothing useful to do; the class strip below still applies */
-      }
+  function step() {
+    rx += (px - rx) * 0.18;
+    ry += (py - ry) * 0.18;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+
+    if (Math.abs(px - rx) > 0.1 || Math.abs(py - ry) > 0.1) {
+      requestAnimationFrame(step);
+    } else {
+      running = false;
     }
-    splits.length = 0;
-
-    var nodes = document.querySelectorAll(REVEAL_SEL + "," + SPLIT_SEL);
-    for (var n = 0; n < nodes.length; n++) {
-      var el = nodes[n];
-      el.classList.remove("is-split");
-      el.style.removeProperty("opacity");
-      el.style.removeProperty("transform");
-      el.style.removeProperty("visibility");
-      el.style.removeProperty("will-change");
-    }
-
-    if (lenis) {
-      try {
-        lenis.destroy();
-      } catch (err2) {
-        /* ignore */
-      }
-      lenis = null;
-    }
-    document.body.style.removeProperty("background-color");
-
-    if (reason) console.warn("[adeia/motion] motion disabled:", reason);
   }
 
-  /* ---------- easing ----------
-     GSAP core cannot parse a cubic-bezier string without CustomEase,
-     which is not vendored, so the two tokens are solved here and
-     registered by name. Same curves as --ease-out / --ease-io. */
-  function bezier(x1, y1, x2, y2) {
-    var cx = 3 * x1;
-    var bx = 3 * (x2 - x1) - cx;
-    var ax = 1 - cx - bx;
-    var cy = 3 * y1;
-    var by = 3 * (y2 - y1) - cy;
-    var ay = 1 - cy - by;
+  window.addEventListener("pointermove", move, { passive: true });
 
-    function sampleX(t) {
-      return ((ax * t + bx) * t + cx) * t;
-    }
-    function sampleY(t) {
-      return ((ay * t + by) * t + cy) * t;
-    }
-    function slopeX(t) {
-      return (3 * ax * t + 2 * bx) * t + cx;
-    }
+  /* State. Read from what is under the pointer rather than bound to
+     each element, so anything added later is covered without being
+     registered. */
+  const HOT = "a, button, summary, [role='tab'], [data-magnet], input, select, textarea";
+  const COLD = ".card--machine, .bento__cell--machine, .eyebrow--machine, [data-machine]";
+  const TEXT = "p, li, td, h1, h2, h3, blockquote";
 
-    return function (p) {
-      if (p <= 0) return 0;
-      if (p >= 1) return 1;
-      var t = p;
-      for (var i = 0; i < 8; i++) {
-        var x = sampleX(t) - p;
-        if (Math.abs(x) < 1e-5) return sampleY(t);
-        var d = slopeX(t);
-        if (Math.abs(d) < 1e-6) break;
-        t -= x / d;
-      }
-      var lo = 0;
-      var hi = 1;
-      t = p;
-      for (var j = 0; j < 24; j++) {
-        var xv = sampleX(t);
-        if (Math.abs(xv - p) < 1e-5) break;
-        if (p > xv) lo = t;
-        else hi = t;
-        t = (hi + lo) / 2;
-      }
-      return sampleY(t);
-    };
-  }
+  window.addEventListener(
+    "pointerover",
+    (event) => {
+      const el = event.target;
+      if (!(el instanceof Element)) return;
 
-  /* ---------- vendor loading ---------- */
+      const hot = el.closest(HOT);
+      const cold = el.closest(COLD);
+      const text = !hot && el.closest(TEXT);
 
-  /* The vendor bundles are UMD. Imported as ES modules they run in
-     strict mode and die assigning window.window, so they are injected
-     as classic scripts and read back off the global. */
-  function loadScript(url) {
-    return new Promise(function (resolve, reject) {
-      var s = document.createElement("script");
-      s.src = url;
-      s.async = false;
-      s.onload = function () {
-        resolve();
-      };
-      s.onerror = function () {
-        reject(new Error("failed to load " + url));
-      };
-      (document.head || document.documentElement).appendChild(s);
-    });
-  }
+      ring.classList.toggle("is-hot", Boolean(hot));
+      ring.classList.toggle("is-cold", Boolean(cold));
+      ring.classList.toggle("is-text", Boolean(text));
+      point.classList.toggle("is-hidden", Boolean(text));
+    },
+    { passive: true },
+  );
 
-  function need(name, global) {
-    if (window[global]) return Promise.resolve();
-    return loadScript(vendorUrl(name)).then(function () {
-      if (!window[global]) throw new Error(name + " loaded but did not define " + global);
-    });
-  }
+  window.addEventListener("pointerdown", () => ring.classList.add("is-down"), { passive: true });
+  window.addEventListener("pointerup", () => ring.classList.remove("is-down"), { passive: true });
 
-  function loadVendor() {
-    /* Sequential: the plugins look for window.gsap as they evaluate. */
-    return need("gsap.min.js", "gsap")
-      .then(function () {
-        return need("ScrollTrigger.min.js", "ScrollTrigger");
-      })
-      .then(function () {
-        return need("SplitText.min.js", "SplitText").catch(function (err) {
-          /* Optional. Headings fall back to a plain reveal. */
-          console.warn("[adeia/motion] SplitText unavailable:", err);
-        });
-      })
-      .then(function () {
-        return need("lenis.min.js", "Lenis").catch(function (err) {
-          console.warn("[adeia/motion] Lenis unavailable:", err);
-        });
-      });
-  }
-
-  /* ---------- smooth scroll ---------- */
-
-  function startLenis(gsap, ScrollTrigger) {
-    if (!window.Lenis) return;
-    lenis = new window.Lenis({
-      lerp: 0.1,
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.6,
-      autoRaf: false,
-    });
-    lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add(function (time) {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0);
-  }
-
-  /* ---------- heading reveals ---------- */
-
-  function plainReveal(gsap, el, delay) {
-    el.classList.add("is-split");
-    gsap.fromTo(
-      el,
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.7,
-        delay: delay || 0,
-        ease: "adeia-out",
-        overwrite: "auto",
-        scrollTrigger: { trigger: el, start: "top 88%", once: true },
-      },
-    );
-  }
-
-  function initSplits(gsap) {
-    var SplitText = window.SplitText;
-    var nodes = gsap.utils.toArray(SPLIT_SEL);
-
-    nodes.forEach(function (el) {
-      if (!SplitText) {
-        plainReveal(gsap, el, 0);
-        return;
-      }
-      try {
-        var split = SplitText.create(el, {
-          type: "lines",
-          mask: "lines",
-          linesClass: "splitline",
-          autoSplit: true,
-          onSplit: function (self) {
-            /* Returned so autoSplit reverts it before re-splitting. */
-            return gsap.from(self.lines, {
-              yPercent: 100,
-              duration: 0.7,
-              ease: "adeia-out",
-              stagger: 0.08,
-              scrollTrigger: { trigger: el, start: "top 85%", once: true },
-            });
-          },
-        });
-        splits.push(split);
-        el.classList.add("is-split");
-      } catch (err) {
-        console.warn("[adeia/motion] split failed, falling back:", err);
-        plainReveal(gsap, el, 0);
-      }
-    });
-  }
-
-  /* ---------- generic reveals ---------- */
-
-  function initReveals(gsap) {
-    gsap.utils.toArray(REVEAL_SEL).forEach(function (el) {
-      var delay = parseFloat(el.getAttribute("data-delay") || "0");
-      if (!isFinite(delay) || delay < 0) delay = 0;
-      gsap.fromTo(
-        el,
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.7,
-          delay: delay / 1000,
-          ease: "adeia-out",
-          overwrite: "auto",
-          scrollTrigger: { trigger: el, start: "top 88%", once: true },
-        },
-      );
-    });
-  }
-
-  /* ---------- ground transitions ---------- */
-
-  function initGrounds(gsap, ScrollTrigger) {
-    var styles = getComputedStyle(root);
-    var sections = [];
-
-    Array.prototype.forEach.call(document.querySelectorAll(".ground"), function (el) {
-      for (var key in GROUNDS) {
-        if (!Object.prototype.hasOwnProperty.call(GROUNDS, key)) continue;
-        if (!el.classList.contains("ground--" + key)) continue;
-        var colour = styles.getPropertyValue(GROUNDS[key]).trim();
-        if (colour) sections.push({ el: el, colour: colour });
-        return;
-      }
-    });
-
-    if (!sections.length) return;
-
-    /* Body carries the colour; the sections go transparent so the
-       whole page crossfades instead of the sections butting up. Both
-       are undone by unlock(). */
-    var current = sections[0].colour;
-    document.body.style.backgroundColor = current;
-    root.classList.add("ground-driven");
-
-    function to(colour) {
-      if (colour === current) return;
-      current = colour;
-      gsap.to(document.body, {
-        backgroundColor: colour,
-        duration: 1.5,
-        ease: "adeia-io",
-        overwrite: true,
-      });
-    }
-
-    sections.forEach(function (s) {
-      ScrollTrigger.create({
-        trigger: s.el,
-        start: "top 60%",
-        end: "bottom 60%",
-        onEnter: function () {
-          to(s.colour);
-        },
-        onEnterBack: function () {
-          to(s.colour);
-        },
-      });
-    });
-  }
-
-  /* ---------- boot ---------- */
-
-  function domReady() {
-    if (document.readyState !== "loading") return Promise.resolve();
-    return new Promise(function (resolve) {
-      document.addEventListener("DOMContentLoaded", resolve, { once: true });
-    });
-  }
-
-  function init() {
-    /* Reduced motion: no resting states were applied, no vendor is
-       loaded, no listeners are bound. motion.css does the rest. */
-    if (reduced.matches) return Promise.resolve();
-
-    return domReady()
-      .then(loadVendor)
-      .then(function () {
-        if (aborted) return;
-        var gsap = window.gsap;
-        var ScrollTrigger = window.ScrollTrigger;
-        if (!gsap || !ScrollTrigger) throw new Error("gsap or ScrollTrigger missing");
-
-        gsap.registerPlugin(ScrollTrigger);
-        if (window.SplitText) gsap.registerPlugin(window.SplitText);
-
-        gsap.registerEase("adeia-out", bezier(0.165, 0.84, 0.44, 1));
-        gsap.registerEase("adeia-io", bezier(0.77, 0, 0.175, 1));
-
-        startLenis(gsap, ScrollTrigger);
-        initSplits(gsap);
-        initReveals(gsap);
-        initGrounds(gsap, ScrollTrigger);
-        ScrollTrigger.refresh();
-
-        if (watchdog) {
-          clearTimeout(watchdog);
-          watchdog = 0;
-        }
-        window.__adeiaMotion = { gsap: gsap, lenis: lenis, splits: splits, unlock: unlock };
-      });
-  }
-
-  init().catch(function (err) {
-    unlock(err && err.message ? err.message : String(err));
+  // Leaving the window entirely: hide rather than freeze at the edge.
+  document.addEventListener("pointerleave", () => {
+    point.classList.add("is-out");
+    ring.classList.add("is-out");
+  });
+  document.addEventListener("pointerenter", () => {
+    point.classList.remove("is-out");
+    ring.classList.remove("is-out");
   });
 
-  /* If the preference is switched on mid-session, drop everything
-     rather than leaving half a system running. */
-  if (reduced.addEventListener) {
-    reduced.addEventListener("change", function (e) {
-      if (e.matches) unlock(null);
-    });
+  // Only now is it safe to hide the real one.
+  document.documentElement.classList.add("has-cursor");
+}
+
+/* ------------------------------------------------------------------ *
+ * Inertial scrolling.
+ *
+ * Eases the window toward a target position rather than jumping to it.
+ *
+ * Deliberately NOT the usual implementation. The common approach
+ * translates a wrapper element, which is cheap and breaks every
+ * `position: fixed` and `position: sticky` on the page — this page has
+ * a fixed masthead and a sticky rail, both of which would come apart.
+ * This drives `window.scrollTo` instead, so the browser's own scroll
+ * position stays true and fixed, sticky, the scrollbar, anchor links,
+ * find-in-page and assistive technology all keep working.
+ *
+ * Only wheel input is eased. Keyboard, scrollbar dragging, touch and
+ * programmatic scrolling are left alone: those are people navigating
+ * deliberately, and adding weight to them is an obstacle, not a feel.
+ * ------------------------------------------------------------------ */
+
+function inertialScroll() {
+  if (!enabled) return;
+
+  // Hand the browser's own smooth scrolling off before easing anything.
+  // Left on, its animation and this one compound and the page overshoots.
+  document.documentElement.classList.add("has-inertia");
+
+  let target = window.scrollY;
+  let current = window.scrollY;
+  let running = false;
+  let easing = false;
+
+  const maxScroll = () =>
+    Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+  function step() {
+    // 0.11 is slow enough to read as weight and fast enough not to feel
+    // like the page is fighting you.
+    current += (target - current) * 0.11;
+
+    if (Math.abs(target - current) < 0.4) {
+      current = target;
+      running = false;
+      easing = false;
+      window.scrollTo(0, current);
+      return;
+    }
+
+    window.scrollTo(0, current);
+    requestAnimationFrame(step);
   }
-})();
+
+  window.addEventListener(
+    "wheel",
+    (event) => {
+      // Leave the browser alone for zoom and for horizontal intent.
+      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+
+      event.preventDefault();
+
+      // deltaMode 1 is lines, 2 is pages. Normalise to pixels.
+      const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      target = Math.max(0, Math.min(maxScroll(), target + event.deltaY * scale));
+
+      easing = true;
+      if (!running) {
+        running = true;
+        requestAnimationFrame(step);
+      }
+    },
+    { passive: false },
+  );
+
+  // Anything that moved the page by other means — a keypress, a dragged
+  // scrollbar, an anchor jump — resets the target so the next wheel
+  // event eases from where the page actually is rather than snapping
+  // back to where this thought it was.
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!easing) {
+        target = window.scrollY;
+        current = window.scrollY;
+      }
+    },
+    { passive: true },
+  );
+
+  window.addEventListener("resize", () => {
+    target = Math.min(target, maxScroll());
+  });
+
+  // In-page links ease through the same loop rather than jumping. With
+  // scroll-behavior off there would otherwise be no smoothing left on
+  // them at all.
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
+    if (!link) return;
+
+    const id = link.getAttribute("href");
+    if (!id || id === "#") return;
+
+    const dest = document.querySelector(id);
+    if (!dest) return;
+
+    event.preventDefault();
+    target = Math.max(0, Math.min(maxScroll(), window.scrollY + dest.getBoundingClientRect().top - 90));
+    easing = true;
+    if (!running) {
+      running = true;
+      requestAnimationFrame(step);
+    }
+    // Keep the URL and the focus ring honest for keyboard and screen
+    // reader users, who are not the ones being eased.
+    history.pushState(null, "", id);
+    dest.setAttribute("tabindex", "-1");
+    dest.focus({ preventScroll: true });
+  });
+}
+
+cursor();
+inertialScroll();
