@@ -3,133 +3,98 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
     <title>Quickstart — Adeia</title>
-    <link rel="canonical" href="https://adeia.xyz/quickstart">
+    <link rel="canonical" href="https://adeia.xyz/quickstart" />
     <meta
       name="description"
-      content="From a fresh clone to an agent whose $25 invoice runs on its own and whose $500 one waits in your inbox. Every command, every environment variable, and what each one prints."
+      content="Eight commands from a fresh clone to a working fence: a policy your agent cannot edit, a $25.00 invoice that runs itself, and a $500.00 one waiting in your inbox — with every step on record."
     />
 
-    <!--
-      Shared layers, in the same order the landing page loads them.
-
-      hero.css is here for the masthead only — .masthead, .masthead__mark and
-      .masthead__menu are defined in it, and this page must carry the same bar.
-      closing.css is here for .site-footer, for the same reason. Every .hero
-      and .closing rule in those two files is inert without a .hero or
-      .closing element, and this page has neither.
-
-      Everything this page adds for itself is in page-quickstart.css, scoped
-      under .quickstart.
-    -->
-    <link rel="stylesheet" href="styles/tokens-legacy.css" />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/hero.css" />
-    <link rel="stylesheet" href="styles/menu.css" />
-    <link rel="stylesheet" href="styles/closing.css" />
-    <link rel="stylesheet" href="styles/motion.css" />
-    <link rel="stylesheet" href="styles/page-quickstart.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/sub-v2.css?v=1787082747840" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
-  <body class="quickstart">
-    <!-- Same masthead as the landing page: same markup, same classes, same
-         behaviour from nav.js. The wordmark goes home rather than to #hero. -->
-    <header class="masthead">
-      <a class="masthead__mark" href="/">Adeia</a>
+  <body class="doc">
+    <a class="sr-only" href="#main">Skip to content</a>
 
-      <!-- The way in. GitHub OAuth has no separate sign-up: a first
-           sign-in is the registration, so there is one button, not two. -->
-      <a class="masthead__signin" href="/dashboard">Sign in</a>
+    <header class="mast">
+      <a class="mast__mark" href="/">
+        <span>adeia</span>
+        <span>fence</span>
+      </a>
 
-      <button
-        class="plus-link masthead__menu"
-        type="button"
-        id="menu-button"
-        aria-expanded="false"
-        aria-controls="menu-panel"
-      >
-        <span class="masthead__menu-label" data-menu-label>Menu</span>
-        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-      </button>
+      <nav class="mast__nav" aria-label="Sections">
+        <a href="/capability">Capability</a>
+        <a href="/approach">Approach</a>
+        <a href="/policy">Policy</a>
+        <a href="/quickstart">Quickstart</a>
+        <a href="/contact">Contact</a>
+      </nav>
+
+      <div class="mast__end">
+        <a class="btn" href="/dashboard" data-magnet>Sign in</a>
+      </div>
     </header>
 
-    <!-- Same panel markup. Every entry points at something that exists: three
-         sections on this page and the landing page itself. -->
-    <div class="menu" id="menu-panel" data-menu-panel hidden>
-      <nav class="container menu__nav" aria-label="Sections">
-        <ol class="menu__list">
-          <li class="menu__item">
-            <a class="menu__link" href="#setup"
-              ><span class="label menu__num">01</span
-              ><span class="display menu__word">Setup</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#environment"
-              ><span class="label menu__num">02</span
-              ><span class="display menu__word">Environment</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#outcomes"
-              ><span class="label menu__num">03</span
-              ><span class="display menu__word">Outcomes</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="/"
-              ><span class="label menu__num">04</span
-              ><span class="display menu__word">Overview</span></a
-            >
-          </li>
-        </ol>
+    <main id="main">
+      <!-- ==========================================================
+           Hero
+           ========================================================== -->
+      <section class="phero">
+        <div class="phero__orb" aria-hidden="true"></div>
+        <div class="phero__grain" aria-hidden="true"></div>
 
-        <p class="label quiet menu__note">
-          No payment processor is attached &middot; nothing settles
-        </p>
-      </nav>
-    </div>
+        <div class="wrap">
+          <div class="phero__inner">
+            <span class="eyebrow" data-reveal>Quickstart</span>
 
-    <main>
-      <!-- ===========================================================
-           Hero — --ink
-           =========================================================== -->
-      <section class="ground ground--ink qs-hero" id="top" aria-labelledby="qs-hero-title">
-        <div class="container qs-hero__inner">
-          <p class="label qs-hero__eyebrow">Quickstart</p>
+            <h1 class="display phero__title" data-reveal data-reveal-delay="70">
+              Run it<br />
+              <span class="sweep">yourself</span>
+            </h1>
 
-          <h1 class="display qs-hero__title" id="qs-hero-title">Run it yourself</h1>
+            <p class="lede phero__lede" data-reveal data-reveal-delay="130">
+              Eight commands from a fresh clone. At the end you have a server on
+              localhost holding a policy your agent cannot edit, an invoice for
+              $25.00 that settles itself into the ledger without asking anyone,
+              and one for $500.00 sitting in your inbox waiting for you to say
+              yes — with every step of both on record.
+            </p>
 
-          <p class="lead qs-hero__lead">
-            Eight commands from a fresh clone. At the end you have a server on
-            localhost holding a policy your agent cannot edit, an invoice for
-            $25.00 that settles itself into the ledger without asking anyone,
-            and one for $500.00 sitting in your inbox waiting for you to say
-            yes — with every step of both on record.
-          </p>
-
-          <p class="qs-hero__go">
-            <a class="plus-link" href="#setup">
-              <span class="plus-link__box" aria-hidden="true">+</span>
-              <span>START AT STEP ONE</span>
-            </a>
-          </p>
+            <div class="hero__cta" data-reveal data-reveal-delay="190">
+              <a class="btn" href="#setup" data-magnet>Start at step one</a>
+              <a class="btn btn--ghost" href="/dashboard" data-magnet
+                >Skip ahead: sign in with GitHub</a
+              >
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Setup — --bone
-           The numbered path. Same device as the landing page's approach
-           section: a mono ordinal, a title, the copy, and a hairline
-           between each. The numbers are the order the commands run in.
-           =========================================================== -->
-      <section class="ground ground--bone section qs-setup" id="setup" aria-labelledby="qs-setup-title">
-        <div class="container">
-          <header class="qs-setup__head">
-            <p class="label quiet">Setup</p>
-            <h2 class="h1 qs-setup__title" id="qs-setup-title">Nothing to a first action</h2>
-            <p class="body quiet qs-setup__intro">
+      <nav class="anchors" aria-label="On this page">
+        <div class="wrap anchors__inner">
+          <a href="#setup">Setup</a>
+          <a href="#environment">Environment</a>
+          <a href="#expect">What you should see</a>
+        </div>
+      </nav>
+
+      <!-- ==========================================================
+           Setup
+           ========================================================== -->
+      <section class="section" id="setup" aria-labelledby="setup-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>Setup</span>
+            <h2 class="h1" id="setup-title" data-reveal data-reveal-delay="70">
+              Nothing to a first action
+            </h2>
+            <p class="lede" data-reveal data-reveal-delay="130">
               Run these from the repository root, in order. Each step says what
               it prints and what to confirm before you move on — most of the
               ways this goes wrong are silent otherwise, and surface an hour
@@ -137,161 +102,155 @@
             </p>
           </header>
 
-          <ol class="qs-steps">
+          <div class="steps">
             <!-- 01 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">01</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Install</h3>
-                <p class="body quiet qs-step__copy">
-                  Node 22 or newer. The repository is a set of npm workspaces,
-                  so one install at the root covers the server, the SDK and the
-                  demo agent.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>node --version
-npm install</code></pre>
+            <div class="step" data-reveal>
+              <span class="step__marker">01</span>
+              <h3 class="h3 step__title">Install</h3>
+              <p class="step__body">
+                Node 22 or newer. The repository is a set of npm workspaces, so
+                one install at the root covers the server, the SDK and the demo
+                agent.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">run</span>
                 </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >The version prints <code class="qs-code">v22</code> or
-                    higher. <code class="qs-code">better-sqlite3</code> is a
-                    native module and may need a rebuild on a very new Node —
-                    if the install or the first boot complains about it, run
-                    <code class="qs-code">npm rebuild better-sqlite3</code> now
-                    rather than five minutes before you need the server.</span
-                  >
-                </p>
+                <pre class="pane__body"><code><span class="out-dim">$</span> node --version
+<span class="out-dim">$</span> npm install</code></pre>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong> The version prints
+                <span class="mono">v22</span> or higher.
+                <span class="mono">better-sqlite3</span> is a native module and
+                may need a rebuild on a very new Node — if the install or the
+                first boot complains about it, run
+                <span class="mono">npm rebuild better-sqlite3</span> now rather
+                than five minutes before you need the server.
+              </div>
+            </div>
 
             <!-- 02 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">02</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Write the environment file</h3>
-                <p class="body quiet qs-step__copy">
-                  The example carries every key with a comment naming what needs
-                  it. Copy it to the repository root — that is where the server
-                  looks — and fill in the approval block: a mailbox to send
-                  from, and an address to send to.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>cp config/.env.example .env</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Then edit .env</p>
-                  <pre class="qs-term__out"><code>SMTP_USER=you@gmail.com
-SMTP_PASSWORD=xxxxxxxxxxxxxxxx
-APPROVAL_FROM_EMAIL=you@gmail.com
-APPROVER_EMAIL=you@gmail.com</code></pre>
+            <div class="step" data-reveal>
+              <span class="step__marker">02</span>
+              <h3 class="h3 step__title">Write the environment file</h3>
+              <p class="step__body">
+                The example carries every key with a comment naming what needs
+                it. Copy it to the repository root — that is where the server
+                looks — and fill in the approval block: a mailbox to send from,
+                and an address to send to.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">run, then edit .env</span>
                 </div>
+                <pre class="pane__body"><code><span class="out-dim">$</span> cp config/.env.example .env
 
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    ><code class="qs-code">SMTP_PASSWORD</code> is a
-                    sixteen-character app password, not your account password —
-                    Gmail rejects the account password over SMTP, and it does
-                    not belong in a file on disk regardless. Turn on 2-Step
-                    Verification first, then create one. Set both SMTP
-                    variables or neither: half a pair is a startup error, never
-                    a quiet switch to another transport.</span
-                  >
-                </p>
+SMTP_USER=<span class="tok-str">you@gmail.com</span>
+SMTP_PASSWORD=<span class="tok-str">xxxxxxxxxxxxxxxx</span>
+APPROVAL_FROM_EMAIL=<span class="tok-str">you@gmail.com</span>
+APPROVER_EMAIL=<span class="tok-str">you@gmail.com</span></code></pre>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong>
+                <span class="mono">SMTP_PASSWORD</span> is a sixteen-character
+                app password, not your account password — Gmail rejects the
+                account password over SMTP, and it does not belong in a file on
+                disk regardless. Turn on 2-Step Verification first, then create
+                one. Set both SMTP variables or neither: half a pair is a
+                startup error, never a quiet switch to another transport.
+              </div>
+            </div>
 
             <!-- 03 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">03</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Open a tunnel</h3>
-                <p class="body quiet qs-step__copy">
-                  The approval link is opened on a phone, away from your
-                  machine, so the base URL in the email has to be reachable from
-                  outside it. A localhost link is useless to the person holding
-                  the device.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>ngrok http 3000</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Then paste the https URL into .env</p>
-                  <pre class="qs-term__out"><code>PUBLIC_BASE_URL=https://your-tunnel.ngrok-free.app</code></pre>
+            <div class="step" data-reveal>
+              <span class="step__marker">03</span>
+              <h3 class="h3 step__title">Open a tunnel</h3>
+              <p class="step__body">
+                The approval link is opened on a phone, away from your machine,
+                so the base URL in the email has to be reachable from outside
+                it. A localhost link is useless to the person holding the
+                device.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">run, then paste the https URL into .env</span>
                 </div>
+                <pre class="pane__body"><code><span class="out-dim">$</span> ngrok http 3000
 
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >The URL changes every time ngrok restarts. Re-set it and
-                    restart the server, or every emailed link points at a dead
-                    host. Any well-formed URL passes validation, including the
-                    placeholder — the only real check is reading the approvals
-                    line the server prints in step 5 and confirming it names
-                    your live tunnel.</span
-                  >
-                </p>
+PUBLIC_BASE_URL=<span class="tok-str">https://your-tunnel.ngrok-free.app</span></code></pre>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong> The URL changes every time ngrok
+                restarts. Re-set it and restart the server, or every emailed
+                link points at a dead host. Any well-formed URL passes
+                validation, including the placeholder — the only real check is
+                reading the approvals line the server prints in step 5 and
+                confirming it names your live tunnel.
+              </div>
+            </div>
 
             <!-- 04 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">04</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Seed a project and a policy</h3>
-                <p class="body quiet qs-step__copy">
-                  One project, one payment policy, one API key. This is where
-                  the fence gets its numbers: a $50.00 per-action limit, a
-                  $1,000.00 hard ceiling and a $2,000.00 daily cap.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>npm run seed</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Prints</p>
-                  <pre class="qs-term__out"><code>  project   proj_lxvktwnj3wfu1vki0cem3  (demo)
-  database  ./adeia.db
-
-  policy    pol_9rk4h2vqx8m1td7nzs0ec  type=payment
-    per-action limit   $50.00   above this &rarr; approval
-    hard maximum       $1000.00   above this &rarr; denied
-    daily cap          $2000.00   per currency, UTC day
+            <div class="step" data-reveal>
+              <span class="step__marker">04</span>
+              <h3 class="h3 step__title">Seed a project and a policy</h3>
+              <p class="step__body">
+                One project, one payment policy, one API key. This is where the
+                fence gets its numbers: a $50.00 per-action limit, a $1,000.00
+                hard ceiling and a $2,000.00 daily cap.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">npm run seed</span>
+                </div>
+                <pre class="pane__body"><code>  project   <span class="out-dim">proj_lxvktwnj3wfu1vki0cem3  (demo)</span>
+  database  <span class="out-dim">./adeia.db</span>
+  policy    <span class="out-dim">pol_9rk4h2vqx8m1td7nzs0ec  type=payment</span>
+    per-action limit   <span class="tok-num">$50.00</span>     above this → approval
+    hard maximum       <span class="tok-num">$1000.00</span>   above this → denied
+    daily cap          <span class="tok-num">$2000.00</span>   per currency, UTC day
     allowed recipients any
 
   API key — copy it now, it is not stored and will not be shown again:
-
-    adeia_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Then, in the shell you will use</p>
-                  <pre class="qs-term__code"><code>export ADEIA_API_KEY=adeia_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-export ADEIA_URL=http://localhost:3000</code></pre>
+    <span class="out-ok">adeia_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></code></pre>
+              </div>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">then, in the shell you will use</span>
                 </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >Copy the key before you clear the terminal. Only its sha256
-                    hash is stored, so it genuinely cannot be shown again.</span
-                  >
+                <pre class="pane__body"><code><span class="out-dim">$</span> export ADEIA_API_KEY=adeia_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+<span class="out-dim">$</span> export ADEIA_URL=http://localhost:3000</code></pre>
+              </div>
+              <div class="note note--flush">
+                <strong>Check.</strong> Copy the key before you clear the
+                terminal. Only its sha256 hash is stored, so it genuinely cannot
+                be shown again.
+              </div>
+              <div class="prose" style="margin-top: 1.25rem">
+                <p>
+                  Or skip this step.
+                  <a href="/dashboard">Sign in with GitHub</a> and Adeia creates
+                  the project, both policies and a key for you, and shows the
+                  key once. The dashboard is also where you replace a key you
+                  have lost — the seed script has no way to do that, because it
+                  only ever knew the hash either.
                 </p>
-
-                <p class="body quiet qs-step__copy">
-                  Or skip this step. <a href="/dashboard">Sign in with GitHub</a>
-                  and Adeia creates the project, both policies and a key for
-                  you, and shows the key once. The dashboard is also where you
-                  replace a key you have lost — the seed script has no way to
-                  do that, because it only ever knew the hash either.
-                </p>
-
-                <p class="body quiet qs-step__copy">
+                <p>
                   A project made that way starts with an <em>empty</em> host
                   allowlist, which refuses every outbound call until you add a
                   host. That is deliberate — guessing which hosts you trust is
@@ -299,555 +258,560 @@ export ADEIA_URL=http://localhost:3000</code></pre>
                   field for it.
                 </p>
               </div>
-            </li>
+            </div>
 
             <!-- 05 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">05</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Start the server</h3>
-                <p class="body quiet qs-step__copy">
-                  The server logs in to the mailbox before it listens. If the
-                  app password is wrong you find out here, in a startup error,
-                  rather than an hour later through a payment that paused
-                  correctly and reached nobody.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>npm run dev</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Prints</p>
-                  <pre class="qs-term__out"><code>[adeia] listening on http://localhost:3000  (db: ./adeia.db)
-[adeia] adapters: ledger
-[adeia] NO PAYMENT PROCESSOR ATTACHED — payments are authorised and recorded;
-[adeia]   no money moves. Register a processor adapter to change that.
-[adeia] approvals: you@gmail.com via https://your-tunnel.ngrok-free.app
-[adeia]   sending as you@gmail.com over smtp smtp.gmail.com:465 as you@gmail.com</code></pre>
+            <div class="step" data-reveal>
+              <span class="step__marker">05</span>
+              <h3 class="h3 step__title">Start the server</h3>
+              <p class="step__body">
+                The server logs in to the mailbox before it listens. If the app
+                password is wrong you find out here, in a startup error, rather
+                than an hour later through a payment that paused correctly and
+                reached nobody.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">npm run dev</span>
                 </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >The approvals line must name your live tunnel and the
-                    address you want the mail at. In another terminal,
-                    <code class="qs-code">curl localhost:3000/healthz</code>
-                    answers
-                    <code class="qs-code">{"ok":true}</code>. If the server
-                    refuses to start it is telling you which variable is
-                    missing — it does that on purpose rather than run half
-                    configured.</span
-                  >
-                </p>
+                <pre class="pane__body"><code><span class="out-dim">[adeia]</span> listening on http://localhost:3000  (db: ./adeia.db)
+<span class="out-dim">[adeia]</span> adapters: ledger, http
+<span class="out-hold">[adeia] NO PAYMENT PROCESSOR ATTACHED</span> — payments are authorised and
+<span class="out-dim">[adeia]</span>   recorded; no money moves.
+<span class="out-dim">[adeia]</span> approvals: <span class="out-ok">you@gmail.com</span> via https://your-tunnel.ngrok-free.app
+<span class="out-dim">[adeia]</span>   sending as you@gmail.com over smtp smtp.gmail.com:465</code></pre>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong> The approvals line must name your live
+                tunnel and the address you want the mail at. In another
+                terminal, <span class="mono">curl localhost:3000/healthz</span>
+                answers <span class="mono">{"ok":true}</span>. If the server
+                refuses to start it is telling you which variable is missing —
+                it does that on purpose rather than run half configured.
+              </div>
+            </div>
 
             <!-- 06 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">06</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Ask for a payment by hand</h3>
-                <p class="body quiet qs-step__copy">
-                  Before wiring up a model, prove the path with curl. The
-                  repository ships the request bodies used in the docs, so
-                  there is nothing to type out.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>curl -X POST localhost:3000/v1/actions \
-  -H "authorization: Bearer $ADEIA_API_KEY" \
-  -H "content-type: application/json" \
-  -d @docs/json/examples/request-under-limit.json</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Prints — HTTP 201</p>
-                  <pre class="qs-term__out"><code>{
-  "id": "act_8xk2m4pq7vn3jd6wztc0b",
-  "status": "executed",
-  "decision": "allow",
-  "decisionReason": "within policy",
-  "result": {
-    "ledgerEntryId": "led_act_8xk2m4pq7vn3jd6wztc0b",
-    "status": "recorded",
-    "settled": false
+            <div class="step" data-reveal>
+              <span class="step__marker">06</span>
+              <h3 class="h3 step__title">Ask for a payment by hand</h3>
+              <p class="step__body">
+                Before wiring up a model, prove the path with curl. The
+                repository ships the request bodies used in the docs, so there
+                is nothing to type out.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">run</span>
+                </div>
+                <pre class="pane__body"><code><span class="out-dim">$</span> curl -X POST localhost:3000/v1/actions \
+    -H <span class="tok-str">"authorization: Bearer $ADEIA_API_KEY"</span> \
+    -H <span class="tok-str">"content-type: application/json"</span> \
+    -d @docs/json/examples/request-under-limit.json</code></pre>
+              </div>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">prints — HTTP 201</span>
+                </div>
+                <pre class="pane__body"><code>{
+  <span class="tok-key">"id"</span>: <span class="tok-str">"act_8xk2m4pq7vn3jd6wztc0b"</span>,
+  <span class="tok-key">"status"</span>: <span class="out-ok">"executed"</span>,
+  <span class="tok-key">"decision"</span>: <span class="tok-str">"allow"</span>,
+  <span class="tok-key">"decisionReason"</span>: <span class="tok-str">"within policy"</span>,
+  <span class="tok-key">"result"</span>: {
+    <span class="tok-key">"ledgerEntryId"</span>: <span class="tok-str">"led_act_8xk2m4pq7vn3jd6wztc0b"</span>,
+    <span class="tok-key">"status"</span>: <span class="tok-str">"recorded"</span>,
+    <span class="tok-key">"settled"</span>: <span class="tok-num">false</span>
   }
 }</code></pre>
-                </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >Send the identical body a second time and you get the same
-                    <code class="qs-code">id</code> back, with no second ledger
-                    entry — the idempotency key in the file is unique per
-                    project and the duplicate is caught before any adapter
-                    runs.</span
-                  >
-                </p>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong> Send the identical body a second time
+                and you get the same <span class="mono">id</span> back, with no
+                second ledger entry — the idempotency key in the file is unique
+                per project and the duplicate is caught before any adapter runs.
+              </div>
+            </div>
 
             <!-- 07 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">07</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Hand it to an agent</h3>
-                <p class="body quiet qs-step__copy">
-                  The demo agent gets two invoices and exactly one tool. It
-                  holds no payment credentials and has nothing that reaches
-                  past Adeia. Add
-                  <code class="qs-code">ANTHROPIC_API_KEY</code> to
-                  <code class="qs-code">.env</code> first — the server never
-                  calls a model, only this agent does.
-                </p>
+            <div class="step" data-reveal>
+              <span class="step__marker">07</span>
+              <h3 class="h3 step__title">Hand it to an agent</h3>
+              <p class="step__body">
+                The demo agent gets two invoices and exactly one tool. It holds
+                no payment credentials and has nothing that reaches past Adeia.
+                Add <span class="lit">ANTHROPIC_API_KEY</span> to
+                <span class="lit">.env</span> first — the server never calls a
+                model for the fence itself, only this agent does.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">npm run demo</span>
+                </div>
+                <pre class="pane__body"><code>→ requesting <span class="tok-num">$25.00</span> to acct_cloudhost — monthly hosting
+   <span class="out-ok">executed</span>: within policy
 
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>npm run demo</code></pre>
-
-                  <p class="label qs-term__label qs-term__label--second">Prints, partway through</p>
-                  <pre class="qs-term__out"><code>&rarr; requesting $25.00 to acct_cloudhost — monthly hosting
-   executed: within policy
-
-&rarr; requesting $500.00 to acct_contractor — Q3 design work
-
-⏸  $500.00 to acct_contractor needs human approval.
+→ requesting <span class="tok-num">$500.00</span> to acct_contractor — Q3 design work
+<span class="out-hold">⏸  $500.00 to acct_contractor needs human approval.</span>
    amount 50000 exceeds per-action limit 5000
    Approval email sent. Waiting…</code></pre>
-                </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >Open the emailed link and approve. The agent resumes and
-                    reports both invoices. It waits five minutes for a decision
-                    and then reports the payment as still pending rather than
-                    guessing — a timeout is not an approval.</span
-                  >
-                </p>
               </div>
-            </li>
+              <div class="note note--flush">
+                <strong>Check.</strong> Open the emailed link and approve. The
+                agent resumes and reports both invoices. It waits five minutes
+                for a decision and then reports the payment as still pending
+                rather than guessing — a timeout is not an approval.
+              </div>
+            </div>
 
             <!-- 08 -->
-            <li class="qs-step">
-              <span class="mono qs-step__ordinal" aria-hidden="true">08</span>
-              <div class="qs-step__body">
-                <h3 class="h3 qs-step__title">Read the trail</h3>
-                <p class="body quiet qs-step__copy">
-                  Every state change wrote an event as it happened. Pass the id
-                  of the $500.00 action to see the whole sequence, including who
-                  decided it and when.
-                </p>
-
-                <div class="qs-term">
-                  <p class="label qs-term__label">Run</p>
-                  <pre class="qs-term__code"><code>npm run audit -- act_q7w2e9r4t1y6u3i8o5p0a</code></pre>
+            <div class="step step--done" data-reveal>
+              <span class="step__marker">08</span>
+              <h3 class="h3 step__title">Read the trail</h3>
+              <p class="step__body">
+                Every state change wrote an event as it happened. Pass the id of
+                the $500.00 action to see the whole sequence, including who
+                decided it and when.
+              </p>
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">run</span>
                 </div>
-
-                <p class="qs-check">
-                  <span class="label qs-check__tag">Check</span>
-                  <span class="body qs-check__text"
-                    >Two executed actions at the end of a full run — not one,
-                    not three:
-                    <code class="qs-code"
-                      >sqlite3 adeia.db "SELECT id, status FROM actions;"</code
-                    >. The same trail is available over HTTP at
-                    <code class="qs-code">GET /v1/actions/:id/audit</code>.</span
-                  >
-                </p>
+                <pre class="pane__body"><code><span class="out-dim">$</span> npm run audit -- act_q7w2e9r4t1y6u3i8o5p0a</code></pre>
               </div>
-            </li>
-          </ol>
+              <div class="note note--flush">
+                <strong>Check.</strong> Two executed actions at the end of a
+                full run — not one, not three:
+                <span class="mono"
+                  >sqlite3 adeia.db "SELECT id, status FROM actions;"</span
+                >. The same trail is available over HTTP at
+                <span class="mono">GET /v1/actions/:id/audit</span>.
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Environment — --paper
-           The real list, read off src/backend/src/env.ts. Two groups,
-           because the distinction that matters is whether the server
-           starts without it.
-           =========================================================== -->
-      <section
-        class="ground ground--paper section qs-env"
-        id="environment"
-        aria-labelledby="qs-env-title"
-      >
-        <div class="container">
-          <header class="qs-env__head">
-            <p class="label quiet">Environment</p>
-            <h2 class="h2 qs-env__title js-reveal" data-delay="80" id="qs-env-title">
+      <!-- ==========================================================
+           Environment — read off src/backend/src/env.ts.
+           Two groups, because the distinction that matters is whether
+           the server starts without it.
+           ========================================================== -->
+      <section class="section" id="environment" aria-labelledby="env-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>Environment</span>
+            <h2 class="h1" id="env-title" data-reveal data-reveal-delay="70">
               What each variable is holding up
             </h2>
-            <p class="body quiet qs-env__intro">
-              Read from a <code class="qs-code">.env</code> at the repository
-              root, validated once at boot. Nothing here is read lazily, so a
-              missing value is a startup error and not a surprise on the first
-              request that needs it.
+            <p class="lede" data-reveal data-reveal-delay="130">
+              Read from a <span class="lit">.env</span> at the repository root,
+              validated once at boot. Nothing here is read lazily, so a missing
+              value is a startup error and not a surprise on the first request
+              that needs it.
             </p>
           </header>
 
-          <div class="qs-env__group">
-            <h3 class="h3 qs-env__grouptitle">The server refuses to start without these</h3>
-            <p class="body quiet qs-env__groupnote">
+          <div class="prose" data-reveal>
+            <h3 class="h3">The server refuses to start without these</h3>
+            <p>
               Booting without somewhere to send approval requests produces the
               worst available failure: over-limit actions pause exactly as they
               should and then wait forever, because nothing ever tells a human
               they were asked. From the outside that is indistinguishable from a
               hung agent, so the server will not do it.
             </p>
-
-            <ul class="qs-env__list">
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">SMTP_USER</p>
-                <p class="mono qs-env__default qs-env__default--none">required</p>
-                <p class="body qs-env__what">
-                  Together with <code class="qs-code">SMTP_PASSWORD</code>, one
-                  of the two transports — the mailbox the approval mail is sent
-                  through. Set one of the pair and not the other and the server
-                  stops with an error naming the missing half. It will not fall
-                  back to Resend: the channel a human is watching must not
-                  change because of a typo.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">SMTP_PASSWORD</p>
-                <p class="mono qs-env__default qs-env__default--none">required</p>
-                <p class="body qs-env__what">
-                  An app password, never an account password. Verified with a
-                  real login before the server listens, so a wrong one is a
-                  startup failure rather than a payment that pauses correctly
-                  and reaches nobody.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">RESEND_API_KEY</p>
-                <p class="mono qs-env__default qs-env__default--none">alternative</p>
-                <p class="body qs-env__what">
-                  The other transport, used only when the SMTP pair is entirely
-                  absent. It needs an account and a verified sender domain, and
-                  that verification is not instant — set it up well before you
-                  need it.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">APPROVAL_FROM_EMAIL</p>
-                <p class="mono qs-env__default qs-env__default--none">required</p>
-                <p class="body qs-env__what">
-                  The address the approval mail is sent from. On Gmail SMTP it
-                  must be the <code class="qs-code">SMTP_USER</code> mailbox or
-                  one of its verified aliases; Gmail silently rewrites anything
-                  else, and the mail arrives from an address you did not choose.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">APPROVER_EMAIL</p>
-                <p class="mono qs-env__default qs-env__default--none">required</p>
-                <p class="body qs-env__what">
-                  Where approval requests land. One approver per deployment for
-                  now — per-project approvers would need a column on the
-                  projects table.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">PUBLIC_BASE_URL</p>
-                <p class="mono qs-env__default qs-env__default--none">required</p>
-                <p class="body qs-env__what">
-                  The origin the approval link is built on, with trailing
-                  slashes stripped. It must be publicly reachable. This is the
-                  one required variable whose validation cannot save you: any
-                  well-formed URL passes, so a stale tunnel address boots
-                  cleanly and mails links to a host that no longer exists.
-                </p>
-              </li>
-            </ul>
           </div>
 
-          <div class="qs-env__group">
-            <h3 class="h3 qs-env__grouptitle">These have defaults worth knowing</h3>
-            <p class="body quiet qs-env__groupnote">
+          <dl class="kv" data-reveal>
+            <div>
+              <dt>SMTP_USER <span class="tag tag--warm">required</span></dt>
+              <dd>
+                Together with <span class="lit">SMTP_PASSWORD</span>, one of the
+                two transports — the mailbox the approval mail is sent through.
+                Set one of the pair and not the other and the server stops with
+                an error naming the missing half. It will not fall back to
+                Resend: the channel a human is watching must not change because
+                of a typo.
+              </dd>
+            </div>
+            <div>
+              <dt>SMTP_PASSWORD <span class="tag tag--warm">required</span></dt>
+              <dd>
+                An app password, never an account password. Verified with a real
+                login before the server listens, so a wrong one is a startup
+                failure rather than a payment that pauses correctly and reaches
+                nobody.
+              </dd>
+            </div>
+            <div>
+              <dt>RESEND_API_KEY <span class="tag">alternative</span></dt>
+              <dd>
+                The other transport, used only when the SMTP pair is entirely
+                absent. It needs an account and a verified sender domain, and
+                that verification is not instant — set it up well before you
+                need it.
+              </dd>
+            </div>
+            <div>
+              <dt>APPROVAL_FROM_EMAIL <span class="tag tag--warm">required</span></dt>
+              <dd>
+                The address the approval mail is sent from. On Gmail SMTP it
+                must be the <span class="lit">SMTP_USER</span> mailbox or one of
+                its verified aliases; Gmail silently rewrites anything else, and
+                the mail arrives from an address you did not choose.
+              </dd>
+            </div>
+            <div>
+              <dt>APPROVER_EMAIL <span class="tag tag--warm">required</span></dt>
+              <dd>
+                Where approval requests land. One approver per deployment for
+                now — per-project approvers would need a column on the projects
+                table.
+              </dd>
+            </div>
+            <div>
+              <dt>PUBLIC_BASE_URL <span class="tag tag--warm">required</span></dt>
+              <dd>
+                The origin the approval link is built on, with trailing slashes
+                stripped. It must be publicly reachable. This is the one
+                required variable whose validation cannot save you: any
+                well-formed URL passes, so a stale tunnel address boots cleanly
+                and mails links to a host that no longer exists.
+              </dd>
+            </div>
+          </dl>
+
+          <div class="prose" data-reveal style="margin-top: 3rem">
+            <h3 class="h3">These turn features on when you set them</h3>
+            <p>
+              All optional. Leave them out and the server runs exactly as
+              before, minus the feature — never with the feature quietly
+              half-on.
+            </p>
+          </div>
+
+          <dl class="kv" data-reveal>
+            <div>
+              <dt>ANTHROPIC_API_KEY <span class="tag tag--cold">classifier</span></dt>
+              <dd>
+                Powers the risk classifier. Without it the server runs a stub
+                that refuses every classification and sends the action to a
+                person — so a policy that opened methods to a classifier that
+                was never configured produces approval emails rather than
+                unattended writes. A missing key must not be a quiet upgrade in
+                what an agent may do on its own. The demo agent reads the same
+                variable.
+              </dd>
+            </div>
+            <div>
+              <dt>GITHUB_CLIENT_ID</dt>
+              <dd>
+                From the GitHub OAuth app. Public; it travels in the redirect
+                URL.
+              </dd>
+            </div>
+            <div>
+              <dt>GITHUB_CLIENT_SECRET</dt>
+              <dd>
+                Secret. Never logged, never rendered, never leaves the token
+                exchange.
+              </dd>
+            </div>
+            <div>
+              <dt>GITHUB_REDIRECT_URI</dt>
+              <dd>
+                Must match the callback registered on the OAuth app exactly,
+                including scheme and port. Deliberately its own variable rather
+                than derived from <span class="lit">PUBLIC_BASE_URL</span>: that
+                one points at a tunnel whose hostname changes every restart, and
+                a moving callback is a login that breaks every morning. All
+                three are optional together — without them the dashboard serves
+                a page explaining how to configure it rather than a broken login
+                button.
+              </dd>
+            </div>
+          </dl>
+
+          <div class="prose" data-reveal style="margin-top: 3rem">
+            <h3 class="h3">These have defaults worth knowing</h3>
+            <p>
               Leave every one of them unset and the server still starts and
               still behaves correctly. They are here because the defaults are
               the ones you will want to change first.
             </p>
+          </div>
 
-            <ul class="qs-env__list">
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">PORT</p>
-                <p class="mono qs-env__default">3000</p>
-                <p class="body qs-env__what">
-                  Change it and your tunnel command changes with it, or the
-                  approval links point at nothing.
-                </p>
-              </li>
+          <dl class="kv" data-reveal>
+            <div>
+              <dt>PORT <span class="tag">3000</span></dt>
+              <dd>
+                Change it and your tunnel command changes with it, or the
+                approval links point at nothing.
+              </dd>
+            </div>
+            <div>
+              <dt>ADEIA_DB_PATH <span class="tag">./adeia.db</span></dt>
+              <dd>
+                The SQLite file. Delete it between rehearsals for a clean trail;
+                tests use an in-memory database instead.
+              </dd>
+            </div>
+            <div>
+              <dt>NODE_ENV <span class="tag">development</span></dt>
+              <dd>
+                One of <span class="lit">development</span>,
+                <span class="lit">test</span> or
+                <span class="lit">production</span>. Anything else fails
+                validation rather than being treated as unset.
+              </dd>
+            </div>
+            <div>
+              <dt>SMTP_HOST <span class="tag">smtp.gmail.com</span></dt>
+              <dd>
+                Only read when the SMTP pair is set. Any mailbox that speaks
+                SMTP works; the default is just the one most people already
+                have.
+              </dd>
+            </div>
+            <div>
+              <dt>SMTP_PORT <span class="tag">465</span></dt>
+              <dd>
+                465 is implicit TLS, 587 is STARTTLS. Pick the one your provider
+                documents — the wrong one shows up as a connection failure at
+                boot.
+              </dd>
+            </div>
+            <div>
+              <dt>APPROVAL_TOKEN_TTL_MS <span class="tag">86400000</span></dt>
+              <dd>
+                Twenty-four hours. When it lapses the action moves to
+                <span class="lit">expired</span> rather than sitting in
+                <span class="lit">pending_approval</span> forever, which is what
+                lets a waiting agent stop waiting.
+              </dd>
+            </div>
+            <div>
+              <dt>ADEIA_SITE_ORIGINS <span class="tag">localhost:5173</span></dt>
+              <dd>
+                Comma-separated origins allowed to call the public site
+                endpoints. The site is served from a different port than the API
+                in development, so the origin has to be named rather than
+                assumed.
+              </dd>
+            </div>
+            <div>
+              <dt>ADEIA_TRUST_PROXY <span class="tag">false</span></dt>
+              <dd>
+                Whether <span class="lit">x-forwarded-for</span> can be
+                believed. Off by default, because anyone can send that header.
+                Turn it on only behind a proxy that overwrites it.
+              </dd>
+            </div>
+            <div>
+              <dt>ADEIA_VISIT_SALT <span class="tag">adeia-dev-salt</span></dt>
+              <dd>
+                Salt for the visitor hash. No address or user agent is stored,
+                only a hash of them, and the salt is what keeps that hash from
+                being trivially reversible over so small an input space. Set a
+                real value anywhere public.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </section>
 
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">ADEIA_DB_PATH</p>
-                <p class="mono qs-env__default">./adeia.db</p>
-                <p class="body qs-env__what">
-                  The SQLite file. Delete it between rehearsals for a clean
-                  trail; tests use an in-memory database instead.
-                </p>
-              </li>
+      <!-- ==========================================================
+           What you should see
+           ========================================================== -->
+      <section class="section" id="expect" aria-labelledby="expect-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>What you should see</span>
+            <h2 class="h1" id="expect-title" data-reveal data-reveal-delay="70">
+              Three outcomes, and nothing else
+            </h2>
+            <div class="phero__facts" data-reveal data-reveal-delay="130">
+              <div class="phero__fact">
+                <b>$50.00</b>
+                <span>per action</span>
+              </div>
+              <div class="phero__fact">
+                <b>$1,000.00</b>
+                <span>hard ceiling</span>
+              </div>
+              <div class="phero__fact">
+                <b>$2,000.00</b>
+                <span>daily cap</span>
+              </div>
+            </div>
+          </header>
 
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">NODE_ENV</p>
-                <p class="mono qs-env__default">development</p>
-                <p class="body qs-env__what">
-                  One of <code class="qs-code">development</code>,
-                  <code class="qs-code">test</code> or
-                  <code class="qs-code">production</code>. Anything else fails
-                  validation rather than being treated as unset.
+          <div class="entries">
+            <article class="entry" data-reveal>
+              <p class="entry__num">201</p>
+              <div>
+                <p class="card__label">executed</p>
+                <h3 class="h3 entry__title">Inside the fence, it just runs</h3>
+                <p class="body">
+                  $25.00 to <span class="lit">acct_cloudhost</span>. Under the
+                  $50.00 per-action limit, so the policy engine answers
+                  <em>allow</em> and the action finishes inside the same
+                  request. The agent is told
+                  <span class="lit">executed</span> and moves on to the next
+                  invoice without pausing.
                 </p>
-              </li>
+                <div class="pane" style="margin-top: 1.25rem">
+                  <pre class="pane__body"><code><span class="tok-key">"result"</span>: {
+  <span class="tok-key">"ledgerEntryId"</span>: <span class="tok-str">"led_act_8xk2m4pq7vn3jd6wztc0b"</span>,
+  <span class="tok-key">"status"</span>: <span class="tok-str">"recorded"</span>,
+  <span class="tok-key">"settled"</span>: <span class="tok-num">false</span>
+}</code></pre>
+                </div>
+                <p class="body" style="margin-top: 1.25rem">
+                  <span class="lit">settled: false</span> is not a placeholder
+                  for a value that arrives later. No payment processor is
+                  attached. The action was authorised, evaluated and written
+                  down, and it stops exactly where settlement would begin.
+                </p>
+              </div>
+            </article>
 
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">SMTP_HOST</p>
-                <p class="mono qs-env__default">smtp.gmail.com</p>
-                <p class="body qs-env__what">
-                  Only read when the SMTP pair is set. Any mailbox that speaks
-                  SMTP works; the default is just the one most people already
-                  have.
+            <article class="entry" data-reveal>
+              <p class="entry__num">202</p>
+              <div>
+                <p class="card__label">pending_approval</p>
+                <h3 class="h3 entry__title">Over the line, waiting on a person</h3>
+                <p class="body">
+                  $500.00 to <span class="lit">acct_contractor</span>. Over the
+                  $50.00 per-action limit, but under both the $2,000.00 daily
+                  cap and the $1,000.00 hard ceiling — so the answer is
+                  <em>hold</em>, not <em>deny</em>.
                 </p>
-              </li>
+                <div class="pane" style="margin-top: 1.25rem">
+                  <pre class="pane__body"><code><span class="tok-key">"status"</span>: <span class="out-hold">"pending_approval"</span>,
+<span class="tok-key">"decision"</span>: <span class="tok-str">"require_approval"</span>,
+<span class="tok-key">"decisionReason"</span>: <span class="tok-str">"amount 50000 exceeds per-action limit 5000"</span></code></pre>
+                </div>
+                <p class="body" style="margin-top: 1.25rem">
+                  Mail goes to <span class="lit">APPROVER_EMAIL</span> and the
+                  agent blocks. Opening the link renders the page and changes
+                  nothing — a GET only draws, and only a POST decides, because
+                  mail scanners and link unfurlers open email links unattended.
+                  The token is single-use, stored only as a hash, and expires.
+                  Ask for $5,000.00 instead and it is past the hard ceiling:
+                  refused outright, no email sent, and no button anywhere that
+                  lets a tired human wave it through.
+                </p>
+              </div>
+            </article>
 
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">SMTP_PORT</p>
-                <p class="mono qs-env__default">465</p>
-                <p class="body qs-env__what">
-                  465 is implicit TLS, 587 is STARTTLS. Pick the one your
-                  provider documents — the wrong one shows up as a connection
-                  failure at boot.
+            <article class="entry" data-reveal>
+              <p class="entry__num">03</p>
+              <div>
+                <p class="card__label">the record</p>
+                <h3 class="h3 entry__title">Every step, in the order it happened</h3>
+                <p class="body">
+                  <span class="lit">npm run audit -- &lt;actionId&gt;</span>
+                  prints the action and its complete trail. Nothing in it is
+                  ever edited or deleted, and keys and tokens are stripped as
+                  each row is written rather than as it is read.
                 </p>
-              </li>
+                <div class="pane" style="margin-top: 1.25rem">
+                  <pre class="pane__body"><code><span class="out-dim">act_q7w2e9r4t1y6u3i8o5p0a</span>  payment  <span class="out-ok">executed</span>
+  params  { amountCents: <span class="tok-num">50000</span>, recipient: <span class="tok-str">'acct_contractor'</span> }
+  policy  amount 50000 exceeds per-action limit 5000
 
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">APPROVAL_TOKEN_TTL_MS</p>
-                <p class="mono qs-env__default">86400000</p>
-                <p class="body qs-env__what">
-                  Twenty-four hours. When it lapses the action moves to
-                  <code class="qs-code">expired</code> rather than sitting in
-                  <code class="qs-code">pending_approval</code> forever, which
-                  is what lets a waiting agent stop waiting.
+<span class="out-dim">14:02:13</span>  action.requested         { type: <span class="tok-str">'payment'</span>, params: {…} }
+<span class="out-dim">14:02:13</span>  policy.evaluated         { decision: <span class="tok-str">'require_approval'</span> }
+<span class="out-dim">14:02:13</span>  <span class="out-hold">action.pending_approval</span>  { reason: <span class="tok-str">'…'</span> }
+<span class="out-dim">14:02:14</span>  <span class="out-hold">approval.sent</span>            { to: <span class="tok-str">'you@gmail.com'</span> }
+<span class="out-dim">14:03:47</span>  <span class="out-ok">approval.granted</span>         { decidedBy: <span class="tok-str">'you@gmail.com'</span> }
+<span class="out-dim">14:03:47</span>  action.executing         { adapter: <span class="tok-str">'ledger'</span> }
+<span class="out-dim">14:03:49</span>  <mark>action.executed</mark>          { result: {…} }</code></pre>
+                </div>
+                <p class="body" style="margin-top: 1.25rem">
+                  The agent could not have raised its own limit, could not have
+                  reached anything while the payment was held, and could not
+                  have approved itself — not because it was instructed not to,
+                  but because there is no code path that does it.
                 </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">ADEIA_SITE_ORIGINS</p>
-                <p class="mono qs-env__default">localhost:5173, 127.0.0.1:5173</p>
-                <p class="body qs-env__what">
-                  Comma-separated origins allowed to call the public site
-                  endpoints. This page is served from a different port than the
-                  API in development, so the origin has to be named rather than
-                  assumed.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">ADEIA_TRUST_PROXY</p>
-                <p class="mono qs-env__default">false</p>
-                <p class="body qs-env__what">
-                  Whether <code class="qs-code">x-forwarded-for</code> can be
-                  believed. Off by default, because anyone can send that header.
-                  Turn it on only behind a proxy that overwrites it.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">ADEIA_VISIT_SALT</p>
-                <p class="mono qs-env__default">adeia-dev-salt</p>
-                <p class="body qs-env__what">
-                  Salt for the visitor hash. No address or user agent is stored,
-                  only a hash of them, and the salt is what keeps that hash from
-                  being trivially reversible over so small an input space. Set a
-                  real value anywhere public.
-                </p>
-              </li>
-
-              <li class="qs-env__row">
-                <p class="mono qs-env__name">ANTHROPIC_API_KEY</p>
-                <p class="mono qs-env__default qs-env__default--none">demo agent only</p>
-                <p class="body qs-env__what">
-                  Read by the example agent in
-                  <code class="qs-code">examples/demo-agent</code>, never by the
-                  server. Adeia calls no model, and the model never sees
-                  anything but the SDK.
-                </p>
-              </li>
-            </ul>
+              </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Outcomes — --paper
-           The three things a full demo run should produce.
-           =========================================================== -->
-      <section
-        class="ground ground--paper section qs-outcomes"
-        id="outcomes"
-        aria-labelledby="qs-outcomes-title"
-      >
-        <div class="container">
-          <header class="qs-outcomes__head">
-            <p class="label quiet">What you should see</p>
-            <h2 class="h2 qs-outcomes__title js-reveal" data-delay="80" id="qs-outcomes-title">
-              Three outcomes, and nothing else
+      <!-- ==========================================================
+           Closing
+           ========================================================== -->
+      <section class="section closing" aria-labelledby="closing-title">
+        <div class="wrap">
+          <div class="head">
+            <span class="eyebrow" data-reveal>When it works</span>
+            <h2 class="h1" id="closing-title" data-reveal data-reveal-delay="70">
+              Point your own agent at it
             </h2>
+            <p class="lede" data-reveal data-reveal-delay="130">
+              The demo agent is the smallest possible caller — one tool, two
+              invoices, no credentials. Swap it for yours and nothing on the
+              server changes: the policy stays where the agent cannot reach it,
+              the approval still goes to a person, and the trail still records
+              what happened either way.
+            </p>
+          </div>
 
-            <ul class="qs-fence" aria-label="The seeded policy">
-              <li class="qs-fence__item">
-                <span class="label quiet">Per action</span>
-                <span class="mono qs-fence__val">$50.00</span>
-              </li>
-              <li class="qs-fence__item">
-                <span class="label quiet">Daily cap</span>
-                <span class="mono qs-fence__val">$2,000.00</span>
-              </li>
-              <li class="qs-fence__item">
-                <span class="label quiet">Hard ceiling</span>
-                <span class="mono qs-fence__val">$1,000.00</span>
-              </li>
-            </ul>
-          </header>
-
-          <ol class="qs-cards">
-            <li class="qs-card">
-              <p class="mono qs-card__chip">201 &middot; executed</p>
-              <h3 class="h3 qs-card__title">Inside the fence, it just runs</h3>
-              <p class="body quiet qs-card__copy">
-                $25.00 to <code class="qs-code">acct_cloudhost</code>. Under the
-                $50.00 per-action limit, so the policy engine answers
-                <em>allow</em> and the action finishes inside the same request.
-                The agent is told
-                <code class="qs-code">executed</code> and moves on to the next
-                invoice without pausing.
-              </p>
-              <pre class="qs-card__out"><code>"result": {
-  "ledgerEntryId": "led_act_8xk2m4pq7vn3jd6wztc0b",
-  "status": "recorded",
-  "settled": false
-}</code></pre>
-              <p class="body quiet qs-card__copy">
-                <code class="qs-code">settled: false</code> is not a placeholder
-                for a value that arrives later. No payment processor is
-                attached. The action was authorised, evaluated and written down,
-                and it stops exactly where settlement would begin.
-              </p>
-            </li>
-
-            <li class="qs-card">
-              <p class="mono qs-card__chip">202 &middot; pending_approval</p>
-              <h3 class="h3 qs-card__title">Over the line, waiting on a person</h3>
-              <p class="body quiet qs-card__copy">
-                $500.00 to <code class="qs-code">acct_contractor</code>. Over
-                the $50.00 per-action limit, but under both the $2,000.00 daily
-                cap and the $1,000.00 hard ceiling — so the answer is
-                <em>hold</em>, not <em>deny</em>.
-              </p>
-              <pre class="qs-card__out"><code>"status": "pending_approval",
-"decision": "require_approval",
-"decisionReason": "amount 50000 exceeds per-action limit 5000"</code></pre>
-              <p class="body quiet qs-card__copy">
-                Mail goes to <code class="qs-code">APPROVER_EMAIL</code> and the
-                agent blocks. Opening the link renders the page and changes
-                nothing — a GET only draws, and only a POST decides, because
-                mail scanners and link unfurlers open email links unattended.
-                The token is single-use, stored only as a hash, and expires.
-                Ask for $5,000.00 instead and it is past the hard ceiling:
-                refused outright, no email sent, and no button anywhere that
-                lets a tired human wave it through.
-              </p>
-            </li>
-
-            <li class="qs-card">
-              <p class="mono qs-card__chip">the record</p>
-              <h3 class="h3 qs-card__title">Every step, in the order it happened</h3>
-              <p class="body quiet qs-card__copy">
-                <code class="qs-code">npm run audit -- &lt;actionId&gt;</code>
-                prints the action and its complete trail. Nothing in it is ever
-                edited or deleted, and keys and tokens are stripped as each row
-                is written rather than as it is read.
-              </p>
-              <pre class="qs-card__out"><code>act_q7w2e9r4t1y6u3i8o5p0a  payment  executed
-  params  { amountCents: 50000, currency: 'usd', recipient: 'acct_contractor' }
-  policy  amount 50000 exceeds per-action limit 5000
-  result  { ledgerEntryId: 'led_act_q7w2…', status: 'recorded', settled: false }
-
-14:02:13  action.requested         { type: 'payment', params: {…} }
-14:02:13  policy.evaluated         { decision: 'require_approval', reason: '…' }
-14:02:13  action.pending_approval  { reason: '…' }
-14:02:14  approval.sent            { to: 'you@gmail.com', expiresAt: '…' }
-14:03:47  approval.granted         { decidedBy: 'you@gmail.com' }
-14:03:47  action.executing         { adapter: 'ledger' }
-14:03:49  action.executed          { result: {…} }</code></pre>
-              <p class="body quiet qs-card__copy">
-                The agent could not have raised its own limit, could not have
-                reached anything while the payment was held, and could not have
-                approved itself — not because it was instructed not to, but
-                because there is no code path that does it.
-              </p>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <!-- ===========================================================
-           Closing — --forest
-           =========================================================== -->
-      <section class="ground ground--forest qs-close" id="close" aria-labelledby="qs-close-title">
-        <div class="container qs-close__inner">
-          <p class="label qs-close__eyebrow">When it works</p>
-
-          <h2 class="display qs-close__title" id="qs-close-title">Point your own agent at it</h2>
-
-          <p class="lead qs-close__body">
-            The demo agent is the smallest possible caller — one tool, two
-            invoices, no credentials. Swap it for yours and nothing on the
-            server changes: the policy stays where the agent cannot reach it,
-            the approval still goes to a person, and the trail still records
-            what happened either way.
-          </p>
-
-          <p class="qs-close__cta">
-            <a class="plus-link" href="/">
-              <span class="plus-link__box" aria-hidden="true">+</span>
-              <span>BACK TO THE OVERVIEW</span>
-            </a>
-          </p>
+          <a class="next" href="/sdk" data-reveal data-magnet>
+            <span>
+              <span class="next__label">Next</span>
+              <span class="h3">Every method, argument and return</span>
+            </span>
+            <span class="btn btn--ghost">Open the SDK reference</span>
+          </a>
         </div>
       </section>
     </main>
 
-    <!-- Same footer as the landing page. The links point at real destinations
-         from here: two sections on this page, two on the overview. -->
-    <footer class="ground ground--forest site-footer">
-      <div class="container">
-        <div class="site-footer__inner">
-          <nav class="site-footer__nav" aria-label="Documentation">
-            <a class="site-footer__link" href="/quickstart" aria-current="page">Quickstart</a>
-            <a class="site-footer__link" href="/sdk">SDK</a>
-            <a class="site-footer__link" href="/policy">Policy</a>
-            <a class="site-footer__link" href="/audit">Audit</a>
-          </nav>
-
-          <p class="label site-footer__meta">
-            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
-          </p>
-
-          <p class="site-footer__note">
-            No payment processor is attached. Payments are authorised and
-            recorded; nothing settles.
-          </p>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <a class="mast__mark" href="/">
+          <span>adeia</span>
+          <span>fence</span>
+        </a>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">
+          Source available under BSL 1.1 ·
+          <span id="visit-count" class="foot__count"></span>
+        </p>
       </div>
     </footer>
 
-    <script src="motion.js"></script>
-    <script src="nav.js"></script>
+    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/motion.js?v=1787081142085" type="module"></script>
+    <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>

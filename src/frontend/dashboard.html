@@ -22,94 +22,110 @@
       worse than one that says it is not ready.
     -->
 
-    <link rel="stylesheet" href="styles/tokens.css" />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/menu.css" />
-    <link rel="stylesheet" href="styles/motion.css" />
-    <link rel="stylesheet" href="styles/page-contact.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/sub-v2.css?v=1787082747840" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
-  <body class="page-contact">
-    <header class="masthead">
-      <a class="masthead__mark" href="/">Adeia</a>
+  <body class="doc">
+    <a class="sr-only" href="#main">Skip to content</a>
 
-      <!-- The way in. GitHub OAuth has no separate sign-up: a first
-           sign-in is the registration, so there is one button, not two. -->
-      <a class="masthead__signin" href="/dashboard">Sign in</a>
+    <header class="mast">
+      <a class="mast__mark" href="/">
+        <span>adeia</span>
+        <span>fence</span>
+      </a>
 
-      <button
-        class="plus-link masthead__menu"
-        type="button"
-        id="menu-button"
-        aria-expanded="false"
-        aria-controls="menu-panel"
-      >
-        <span class="masthead__menu-label" data-menu-label>Menu</span>
-        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-      </button>
+      <nav class="mast__nav" aria-label="Sections">
+        <a href="/capability">Capability</a>
+        <a href="/approach">Approach</a>
+        <a href="/policy">Policy</a>
+        <a href="/quickstart">Quickstart</a>
+        <a href="/contact">Contact</a>
+      </nav>
+
+      <div class="mast__end">
+        <a class="btn btn--ghost" href="/quickstart" data-magnet>Quickstart</a>
+      </div>
     </header>
 
-    <div class="menu" id="menu-panel" data-menu-panel hidden>
-      <nav class="container menu__nav" aria-label="Sections">
-        <ol class="menu__list">
-          <li class="menu__item">
-            <a class="menu__link" href="#state"
-              ><span class="label menu__num">01</span
-              ><span class="display menu__word">State</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#involved"
-              ><span class="label menu__num">02</span
-              ><span class="display menu__word">Involved</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="/"
-              ><span class="label menu__num">03</span
-              ><span class="display menu__word">Home</span></a
-            >
-          </li>
-        </ol>
-
-        <p class="label quiet menu__note">
-          No payment processor is attached &middot; nothing settles
-        </p>
-      </nav>
-    </div>
-
     <main id="main">
-      <section class="ground ground--ink section" id="top">
-        <div class="container" style="max-width: 44rem; padding-block: 6rem 4rem">
-          <p class="label quiet js-reveal">Dashboard</p>
-          <h1 class="display js-reveal" data-delay="80" style="margin-bottom: 1.5rem">
-            Not deployed yet
-          </h1>
+      <section class="phero">
+        <div class="phero__orb" aria-hidden="true"></div>
+        <div class="phero__grain" aria-hidden="true"></div>
 
-          <p class="lead js-reveal" data-delay="160" style="margin-top: 1.5rem">
-            The dashboard is not a page on this site. It is served by the Adeia
-            server itself, because it reads your actions out of a database and
-            signs you in against GitHub &mdash; neither of which a static site
-            can do.
-          </p>
+        <div class="wrap">
+          <div class="phero__inner">
+            <span class="eyebrow" data-reveal>Dashboard</span>
 
-          <p class="body js-reveal" data-delay="200" style="margin-top: 1.5rem">
-            That server is not hosted anywhere yet. Until it is, the dashboard
-            runs locally and nowhere else. Clone the repository, follow the
-            <a href="/quickstart">quickstart</a>, and it is at
-            <span class="mono">http://localhost:3000/dashboard</span>.
-          </p>
+            <h1 class="display phero__title" data-reveal data-reveal-delay="70">
+              Not deployed<br />
+              <span class="sweep">yet</span>
+            </h1>
 
-          <p class="body quiet js-reveal" data-delay="240" style="margin-top: 1.5rem">
-            When the server is deployed this file stops being reachable: the
-            application mounts <span class="mono">/dashboard</span> ahead of the
-            static site, so the real page wins wherever there is a real page.
-          </p>
+            <p class="lede phero__lede" data-reveal data-reveal-delay="130">
+              The dashboard is not a page on this site. It is served by the
+              Adeia server itself, because it reads your actions out of a
+              database and signs you in against GitHub — neither of which a
+              static site can do.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="wrap">
+          <div class="prose" data-reveal>
+            <p>
+              That server is not hosted anywhere yet. Until it is, the dashboard
+              runs locally and nowhere else. Clone the repository, follow the
+              <a href="/quickstart">quickstart</a>, and it is at
+              <span class="lit">http://localhost:3000/dashboard</span>.
+            </p>
+            <p>
+              When the server is deployed this file stops being reachable: the
+              application mounts <span class="lit">/dashboard</span> ahead of
+              the static site, so the real page wins wherever there is a real
+              page.
+            </p>
+          </div>
+
+          <a class="next" href="/quickstart" data-reveal data-magnet>
+            <span>
+              <span class="next__label">In the meantime</span>
+              <span class="h3">Run the whole thing locally</span>
+            </span>
+            <span class="btn btn--ghost">Open the quickstart</span>
+          </a>
         </div>
       </section>
     </main>
 
-    <script src="motion.js"></script>
-    <script src="nav.js"></script>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <a class="mast__mark" href="/">
+          <span>adeia</span>
+          <span>fence</span>
+        </a>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">Source available under BSL 1.1</p>
+      </div>
+    </footer>
+
+    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/motion.js?v=1787081142085" type="module"></script>
   </body>
 </html>

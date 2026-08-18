@@ -41,6 +41,12 @@ function cursor() {
     py = event.clientY;
     // The point is written immediately: it must never trail the pointer.
     point.style.transform = `translate(${px}px, ${py}px)`;
+    // First real position: only now does the substitute know where to
+    // stand, so only now is the native one hidden. Adding the class at
+    // load instead paints both squares at the origin until the pointer
+    // first moves, and takes the cursor away from anyone who never
+    // moves one at all.
+    document.documentElement.classList.add("has-cursor");
     if (!running) {
       running = true;
       requestAnimationFrame(step);
@@ -98,9 +104,6 @@ function cursor() {
     point.classList.remove("is-out");
     ring.classList.remove("is-out");
   });
-
-  // Only now is it safe to hide the real one.
-  document.documentElement.classList.add("has-cursor");
 }
 
 /* ------------------------------------------------------------------ *

@@ -7,256 +7,318 @@
     <link rel="canonical" href="https://adeia.xyz/contact" />
     <meta
       name="description"
-      content="Adeia is a working reference implementation, not a hosted service. What is real, what is deliberately missing, and how to get involved."
+      content="What Adeia actually is today: what is built and running, what is deliberately left open, what the licence permits, and where to reach the project."
     />
 
-    <link rel="stylesheet" href="styles/tokens-legacy.css" />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/menu.css" />
-    <link rel="stylesheet" href="styles/motion.css" />
-    <link rel="stylesheet" href="styles/page-contact.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/sub-v2.css?v=1787082747840" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
-  <body class="page-contact">
-    <header class="masthead">
-      <a class="masthead__mark" href="/">Adeia</a>
+  <body class="doc">
+    <a class="sr-only" href="#main">Skip to content</a>
 
-      <!-- The way in. GitHub OAuth has no separate sign-up: a first
-           sign-in is the registration, so there is one button, not two. -->
-      <a class="masthead__signin" href="/dashboard">Sign in</a>
+    <header class="mast">
+      <a class="mast__mark" href="/">
+        <span>adeia</span>
+        <span>fence</span>
+      </a>
 
-      <button
-        class="plus-link masthead__menu"
-        type="button"
-        id="menu-button"
-        aria-expanded="false"
-        aria-controls="menu-panel"
-      >
-        <span class="masthead__menu-label" data-menu-label>Menu</span>
-        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-      </button>
+      <nav class="mast__nav" aria-label="Sections">
+        <a href="/capability">Capability</a>
+        <a href="/approach">Approach</a>
+        <a href="/policy">Policy</a>
+        <a href="/quickstart">Quickstart</a>
+        <a href="/contact">Contact</a>
+      </nav>
+
+      <div class="mast__end">
+        <!-- GitHub OAuth has no separate sign-up: a first sign-in is the
+             registration, so there is one button, not two. -->
+        <a class="btn" href="/dashboard" data-magnet>Sign in</a>
+      </div>
     </header>
 
-    <div class="menu" id="menu-panel" data-menu-panel hidden>
-      <nav class="container menu__nav" aria-label="Sections">
-        <ol class="menu__list">
-          <li class="menu__item">
-            <a class="menu__link" href="#state"
-              ><span class="label menu__num">01</span
-              ><span class="display menu__word">State</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#involved"
-              ><span class="label menu__num">02</span
-              ><span class="display menu__word">Involved</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="/"
-              ><span class="label menu__num">03</span
-              ><span class="display menu__word">Home</span></a
-            >
-          </li>
-        </ol>
+    <main id="main">
+      <!-- ==========================================================
+           Hero
+           ========================================================== -->
+      <section class="phero">
+        <div class="phero__orb" aria-hidden="true"></div>
+        <div class="phero__grain" aria-hidden="true"></div>
 
-        <p class="label quiet menu__note">
-          No payment processor is attached &middot; nothing settles
-        </p>
-      </nav>
-    </div>
+        <div class="wrap">
+          <div class="phero__inner">
+            <span class="eyebrow" data-reveal>Where this stands</span>
 
-    <main>
-      <!-- ===========================================================
-           Hero — ink
-           =========================================================== -->
-      <section class="ground ground--ink ct-hero" id="top">
-        <div class="container ct-hero__inner">
-          <p class="label quiet ct-hero__eyebrow">Where this stands</p>
+            <h1 class="display phero__title" data-reveal data-reveal-delay="70">
+              A working thing,<br />
+              <span class="sweep">not a finished one</span>
+            </h1>
 
-          <h1 class="display ct-hero__title">A working thing, not a service</h1>
+            <p class="lede phero__lede" data-reveal data-reveal-delay="130">
+              Adeia is source available and self-hosted. You can sign in with
+              GitHub, get a project and a key, and point an agent at it — but
+              the server still runs on your machine and the database is a file
+              next to it. That is the whole distribution model today, and it is
+              stated here rather than discovered after you try to register.
+            </p>
 
-          <p class="lead ct-hero__body">
-            Adeia is source available and self-hosted. There is no signup, no
-            dashboard and no hosted API — the server runs on your machine, the
-            database is a file next to it, and the API key comes from a script
-            you run yourself. That is the whole distribution model today, and it
-            is stated here rather than discovered after you try to register.
-          </p>
+            <div class="phero__facts" data-reveal data-reveal-delay="190">
+              <div class="phero__fact">
+                <b>489</b>
+                <span>tests passing</span>
+              </div>
+              <div class="phero__fact">
+                <b>BSL 1.1</b>
+                <span>licence</span>
+              </div>
+              <div class="phero__fact">
+                <b>0</b>
+                <span>payment processors attached</span>
+              </div>
+              <div class="phero__fact">
+                <b>self-hosted</b>
+                <span>distribution</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           01 State — bone
-           =========================================================== -->
-      <section
-        class="ground ground--bone section ct-part"
-        id="state"
-        aria-labelledby="state-title"
-      >
-        <div class="container">
-          <header class="ct-part__head">
-            <p class="label quiet js-reveal">01 — State</p>
-            <h2 class="h2 ct-part__title js-reveal" data-delay="80" id="state-title">
+      <nav class="anchors" aria-label="On this page">
+        <div class="wrap anchors__inner">
+          <a href="#state">State</a>
+          <a href="#licence">Licence</a>
+          <a href="#involved">Getting involved</a>
+        </div>
+      </nav>
+
+      <!-- ==========================================================
+           01 — State
+           ========================================================== -->
+      <section class="section" id="state" aria-labelledby="state-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>01 — State</span>
+            <h2 class="h1" id="state-title" data-reveal data-reveal-delay="70">
               Real, and deliberately unfinished
             </h2>
+            <p class="lede" data-reveal data-reveal-delay="130">
+              The two lists below are the honest split. Everything on the left
+              runs; everything on the right is a gap someone would hit, so it is
+              named rather than hidden.
+            </p>
           </header>
 
-          <div class="ct-columns">
-            <div class="ct-column">
-              <h3 class="h3 ct-column__title">Built and working</h3>
-              <ul class="ct-list">
-                <li class="ct-list__item">
-                  A policy engine that decides allow, hold or deny with the
-                  figure that produced it
+          <div class="split">
+            <div class="split__half split__half--lit" data-reveal>
+              <p class="split__label">Built and working</p>
+              <ul class="plain">
+                <li>
+                  A policy engine that answers allow, hold or deny, and returns
+                  the figure that produced the answer
                 </li>
-                <li class="ct-list__item">
+                <li>
+                  A risk classifier that can decide inside a band you open —
+                  and never outside it
+                </li>
+                <li>
                   Email approvals with single-use, expiring, hashed tokens
                 </li>
-                <li class="ct-list__item">
-                  An append-only audit log with redaction at write time
+                <li>An append-only audit log, redacted at write time</li>
+                <li>
+                  A dashboard behind GitHub sign-in: every action, in-page
+                  approvals, host allowlists, and key issue and rotation
                 </li>
-                <li class="ct-list__item">
-                  A TypeScript SDK — three methods, no hidden retries
-                </li>
-                <li class="ct-list__item">
-                  293 tests, and two full runs against real mail and a real phone
+                <li>A TypeScript SDK — three methods, no hidden retries</li>
+                <li>
+                  489 tests, and full runs against real mail and a real phone
                 </li>
               </ul>
             </div>
 
-            <div class="ct-column">
-              <h3 class="h3 ct-column__title">Deliberately not built</h3>
-              <ul class="ct-list ct-list--gap">
-                <li class="ct-list__item">
+            <div class="split__half" data-reveal data-reveal-delay="90">
+              <p class="split__label">Deliberately not built</p>
+              <ul class="plain">
+                <li>
                   No payment processor. The adapter seam is empty on purpose —
-                  payments are recorded, nothing settles
+                  payments are authorised and recorded, nothing settles
                 </li>
-                <li class="ct-list__item">
-                  One approver per deployment, from an environment variable
+                <li>
+                  One approver per deployment, from
+                  <span class="lit">APPROVER_EMAIL</span>
                 </li>
-                <li class="ct-list__item">
-                  SQLite, so one writer and one machine
+                <li>SQLite, so one writer and one machine</li>
+                <li>No rate limiting</li>
+                <li>
+                  <span class="lit">@adeia/sdk</span> is not published to npm;
+                  it ships in the repository as a workspace
                 </li>
-                <li class="ct-list__item">
-                  No rate limiting, and no API key rotation
-                </li>
-                <li class="ct-list__item">
-                  <span class="ct-code">@adeia/sdk</span> is not published to
-                  npm; it ships in the repository as a workspace
-                </li>
+                <li>No hosted instance yet — you run the server yourself</li>
               </ul>
             </div>
           </div>
 
-          <p class="body ct-part__note">
-            Built for the Lumos Fellows program. Every layer above the adapter is
-            real; the seam below it is the part left open on purpose, because a
-            convincing fake payment processor is worse than an obvious gap.
-          </p>
-
-          <h3 class="h3 ct-licence__title">The licence, in plain words</h3>
-
-          <p class="body ct-part__note">
-            Adeia is under the Business Source License 1.1. Read it, run it,
-            change it, use it in production — all fine. The one thing you may not
-            do is offer it to other people as a hosted service. On
-            <span class="ct-code">2030-08-15</span> each release converts to
-            Apache 2.0 and that restriction lifts permanently.
-          </p>
-
-          <p class="body ct-part__note">
-            That makes it source available rather than open source in the OSI
-            sense, and it is worth saying so plainly rather than borrowing a word
-            that means something stricter.
-          </p>
+          <div class="note note--flush" data-reveal>
+            Built for the Lumos Fellows program. Every layer above the adapter
+            is real; the seam below it is the part left open on purpose, because
+            a convincing fake payment processor is worse than an obvious gap.
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           02 Involved — paper
-           =========================================================== -->
-      <section
-        class="ground ground--paper section ct-part"
-        id="involved"
-        aria-labelledby="involved-title"
-      >
-        <div class="container">
-          <header class="ct-part__head">
-            <p class="label quiet js-reveal">02 — Involved</p>
-            <h2 class="h2 ct-part__title js-reveal" data-delay="80" id="involved-title">
+      <!-- ==========================================================
+           02 — Licence
+           ========================================================== -->
+      <section class="section" id="licence" aria-labelledby="licence-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>02 — Licence</span>
+            <h2 class="h1" id="licence-title" data-reveal data-reveal-delay="70">
+              The licence, in plain words
+            </h2>
+          </header>
+
+          <div class="prose" data-reveal data-reveal-delay="120">
+            <p>
+              Adeia is under the Business Source License 1.1. Read it, run it,
+              change it, use it in production — all fine. The one thing you may
+              not do is offer it to other people as a hosted service.
+            </p>
+            <p>
+              On <span class="lit">2030-08-15</span> each release converts to
+              Apache 2.0 and that restriction lifts permanently.
+            </p>
+            <p>
+              That makes it <strong>source available</strong> rather than open
+              source in the OSI sense, and it is worth saying so plainly rather
+              than borrowing a word that means something stricter.
+            </p>
+          </div>
+
+          <dl class="kv" data-reveal>
+            <div>
+              <dt>Licence</dt>
+              <dd>Business Source License 1.1</dd>
+            </div>
+            <div>
+              <dt>Additional use grant</dt>
+              <dd>
+                Production use, modification, redistribution and non-production
+                use are all permitted
+              </dd>
+            </div>
+            <div>
+              <dt>The one restriction</dt>
+              <dd>You may not offer Adeia to third parties as a hosted service</dd>
+            </div>
+            <div>
+              <dt>Change date</dt>
+              <dd>2030-08-15</dd>
+            </div>
+            <div>
+              <dt>Change licence</dt>
+              <dd>Apache License, Version 2.0</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ==========================================================
+           03 — Involved
+           ========================================================== -->
+      <section class="section" id="involved" aria-labelledby="involved-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>03 — Getting involved</span>
+            <h2 class="h1" id="involved-title" data-reveal data-reveal-delay="70">
               The repository is the channel
             </h2>
-            <p class="body ct-part__intro">
+            <p class="lede" data-reveal data-reveal-delay="130">
               There is no inbox behind this project yet, so rather than print an
               address that bounces: issues and pull requests are where anything
               actually gets discussed.
             </p>
           </header>
 
-          <div class="ct-ways">
-            <div class="ct-way">
-              <h3 class="h3 ct-way__title">Run it and say what broke</h3>
-              <p class="body quiet ct-way__copy">
-                The most useful thing anyone can do right now. Clone it, seed a
-                project, point an agent at it, and open an issue when the
-                instructions are wrong or something fails in a way the docs did
-                not predict. It has been run by very few people.
+          <div class="grid">
+            <article class="card" data-reveal>
+              <p class="card__label">Most useful</p>
+              <h3 class="h3 card__title">Run it and say what broke</h3>
+              <p class="card__body">
+                Clone it, sign in, issue a key, point an agent at it, and open an
+                issue when the instructions are wrong or something fails in a way
+                the docs did not predict. It has been run by very few people.
               </p>
-            </div>
+            </article>
 
-            <div class="ct-way">
-              <h3 class="h3 ct-way__title">Attach an adapter</h3>
-              <p class="body quiet ct-way__copy">
+            <article class="card" data-reveal data-reveal-delay="80">
+              <p class="card__label">Extend</p>
+              <h3 class="h3 card__title">Attach an adapter</h3>
+              <p class="card__body">
                 The registry takes any action type, not just payments — sending
                 mail, deleting records, calling a paid API. A second adapter
                 would prove the seam is real rather than theoretical.
               </p>
-            </div>
+            </article>
 
-            <div class="ct-way">
-              <h3 class="h3 ct-way__title">Break the approval flow</h3>
-              <p class="body quiet ct-way__copy">
+            <article class="card" data-reveal data-reveal-delay="160">
+              <p class="card__label">Attack</p>
+              <h3 class="h3 card__title">Break the approval flow</h3>
+              <p class="card__body">
                 Tokens are hashed, single use and expiring, and nobody outside
                 this project has tried to defeat that. A serious attempt would be
                 worth more than a feature.
               </p>
-            </div>
+            </article>
           </div>
 
-          <p class="ct-part__more">
-            <a class="plus-link" href="https://github.com/NayanVangala/adeia">
-              <span class="plus-link__box" aria-hidden="true">+</span>
-              <span>THE REPOSITORY</span>
-            </a>
-          </p>
+          <a
+            class="next"
+            href="https://github.com/NayanVangala/adeia"
+            data-reveal
+            data-magnet
+          >
+            <span>
+              <span class="next__label">Where the work happens</span>
+              <span class="h3">github.com/NayanVangala/adeia</span>
+            </span>
+            <span class="btn btn--ghost">Open the repository</span>
+          </a>
         </div>
       </section>
     </main>
 
-    <footer class="ground ground--forest site-footer">
-      <div class="container">
-        <div class="site-footer__inner">
-          <nav class="site-footer__nav" aria-label="Documentation">
-            <a class="site-footer__link" href="/quickstart">Quickstart</a>
-            <a class="site-footer__link" href="/sdk">SDK</a>
-            <a class="site-footer__link" href="/policy">Policy</a>
-            <a class="site-footer__link" href="/audit">Audit</a>
-          </nav>
-
-          <p class="label site-footer__meta">
-            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
-          </p>
-
-          <p class="site-footer__note">
-            No payment processor is attached. Payments are authorised and
-            recorded; nothing settles.
-          </p>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <a class="mast__mark" href="/">
+          <span>adeia</span>
+          <span>fence</span>
+        </a>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">
+          Source available under BSL 1.1 ·
+          <span id="visit-count" class="foot__count"></span>
+        </p>
       </div>
     </footer>
 
-    <script src="motion.js"></script>
-    <script src="nav.js"></script>
+    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/motion.js?v=1787081142085" type="module"></script>
+    <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>

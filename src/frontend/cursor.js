@@ -70,7 +70,7 @@ if (!reduced.matches && canHover.matches) {
  * ------------------------------------------------------------------ */
 
 function gradientSweep() {
-  const swept = document.querySelectorAll(".sweep");
+  const swept = document.querySelectorAll(".sweep, .entry__num");
   if (!swept.length) return;
 
   onCursor((x) => {
@@ -216,9 +216,57 @@ function reveal() {
   for (const el of items) observer.observe(el);
 }
 
+/* ------------------------------------------------------------------ *
+ * 7. The in-page anchor bar marks where you are.
+ *
+ * Document pages carry a sticky bar of section links. Without this it
+ * is a list; with it, it is a position. Observed rather than driven off
+ * scroll position, so it costs nothing while the page is still.
+ * ------------------------------------------------------------------ */
+
+function anchorSpy() {
+  const bar = document.querySelector(".anchors");
+  if (!bar || !("IntersectionObserver" in window)) return;
+
+  const links = new Map();
+  for (const a of bar.querySelectorAll("a[href^='#']")) {
+    const target = document.getElementById(a.getAttribute("href").slice(1));
+    if (target) links.set(target, a);
+  }
+  if (!links.size) return;
+
+  // Whichever observed section is highest on screen wins. Tracking the
+  // set rather than the last event keeps it right when a short section
+  // scrolls past entirely between two frames.
+  const visible = new Set();
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      }
+
+      const top = [...visible].sort(
+        (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top,
+      )[0];
+
+      for (const [section, link] of links) {
+        link.classList.toggle("is-here", section === top);
+      }
+    },
+    // The band excludes the masthead and the bar itself, so a section
+    // counts as current only once it is actually being read.
+    { rootMargin: "-120px 0px -55% 0px", threshold: 0 },
+  );
+
+  for (const section of links.keys()) observer.observe(section);
+}
+
 function masthead() {
   const mast = document.querySelector(".mast");
-  const hero = document.querySelector(".hero");
+  // Document pages open with .phero rather than the full-height .hero.
+  const hero = document.querySelector(".hero, .phero");
   if (!mast || !hero || !("IntersectionObserver" in window)) return;
 
   new IntersectionObserver(
@@ -233,4 +281,5 @@ localSheen();
 magnetic();
 rail();
 reveal();
+anchorSpy();
 masthead();

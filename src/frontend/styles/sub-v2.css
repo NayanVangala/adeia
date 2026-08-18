@@ -1,0 +1,902 @@
+/* ---------------------------------------------------------------
+   Adeia — the pages behind the front door.
+
+   The landing page argues; these pages document. That difference is
+   the only reason this file exists on top of v2.css: a document needs
+   a shorter hero, a left edge to read down, running prose with real
+   paragraph spacing, and tables. Everything else — cards, panes,
+   pills, the gradient headline, the footer — is already in v2.css and
+   page-v2.css and is not restated here.
+
+   Reads every value from tokens.css. Nothing in this file introduces a
+   colour.
+   --------------------------------------------------------------- */
+
+/* ---------- page hero ----------
+   A quarter of the landing hero's height and ranged left. The landing
+   page centres its headline because it has one thing to say; a
+   document that continues below the fold wants a left edge the eye can
+   return to. */
+
+.phero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(8.5rem, 20vh, 12rem) 0 clamp(3rem, 7vh, 5rem);
+}
+
+/* The same light source as the landing page, moved off to one side and
+   dimmed. It says "same product" without repeating the entrance. */
+.phero__orb {
+  position: absolute;
+  left: 18%;
+  top: -34vh;
+  width: min(70vw, 40rem);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  z-index: -2;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 55%,
+    var(--warm) 0%,
+    var(--mid) 36%,
+    color-mix(in srgb, var(--cool) 42%, transparent) 60%,
+    transparent 74%
+  );
+  filter: blur(64px);
+  opacity: 0.34;
+  animation: orb-breathe 13s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phero__orb {
+    animation: none;
+  }
+}
+
+/* Grain, for the same reason the landing hero has it: an 8-bit panel
+   bands a gradient this wide without it. */
+.phero__grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.phero__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  max-width: 54rem;
+}
+
+.phero__title {
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+/* Wider than .lede's default measure. A page hero's opening paragraph
+   is doing summary work and gets cramped at 38rem. */
+.phero__lede {
+  max-width: 44rem;
+}
+
+/* A row of small facts under the lede — counts, versions, states. */
+.phero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2.25rem;
+  margin-top: 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hair);
+  width: 100%;
+}
+
+.phero__fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.phero__fact b {
+  font-family: var(--mono);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--paper);
+}
+
+.phero__fact span {
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------- in-page anchor bar ----------
+   Replaces the old full-screen menu overlay. On a document, the thing
+   worth reaching quickly is a section of this page, not another page —
+   and an overlay that hides the page to offer five links was always a
+   worse trade than a bar that shows them. */
+
+.anchors {
+  position: sticky;
+  /* Clears the fixed masthead. */
+  top: 3.75rem;
+  z-index: 40;
+  border-bottom: 1px solid var(--hair);
+  background: color-mix(in srgb, var(--black) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.anchors__inner {
+  display: flex;
+  gap: 1.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-block: 0.875rem;
+}
+
+.anchors__inner::-webkit-scrollbar {
+  display: none;
+}
+
+.anchors a {
+  position: relative;
+  flex: none;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-decoration: none;
+  padding-block: 0.25rem;
+  transition: color var(--quick) var(--ease-cursor);
+}
+
+.anchors a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.875rem;
+  height: 1px;
+  width: 0;
+  background: var(--warm);
+  transition: width var(--mid-dur) var(--ease);
+}
+
+.anchors a:hover,
+.anchors a.is-here {
+  color: var(--paper);
+}
+
+.anchors a.is-here::after {
+  width: 100%;
+}
+
+/* ---------- running prose ----------
+   v2.css zeroes every paragraph margin, which is right for a landing
+   page built out of blocks and wrong the moment two paragraphs run
+   together. This puts the rhythm back, scoped. */
+
+.prose {
+  max-width: 42rem;
+  color: var(--muted);
+}
+
+.prose > * + * {
+  margin-top: 1.125rem;
+}
+
+.prose > * + .h3 {
+  margin-top: 2.25rem;
+}
+
+.prose .h3 {
+  color: var(--paper);
+}
+
+.prose strong {
+  color: var(--paper);
+  font-weight: 500;
+}
+
+.prose a:not(.btn) {
+  color: var(--paper);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--warm) 55%, transparent);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--quick) var(--ease-cursor);
+}
+
+.prose a:not(.btn):hover {
+  text-decoration-color: var(--warm);
+}
+
+/* An inline literal: a hostname, a verb, an amount, a field name. Same
+   meaning as .val, but sized to sit inside a sentence without
+   disturbing its line height. */
+.lit {
+  font-family: var(--mono);
+  font-size: 0.875em;
+  color: var(--cold);
+  font-variant-ligatures: none;
+  white-space: nowrap;
+}
+
+/* ---------- document rhythm ----------
+   .section's padding is set for a landing page, where every section is
+   filled edge to edge and the space between them is a beat. A document
+   section is mostly one column of text, so the same padding reads as a
+   hole rather than a rest. Tighter here, with a hairline so the space
+   that remains is doing structural work.
+
+   Scoped to body.doc rather than applied to .section directly, so the
+   landing page keeps its own rhythm. */
+
+.doc .section {
+  padding-block: clamp(3.5rem, 9vh, 7rem);
+}
+
+.doc .section + .section {
+  border-top: 1px solid var(--hair);
+}
+
+/* ---------- section head, ranged left ----------
+   .section-head in v2.css centres. Documents do not. */
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.125rem;
+  max-width: 46rem;
+}
+
+.head .h2 {
+  max-width: 22ch;
+}
+
+/* .h1 and .h2 run at line-height 1, which leaves a heading sitting
+   almost on top of whatever follows the header block. */
+.head + * {
+  margin-top: clamp(1.75rem, 4.5vh, 2.75rem);
+}
+
+/* ---------- numbered entries ----------
+   For a page that is a sequence of arguments — the six decisions, the
+   audit guarantees. The numeral is set in the gradient and sized like a
+   display glyph, because on a page with no images it is the only thing
+   giving the eye a place to land. */
+
+.entries {
+  display: grid;
+  gap: 1px;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  border-block: 1px solid var(--hair);
+  background: var(--hair);
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding-block: clamp(2rem, 5vh, 3.25rem);
+  background: var(--black);
+  align-items: start;
+}
+
+.entry__num {
+  font-size: clamp(2.25rem, 1.5rem + 2vw, 3.25rem);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: var(--tracking-display);
+  background-image: var(--sweep);
+  background-size: 400% 100%;
+  background-position: var(--sweep-x, 46%) center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background-position var(--mid-dur) var(--ease-cursor);
+}
+
+.entry__title {
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 48rem) {
+  .entry {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ---------- specification table ----------
+   Field, type, meaning. Used wherever the page is documenting a shape
+   rather than making a case. */
+
+.spec-wrap {
+  margin-top: clamp(2rem, 5vh, 3rem);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+  overflow-x: auto;
+}
+
+.spec {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-small);
+  min-width: 34rem;
+}
+
+.spec caption {
+  text-align: left;
+  padding: 1.125rem 1.5rem;
+  border-bottom: 1px solid var(--hair);
+  background: var(--raised);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.spec th {
+  text-align: left;
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--faint);
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--hair);
+  white-space: nowrap;
+}
+
+.spec td {
+  padding: 0.9375rem 1.25rem;
+  border-bottom: 1px solid var(--hair);
+  vertical-align: top;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.spec tr:last-child td {
+  border-bottom: 0;
+}
+
+.spec td:first-child {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--paper);
+  white-space: nowrap;
+}
+
+/* The type column. Quiet — it is scaffolding for the third column. */
+.spec__type {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--cold);
+  white-space: nowrap;
+}
+
+.spec__req {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--warm);
+}
+
+/* ---------- steps ----------
+   Quickstart. A rule runs down the left, and each marker sits on it, so
+   the sequence is visible before a word is read. */
+
+.steps {
+  display: grid;
+  gap: clamp(2.5rem, 6vh, 4rem);
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  position: relative;
+  padding-left: 3.5rem;
+}
+
+.steps::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 0.5rem;
+  bottom: 2rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--hair-lit),
+    var(--hair) 70%,
+    transparent
+  );
+}
+
+.step {
+  position: relative;
+}
+
+.step__marker {
+  position: absolute;
+  left: -3.5rem;
+  top: -0.125rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--hair-lit);
+  background: var(--raised);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--muted);
+}
+
+.step--done .step__marker {
+  border-color: color-mix(in srgb, var(--warm) 55%, transparent);
+  color: var(--warm);
+}
+
+.step__title {
+  margin-bottom: 0.75rem;
+}
+
+.step__body {
+  color: var(--muted);
+  max-width: 42rem;
+}
+
+.step__body + .pane,
+.step__body + .spec-wrap,
+.step__body + .note {
+  margin-top: 1.25rem;
+}
+
+.step .pane {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .steps {
+    padding-left: 2.75rem;
+  }
+  .steps::before {
+    left: 0.75rem;
+  }
+  .step__marker {
+    left: -2.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+/* ---------- key/value rows ----------
+   A two-column list where both halves are short: environment
+   variables, guarantees, limits. Lighter than a table and it collapses
+   honestly on a phone. */
+
+.kv {
+  /* Same reason as .rows: the value column is the one being read, and
+     16rem of name plus the rest of an 80rem page is not a measure. */
+  max-width: 62rem;
+  margin: clamp(2rem, 5vh, 3rem) 0 0;
+  border-top: 1px solid var(--hair);
+}
+
+.kv > div {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  gap: 1rem clamp(1.5rem, 4vw, 3rem);
+  padding-block: 1.125rem;
+  border-bottom: 1px solid var(--hair);
+  align-items: baseline;
+}
+
+.kv dt {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--paper);
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.65;
+}
+
+@media (max-width: 48rem) {
+  .kv > div {
+    grid-template-columns: 1fr;
+    gap: 0.375rem;
+  }
+}
+
+/* ---------- a bare list with hairline separators ---------- */
+
+.rows {
+  list-style: none;
+  /* Capped, because these run full-bleed otherwise: at 1440px the text
+     reaches about 130 characters a line, which is roughly twice a
+     readable measure. The rule still runs the width of the column; only
+     the words are held in. */
+  max-width: 58rem;
+  margin: clamp(1.5rem, 4vh, 2.5rem) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--hair);
+}
+
+.rows li {
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--hair);
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.65;
+}
+
+.rows li strong {
+  display: block;
+  color: var(--paper);
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* ---------- inline tag ---------- */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid var(--hair-lit);
+  background: var(--raised);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.tag--warm {
+  border-color: color-mix(in srgb, var(--warm) 45%, transparent);
+  color: var(--warm);
+}
+
+.tag--cold {
+  border-color: color-mix(in srgb, var(--cold) 45%, transparent);
+  color: var(--cold);
+}
+
+/* ---------- a quieter note variant ----------
+   .note in page-v2.css is warm-barred and centres itself in a column.
+   Inside a document it needs to sit on the left margin with the text it
+   belongs to. */
+
+.note--flush {
+  margin-inline: 0;
+  max-width: 42rem;
+}
+
+.note--machine {
+  border-left-color: var(--cold);
+  background: color-mix(in srgb, var(--cold) 6%, transparent);
+}
+
+.note--machine .mono {
+  color: var(--cold);
+}
+
+/* ---------- two-column body ----------
+   For a section whose text and example belong side by side. Collapses
+   to one column early — a 19rem code pane is unreadable. */
+
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  align-items: start;
+}
+
+.pair--wide {
+  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+}
+
+/* ---------- next page ----------
+   Every document ends by naming the one after it. A dead end at the
+   bottom of a page is a reader lost. */
+
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: clamp(3rem, 8vh, 5rem);
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--mid) 8%, var(--near)),
+    var(--near) 60%
+  );
+  text-decoration: none;
+  transition: border-color var(--quick) var(--ease-cursor);
+}
+
+.next:hover {
+  border-color: color-mix(in srgb, var(--warm) 45%, transparent);
+}
+
+.next__label {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.5rem;
+}
+
+/* ---------- API reference blocks ----------
+   Same hairline-separated rhythm as .entries, but the left column holds
+   a name instead of a numeral, and it sticks while the long right
+   column scrolls — so you always know which method you are reading. */
+
+.api {
+  display: grid;
+  gap: 1px;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  border-block: 1px solid var(--hair);
+  background: var(--hair);
+}
+
+.api__item {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding-block: clamp(2rem, 5vh, 3.25rem);
+  background: var(--black);
+  align-items: start;
+}
+
+.api__side {
+  position: sticky;
+  top: 8rem;
+}
+
+.api__kind {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.5rem;
+}
+
+.api__name {
+  font-family: var(--mono);
+  font-size: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--paper);
+  word-break: break-word;
+}
+
+.api__body > * + * {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 60rem) {
+  .api__item {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .api__side {
+    position: static;
+  }
+}
+
+/* ---------- outcome blocks ----------
+   Three answers a call can come back as, each carrying its HTTP status.
+   The status is part of the answer, so it sits in the heading rather
+   than in the prose underneath. */
+
+.outcome__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.outcome__code {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  color: var(--faint);
+}
+
+.outcome__do {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hair);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.outcome__do b {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 400;
+  margin-bottom: 0.375rem;
+}
+
+/* ---------- decision colouring ----------
+   One custom property, set by the decision itself, so a row, a tag and
+   the big verdict panel all take their colour from the same place and
+   cannot disagree. Warm is a person deciding, cold is the machine
+   deciding on its own, grey is a refusal nobody gets to overturn. */
+
+[data-decision="allow"] {
+  --dec: var(--cold);
+}
+[data-decision="require_approval"] {
+  --dec: var(--warm);
+}
+[data-decision="deny"] {
+  --dec: var(--faint);
+}
+[data-decision="none"] {
+  --dec: var(--hair-lit);
+}
+
+.tag--dec {
+  border-color: color-mix(in srgb, var(--dec, var(--hair-lit)) 45%, transparent);
+  color: var(--dec, var(--muted));
+}
+
+/* The reason column: long, monospaced and the thing people actually
+   read, so it gets the width and none of the emphasis. */
+.spec__reason {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.spec__load {
+  padding: 0.375rem 0.875rem;
+  font-size: var(--t-micro);
+}
+
+/* The live row sits above its worked examples and has to look like the
+   one you are driving, not one of the results. */
+.spec tr[data-live-row] td {
+  background: var(--raised);
+}
+
+.spec input,
+.spec select {
+  width: 100%;
+  min-width: 7rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hair-lit);
+  background: var(--black);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+}
+
+.spec input:focus-visible,
+.spec select:focus-visible {
+  outline: 2px solid var(--dec, var(--warm));
+  outline-offset: 1px;
+}
+
+/* ---------- the verdict panel ----------
+   The live row again, at a size you can read across a room. */
+
+.verdict {
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  border: 1px solid color-mix(in srgb, var(--dec, var(--hair-lit)) 45%, transparent);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    140deg,
+    color-mix(in srgb, var(--dec, var(--hair)) 10%, var(--near)),
+    var(--near) 65%
+  );
+  transition:
+    border-color var(--mid-dur) var(--ease-cursor),
+    background var(--mid-dur) var(--ease-cursor);
+}
+
+.verdict__label {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 1rem;
+}
+
+.verdict__amt {
+  font-family: var(--mono);
+  font-size: clamp(1rem, 0.95rem + 0.4vw, 1.25rem);
+  color: var(--paper);
+  margin-bottom: 0.5rem;
+}
+
+.verdict__word {
+  font-family: var(--mono);
+  font-size: clamp(1.5rem, 1.2rem + 1.6vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--dec, var(--muted));
+  margin-bottom: 0.75rem;
+}
+
+.verdict__reason {
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.verdict__what {
+  color: var(--muted);
+  font-size: var(--t-small);
+  max-width: 46rem;
+}
+
+.verdict__foot {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hair);
+  font-size: var(--t-micro);
+  color: var(--faint);
+}
+
+/* ---------- rule cards ----------
+   A figure, a name, and the one word it produces when crossed. */
+
+.rule__figure {
+  font-family: var(--mono);
+  font-size: clamp(1.375rem, 1.1rem + 1.1vw, 1.875rem);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--paper);
+  margin-bottom: 0.875rem;
+}
+
+.rule__out {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hair);
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.rule__out .tag {
+  margin-bottom: 0.5rem;
+}

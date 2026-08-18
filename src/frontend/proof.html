@@ -7,146 +7,116 @@
     <link rel="canonical" href="https://adeia.xyz/proof" />
     <meta
       name="description"
-      content="293 tests across 18 files, two full runs against real SMTP and a real phone, and an honest list of everything that has not been proven."
+      content="The evidence under the animation: 489 tests across 27 files, two full runs against real mail and a real phone, the handful of tests worth naming — and the things none of it proves."
     />
 
-    <link rel="stylesheet" href="styles/tokens-legacy.css" />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/menu.css" />
-    <link rel="stylesheet" href="styles/motion.css" />
-    <link rel="stylesheet" href="styles/page-proof.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/sub-v2.css?v=1787082747840" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
-  <body class="page-proof">
-    <header class="masthead">
-      <a class="masthead__mark" href="/">Adeia</a>
+  <body class="doc">
+    <a class="sr-only" href="#main">Skip to content</a>
 
-      <!-- The way in. GitHub OAuth has no separate sign-up: a first
-           sign-in is the registration, so there is one button, not two. -->
-      <a class="masthead__signin" href="/dashboard">Sign in</a>
+    <header class="mast">
+      <a class="mast__mark" href="/">
+        <span>adeia</span>
+        <span>fence</span>
+      </a>
 
-      <button
-        class="plus-link masthead__menu"
-        type="button"
-        id="menu-button"
-        aria-expanded="false"
-        aria-controls="menu-panel"
-      >
-        <span class="masthead__menu-label" data-menu-label>Menu</span>
-        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-      </button>
+      <nav class="mast__nav" aria-label="Sections">
+        <a href="/capability">Capability</a>
+        <a href="/approach">Approach</a>
+        <a href="/policy">Policy</a>
+        <a href="/quickstart">Quickstart</a>
+        <a href="/contact">Contact</a>
+      </nav>
+
+      <div class="mast__end">
+        <a class="btn" href="/dashboard" data-magnet>Sign in</a>
+      </div>
     </header>
 
-    <div class="menu" id="menu-panel" data-menu-panel hidden>
-      <nav class="container menu__nav" aria-label="Sections">
-        <ol class="menu__list">
-          <li class="menu__item">
-            <a class="menu__link" href="#suite"
-              ><span class="label menu__num">01</span
-              ><span class="display menu__word">Suite</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#real"
-              ><span class="label menu__num">02</span
-              ><span class="display menu__word">Real run</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#hard"
-              ><span class="label menu__num">03</span
-              ><span class="display menu__word">Hard cases</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#unproven"
-              ><span class="label menu__num">04</span
-              ><span class="display menu__word">Unproven</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="/"
-              ><span class="label menu__num">05</span
-              ><span class="display menu__word">Home</span></a
-            >
-          </li>
-        </ol>
+    <main id="main">
+      <!-- ==========================================================
+           Hero
+           ========================================================== -->
+      <section class="phero">
+        <div class="phero__orb" aria-hidden="true"></div>
+        <div class="phero__grain" aria-hidden="true"></div>
 
-        <p class="label quiet menu__note">
-          No payment processor is attached &middot; nothing settles
-        </p>
-      </nav>
-    </div>
+        <div class="wrap">
+          <div class="phero__inner">
+            <span class="eyebrow" data-reveal>Proof</span>
 
-    <main>
-      <!-- ===========================================================
-           Hero — ink
-           =========================================================== -->
-      <section class="ground ground--ink pf-hero" id="top">
-        <div class="container pf-hero__inner">
-          <p class="label quiet pf-hero__eyebrow">Proof</p>
+            <h1 class="display phero__title" data-reveal data-reveal-delay="70">
+              How you<br />
+              <span class="sweep">know it works</span>
+            </h1>
 
-          <h1 class="display pf-hero__title">How you know it works</h1>
+            <p class="lede phero__lede" data-reveal data-reveal-delay="130">
+              The landing page shows an animation. An animation proves nothing.
+              This page is the evidence underneath it, with the gaps named as
+              plainly as the passing tests — because a page of evidence that
+              hides what it has not tested is not evidence.
+            </p>
 
-          <p class="lead pf-hero__body">
-            The landing page shows an animation. An animation proves nothing.
-            This page is the evidence underneath it, with the gaps named as
-            plainly as the passing tests — because a page of evidence that hides
-            what it has not tested is not evidence.
-          </p>
-
-          <dl class="pf-figures">
-            <div class="pf-figure">
-              <dt class="label quiet pf-figure__label">Tests passing</dt>
-              <dd class="mono pf-figure__value">293</dd>
+            <div class="phero__facts" data-reveal data-reveal-delay="190">
+              <div class="phero__fact">
+                <b>489</b>
+                <span>tests passing</span>
+              </div>
+              <div class="phero__fact">
+                <b>27</b>
+                <span>test files</span>
+              </div>
+              <div class="phero__fact">
+                <b>2</b>
+                <span>full runs on real infrastructure</span>
+              </div>
+              <div class="phero__fact">
+                <b>0</b>
+                <span>payments settled</span>
+              </div>
             </div>
-            <div class="pf-figure">
-              <dt class="label quiet pf-figure__label">Test files</dt>
-              <dd class="mono pf-figure__value">18</dd>
-            </div>
-            <div class="pf-figure">
-              <dt class="label quiet pf-figure__label">Full runs on real infrastructure</dt>
-              <dd class="mono pf-figure__value">2</dd>
-            </div>
-            <div class="pf-figure">
-              <dt class="label quiet pf-figure__label">Payments settled</dt>
-              <dd class="mono pf-figure__value">0</dd>
-            </div>
-          </dl>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           01 The suite — bone
-           =========================================================== -->
-      <section
-        class="ground ground--bone section pf-part"
-        id="suite"
-        aria-labelledby="suite-title"
-      >
-        <div class="container">
-          <header class="pf-part__head">
-            <p class="label quiet js-reveal">01 — The suite</p>
-            <h2 class="h2 pf-part__title js-reveal" data-delay="80" id="suite-title">
-              293 tests, and where they sit
+      <nav class="anchors" aria-label="On this page">
+        <div class="wrap anchors__inner">
+          <a href="#suite">The suite</a>
+          <a href="#real-run">The real run</a>
+          <a href="#hard-cases">Hard cases</a>
+          <a href="#unproven">Unproven</a>
+        </div>
+      </nav>
+
+      <!-- ==========================================================
+           01 — The suite
+           ========================================================== -->
+      <section class="section" id="suite" aria-labelledby="suite-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>01 — The suite</span>
+            <h2 class="h1" id="suite-title" data-reveal data-reveal-delay="70">
+              489 tests, and where they sit
             </h2>
-            <p class="body pf-part__intro">
-              Run <span class="pf-code">npm test</span> in the repository and
-              this is the output. The heaviest file is the policy engine, which
-              is correct — it is the part where being wrong costs money.
+            <p class="lede" data-reveal data-reveal-delay="130">
+              Run <span class="lit">npm test</span> in the repository and this is
+              the output. The three heaviest files are the HTTP adapter and the
+              two policy engines, which is correct — those are the parts where
+              being wrong costs money or reaches something it should not.
             </p>
           </header>
 
-          <div
-            class="pf-table-scroll"
-            tabindex="0"
-            role="group"
-            aria-labelledby="suite-title"
-          >
-            <table class="pf-table">
-              <caption class="visually-hidden">
-                Every test file and the number of tests it contains.
-              </caption>
+          <div class="spec-wrap" data-reveal tabindex="0">
+            <table class="spec">
+              <caption>Every test file and the number of tests it contains</caption>
               <thead>
                 <tr>
                   <th scope="col">File</th>
@@ -156,93 +126,138 @@
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row"><span class="pf-code">policy/evaluate</span></th>
-                  <td class="pf-table__n">33</td>
+                  <td>adapters/http</td>
+                  <td class="spec__type">34</td>
+                  <td>Re-resolution at call time, redirects refused, headers never returned</td>
+                </tr>
+                <tr>
+                  <td>policy/evaluate</td>
+                  <td class="spec__type">33</td>
                   <td>Rule order, inclusive limits, null versus zero, every decision path</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">approvals/routes</span></th>
-                  <td class="pf-table__n">25</td>
+                  <td>policy/evaluateHttp</td>
+                  <td class="spec__type">32</td>
+                  <td>Host allowlist, per-method decisions, and that deny beats classify</td>
+                </tr>
+                <tr>
+                  <td>routes/dashboard</td>
+                  <td class="spec__type">26</td>
+                  <td>Session gate, tenant isolation, key issue and rotation</td>
+                </tr>
+                <tr>
+                  <td>routes/policyEdit</td>
+                  <td class="spec__type">26</td>
+                  <td>Editing a policy from the dashboard, and what may not be edited</td>
+                </tr>
+                <tr>
+                  <td>approvals/routes</td>
+                  <td class="spec__type">25</td>
                   <td>The approve and deny endpoints, replay, expiry, wrong tokens</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">db/repo</span></th>
-                  <td class="pf-table__n">24</td>
-                  <td>Every query, idempotency, the daily spend calculation</td>
-                </tr>
-                <tr>
-                  <th scope="row"><span class="pf-code">actions/service</span></th>
-                  <td class="pf-table__n">24</td>
+                  <td>actions/service</td>
+                  <td class="spec__type">24</td>
                   <td>Request to decision to execution, and every terminal path</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">audit/log</span></th>
-                  <td class="pf-table__n">23</td>
+                  <td>db/repo</td>
+                  <td class="spec__type">24</td>
+                  <td>Every query, idempotency, the daily spend calculation</td>
+                </tr>
+                <tr>
+                  <td>audit/log</td>
+                  <td class="spec__type">23</td>
                   <td>Event vocabulary, redaction, the size cap, ordering</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">routes/actions</span></th>
-                  <td class="pf-table__n">20</td>
+                  <td>routes/actions</td>
+                  <td class="spec__type">20</td>
                   <td>The HTTP surface, auth, validation, error bodies</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">sdk/client</span></th>
-                  <td class="pf-table__n">20</td>
+                  <td>sdk/client</td>
+                  <td class="spec__type">20</td>
                   <td>All three methods, timeouts, polling, error shapes</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">approvals/token</span></th>
-                  <td class="pf-table__n">17</td>
+                  <td>actions/classified</td>
+                  <td class="spec__type">18</td>
+                  <td>The classifier inside the action path, and every failure meaning ask</td>
+                </tr>
+                <tr>
+                  <td>approvals/token</td>
+                  <td class="spec__type">17</td>
                   <td>Minting, hashing, single use, expiry</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">env</span></th>
-                  <td class="pf-table__n">15</td>
+                  <td>policy/classify</td>
+                  <td class="spec__type">17</td>
+                  <td>Timeouts, malformed answers, the body cap, unrecognised verdicts</td>
+                </tr>
+                <tr>
+                  <td>routes/auth</td>
+                  <td class="spec__type">16</td>
+                  <td>GitHub OAuth, single-use state, the cookie it is matched against</td>
+                </tr>
+                <tr>
+                  <td>env</td>
+                  <td class="spec__type">15</td>
                   <td>The boot refusals, including half-configured SMTP</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">routes/audit</span></th>
-                  <td class="pf-table__n">14</td>
+                  <td>routes/decide</td>
+                  <td class="spec__type">15</td>
+                  <td>Approving and denying from the dashboard, behind three gates</td>
+                </tr>
+                <tr>
+                  <td>routes/audit</td>
+                  <td class="spec__type">14</td>
                   <td>Reading a trail back, pagination, scoping to a project</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">demo/agent</span></th>
-                  <td class="pf-table__n">13</td>
+                  <td>demo/agent</td>
+                  <td class="spec__type">13</td>
                   <td>A real LLM agent driving the tool, end to end</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">docs/generated</span></th>
-                  <td class="pf-table__n">13</td>
+                  <td>docs/generated</td>
+                  <td class="spec__type">13</td>
                   <td>That the published schema matches the runtime behaviour</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">notify/email</span></th>
-                  <td class="pf-table__n">12</td>
+                  <td>auth/session</td>
+                  <td class="spec__type">12</td>
+                  <td>Session tokens: hashed at rest, compared in constant time, absolute expiry</td>
+                </tr>
+                <tr>
+                  <td>notify/email</td>
+                  <td class="spec__type">12</td>
                   <td>Message construction, the approval link, escaping</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">shared/actions</span></th>
-                  <td class="pf-table__n">11</td>
+                  <td>shared/actions</td>
+                  <td class="spec__type">11</td>
                   <td>The wire schema, strict mode, integer cents</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">notify/smtp</span></th>
-                  <td class="pf-table__n">10</td>
+                  <td>notify/smtp</td>
+                  <td class="spec__type">10</td>
                   <td>Transport construction and credential verification</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">policy/seedPolicy</span></th>
-                  <td class="pf-table__n">8</td>
+                  <td>policy/seedPolicy</td>
+                  <td class="spec__type">8</td>
                   <td>The policy the seed script writes</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">adapters/ledger</span></th>
-                  <td class="pf-table__n">6</td>
+                  <td>adapters/ledger</td>
+                  <td class="spec__type">6</td>
                   <td>That it records and does not settle</td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="pf-code">auth/apiKey</span></th>
-                  <td class="pf-table__n">5</td>
+                  <td>auth/apiKey</td>
+                  <td class="spec__type">5</td>
                   <td>Generation, hashing, constant-time comparison</td>
                 </tr>
               </tbody>
@@ -251,200 +266,237 @@
         </div>
       </section>
 
-      <!-- ===========================================================
-           02 The real run — paper
-           =========================================================== -->
-      <section
-        class="ground ground--paper section pf-part"
-        id="real"
-        aria-labelledby="real-title"
-      >
-        <div class="container">
-          <header class="pf-part__head">
-            <p class="label quiet js-reveal">02 — The real run</p>
-            <h2 class="h2 pf-part__title js-reveal" data-delay="80" id="real-title">
+      <!-- ==========================================================
+           02 — The real run
+           ========================================================== -->
+      <section class="section" id="real-run" aria-labelledby="run-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>02 — The real run</span>
+            <h2 class="h1" id="run-title" data-reveal data-reveal-delay="70">
               Twice, against real infrastructure
             </h2>
           </header>
 
-          <p class="lead pf-part__lead">
-            A suite that only ever talks to fakes proves the fakes agree with
-            themselves. The whole loop has been run twice against the real
-            thing.
-          </p>
+          <div class="pair pair--wide">
+            <div class="prose" data-reveal>
+              <p>
+                A suite that only ever talks to fakes proves the fakes agree
+                with themselves. The whole loop has been run twice against the
+                real thing.
+              </p>
+              <p>
+                Real Gmail SMTP. A real email arriving on a real phone. A human
+                reading the amount, the recipient and the rule that was crossed,
+                then tapping approve. The agent, which had been blocked in
+                <span class="lit">waitForAction</span>, picking up and reporting
+                the result. A complete audit trail afterwards showing every step
+                in order, including the ninety-five seconds where nothing
+                happened because a person was deciding.
+              </p>
+              <p>
+                That gap in the timestamps is the only part of this that cannot
+                be faked, and it is the whole claim the product makes:
+                <span class="lit">action.executing</span> comes
+                <em>after</em> <span class="lit">approval.granted</span>, never
+                before.
+              </p>
+            </div>
 
-          <p class="body pf-part__copy">
-            Real Gmail SMTP. A real email arriving on a real phone. A human
-            reading the amount, the recipient and the rule that was crossed, then
-            tapping approve. The agent, which had been blocked in
-            <span class="pf-code">waitForAction</span>, picking up and reporting
-            the result. A complete audit trail afterwards showing every step in
-            order, including the ninety-five seconds where nothing happened
-            because a person was deciding.
-          </p>
+            <div class="pane" data-reveal data-reveal-delay="90">
+              <div class="pane__bar">
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__dot"></span>
+                <span class="pane__name">the ninety-five seconds</span>
+              </div>
+              <pre class="pane__body"><code><span class="out-dim">14:22:07.114</span>  action.requested
+<span class="out-dim">14:22:07.119</span>  policy.evaluated   <span class="out-hold">require_approval</span>
+<span class="out-dim">14:22:07.402</span>  approval.requested
+<span class="out-dim">14:22:07.988</span>  <span class="out-dim">email.sent</span>
 
-          <p class="body pf-part__copy">
-            That gap in the timestamps is the only part of this that cannot be
-            faked, and it is the whole claim the product makes:
-            <span class="pf-code">action.executing</span> comes
-            <em>after</em> <span class="pf-code">approval.granted</span>, never
-            before.
-          </p>
+<span class="out-dim">              ── a person is deciding ──</span>
+
+<span class="out-dim">14:23:42.610</span>  approval.granted
+<span class="out-dim">14:23:42.615</span>  action.executing
+<span class="out-dim">14:23:42.701</span>  <mark>action.executed</mark></code></pre>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           03 Hard cases — ink
-           =========================================================== -->
-      <section
-        class="ground ground--ink section pf-part"
-        id="hard"
-        aria-labelledby="hard-title"
-      >
-        <div class="container">
-          <header class="pf-part__head">
-            <p class="label quiet js-reveal">03 — Hard cases</p>
-            <h2 class="h2 pf-part__title js-reveal" data-delay="80" id="hard-title">
+      <!-- ==========================================================
+           03 — Hard cases
+           ========================================================== -->
+      <section class="section" id="hard-cases" aria-labelledby="hard-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>03 — Hard cases</span>
+            <h2 class="h1" id="hard-title" data-reveal data-reveal-delay="70">
               The tests worth naming
             </h2>
-            <p class="body pf-part__intro">
-              Most of the 293 are ordinary. These four are the ones that catch
+            <p class="lede" data-reveal data-reveal-delay="130">
+              Most of the 489 are ordinary. These six are the ones that catch
               the mistakes a future change would actually make.
             </p>
           </header>
 
-          <div class="pf-notes">
-            <div class="pf-note">
-              <h3 class="h3 pf-note__title">No terminal status without its event</h3>
-              <p class="body quiet pf-note__copy">
+          <div class="grid">
+            <article class="card" data-reveal>
+              <p class="card__label">Audit</p>
+              <h3 class="h3 card__title">No terminal status without its event</h3>
+              <p class="card__body">
                 One test walks every action in the database and fails if any of
                 them sits in a terminal status with no terminal event beside it.
                 It exists to catch a transition somebody adds later and forgets
                 to record — the failure mode that leaves an audit log quietly
                 incomplete.
               </p>
-            </div>
+            </article>
 
-            <div class="pf-note">
-              <h3 class="h3 pf-note__title">Redaction, checked in the stored bytes</h3>
-              <p class="body quiet pf-note__copy">
+            <article class="card" data-reveal data-reveal-delay="60">
+              <p class="card__label">Audit</p>
+              <h3 class="h3 card__title">Redaction, checked in the stored bytes</h3>
+              <p class="card__body">
                 Not that the function returns the right thing — that the row on
-                disk contains the harmless field and does not contain the secret.
-                Testing the function would pass even if the write path skipped
-                it.
+                disk contains the harmless field and does not contain the
+                secret. Testing the function would pass even if the write path
+                skipped it.
               </p>
-            </div>
+            </article>
 
-            <div class="pf-note">
-              <h3 class="h3 pf-note__title">Deny always beats approve</h3>
-              <p class="body quiet pf-note__copy">
+            <article class="card" data-reveal data-reveal-delay="120">
+              <p class="card__label">Policy</p>
+              <h3 class="h3 card__title">Deny always beats approve</h3>
+              <p class="card__body">
                 The policy suite pins the rule ordering, so a refactor cannot
                 reorder the checks and make a payment past the hard ceiling
                 arrive as something a human is allowed to approve.
               </p>
-            </div>
+            </article>
 
-            <div class="pf-note">
-              <h3 class="h3 pf-note__title">A token cannot be spent twice</h3>
-              <p class="body quiet pf-note__copy">
+            <article class="card card--machine" data-reveal data-reveal-delay="180">
+              <p class="card__label">Classifier</p>
+              <h3 class="h3 card__title">Deny always beats classify</h3>
+              <p class="card__body">
+                The same ordering, one layer along. A method you put on the deny
+                list is never handed to a model, whatever band you opened
+                elsewhere — so injected text can win inside a band, and can
+                never open one.
+              </p>
+            </article>
+
+            <article class="card card--machine" data-reveal data-reveal-delay="240">
+              <p class="card__label">Classifier</p>
+              <h3 class="h3 card__title">Every failure path means ask</h3>
+              <p class="card__body">
+                Timeout, malformed answer, dead API key, a verdict nobody
+                recognises — each one has its own case, and each one asserts the
+                action went to a person. A missing key must never quietly widen
+                what an agent may do alone.
+              </p>
+            </article>
+
+            <article class="card" data-reveal data-reveal-delay="300">
+              <p class="card__label">Approvals</p>
+              <h3 class="h3 card__title">A token cannot be spent twice</h3>
+              <p class="card__body">
                 Replay, expiry and unknown tokens all have their own cases,
                 because a double-clicked approve button and a browser
                 re-submitting a POST both reach the server twice in normal use.
               </p>
-            </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           04 Unproven — paper. The point of the page.
-           =========================================================== -->
-      <section
-        class="ground ground--paper section pf-part"
-        id="unproven"
-        aria-labelledby="unproven-title"
-      >
-        <div class="container">
-          <header class="pf-part__head">
-            <p class="label quiet js-reveal">04 — Unproven</p>
-            <h2 class="h2 pf-part__title js-reveal" data-delay="80" id="unproven-title">
+      <!-- ==========================================================
+           04 — Unproven. The point of the page.
+           ========================================================== -->
+      <section class="section" id="unproven" aria-labelledby="unproven-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>04 — Unproven</span>
+            <h2 class="h1" id="unproven-title" data-reveal data-reveal-delay="70">
               What none of this shows
             </h2>
-            <p class="body pf-part__intro">
+            <p class="lede" data-reveal data-reveal-delay="130">
               Read this section as carefully as the one with the numbers in it.
             </p>
           </header>
 
-          <ul class="pf-gaps">
-            <li class="pf-gap">
-              <h3 class="h3 pf-gap__title">No money has moved</h3>
-              <p class="body quiet pf-gap__copy">
-                Zero payments have settled, ever. The ledger adapter records and
-                returns <span class="pf-code">settled: false</span>. Every test
-                and both real runs stop exactly where a payment processor would
-                begin, so nothing here is evidence about what happens when one is
-                attached.
-              </p>
+          <ul class="rows" data-reveal>
+            <li>
+              <strong>No money has moved</strong>
+              Zero payments have settled, ever. The ledger adapter records and
+              returns <span class="lit">settled: false</span>. Every test and
+              both real runs stop exactly where a payment processor would begin,
+              so nothing here is evidence about what happens when one is
+              attached.
             </li>
-            <li class="pf-gap">
-              <h3 class="h3 pf-gap__title">No load or concurrency testing</h3>
-              <p class="body quiet pf-gap__copy">
-                The database is SQLite with a single writer, and nobody has
-                driven it with concurrent traffic to find out where that breaks.
-                The suite runs sequentially against a fresh database.
-              </p>
+            <li>
+              <strong>No load or concurrency testing</strong>
+              The database is SQLite with a single writer, and nobody has driven
+              it with concurrent traffic to find out where that breaks. The
+              suite runs against a fresh database.
             </li>
-            <li class="pf-gap">
-              <h3 class="h3 pf-gap__title">No external security review</h3>
-              <p class="body quiet pf-gap__copy">
-                Tokens are hashed, compared in constant time, and single use, and
-                that reasoning is written down — but nobody outside this project
-                has tried to break it.
-              </p>
+            <li>
+              <strong>No external security review</strong>
+              Tokens are hashed, compared in constant time, and single use, and
+              that reasoning is written down — but nobody outside this project
+              has tried to break it.
             </li>
-            <li class="pf-gap">
-              <h3 class="h3 pf-gap__title">No production users</h3>
-              <p class="body quiet pf-gap__copy">
-                Nobody is running Adeia in front of real money. Two demos and a
-                test suite are not the same thing as a system that has survived
-                being used.
-              </p>
+            <li>
+              <strong>The classifier has not faced a real attacker</strong>
+              Its authority is bounded by construction and that bound is tested.
+              Whether a determined prompt injection can get a genuinely
+              dangerous call judged low risk <em>inside</em> a band someone
+              opened has not been tested by anyone trying hard.
+            </li>
+            <li>
+              <strong>No production users</strong>
+              Nobody is running Adeia in front of real money. Two demos and a
+              test suite are not the same thing as a system that has survived
+              being used.
             </li>
           </ul>
 
-          <p class="pf-part__more">
-            <a class="plus-link" href="/audit">
-              <span class="plus-link__box" aria-hidden="true">+</span>
-              <span>READ A REAL TRAIL</span>
-            </a>
-          </p>
+          <a class="next" href="/audit" data-reveal data-magnet>
+            <span>
+              <span class="next__label">Next</span>
+              <span class="h3">Read a real trail</span>
+            </span>
+            <span class="btn btn--ghost">Open the audit reference</span>
+          </a>
         </div>
       </section>
     </main>
 
-    <footer class="ground ground--forest site-footer">
-      <div class="container">
-        <div class="site-footer__inner">
-          <nav class="site-footer__nav" aria-label="Documentation">
-            <a class="site-footer__link" href="/quickstart">Quickstart</a>
-            <a class="site-footer__link" href="/sdk">SDK</a>
-            <a class="site-footer__link" href="/policy">Policy</a>
-            <a class="site-footer__link" href="/audit">Audit</a>
-          </nav>
-
-          <p class="label site-footer__meta">
-            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
-          </p>
-
-          <p class="site-footer__note">
-            No payment processor is attached. Payments are authorised and
-            recorded; nothing settles.
-          </p>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <a class="mast__mark" href="/">
+          <span>adeia</span>
+          <span>fence</span>
+        </a>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">
+          Source available under BSL 1.1 ·
+          <span id="visit-count" class="foot__count"></span>
+        </p>
       </div>
     </footer>
 
-    <script src="motion.js"></script>
-    <script src="nav.js"></script>
+    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/motion.js?v=1787081142085" type="module"></script>
+    <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>

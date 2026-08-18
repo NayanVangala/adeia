@@ -4,140 +4,125 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Audit log — Adeia</title>
-    <link rel="canonical" href="https://adeia.xyz/audit">
+    <link rel="canonical" href="https://adeia.xyz/audit" />
     <meta
       name="description"
-      content="Every action Adeia touches leaves an ordered, append-only trail: what was asked for, which rule answered, who said yes, and what the adapter did. This is the vocabulary, the guarantee, and the trail as the CLI prints it."
+      content="Twelve audit events, an append-only table, redaction at write time, and four real trails printed end to end — so months later there is one answer to who let that through."
     />
 
-    <link rel="stylesheet" href="styles/tokens-legacy.css" />
-    <link rel="stylesheet" href="styles/base.css" />
-    <link rel="stylesheet" href="styles/menu.css" />
-    <link rel="stylesheet" href="styles/motion.css" />
-    <link rel="stylesheet" href="styles/page-audit.css" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/sub-v2.css?v=1787082747840" />
+    <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
-  <body class="page-audit">
-    <!-- Same markup as the landing page's masthead. It sits before <main> here
-         because this is a whole document rather than a fragment pasted into
-         one, which makes it the page banner it should have been all along. -->
-    <header class="masthead">
-      <a class="masthead__mark" href="/">Adeia</a>
+  <body class="doc">
+    <a class="sr-only" href="#main">Skip to content</a>
 
-      <!-- The way in. GitHub OAuth has no separate sign-up: a first
-           sign-in is the registration, so there is one button, not two. -->
-      <a class="masthead__signin" href="/dashboard">Sign in</a>
+    <header class="mast">
+      <a class="mast__mark" href="/">
+        <span>adeia</span>
+        <span>fence</span>
+      </a>
 
-      <button
-        class="plus-link masthead__menu"
-        type="button"
-        id="menu-button"
-        aria-expanded="false"
-        aria-controls="menu-panel"
-      >
-        <span class="masthead__menu-label" data-menu-label>Menu</span>
-        <span class="plus-link__box" aria-hidden="true"><span data-menu-glyph>+</span></span>
-      </button>
+      <nav class="mast__nav" aria-label="Sections">
+        <a href="/capability">Capability</a>
+        <a href="/approach">Approach</a>
+        <a href="/policy">Policy</a>
+        <a href="/quickstart">Quickstart</a>
+        <a href="/contact">Contact</a>
+      </nav>
+
+      <div class="mast__end">
+        <a class="btn" href="/dashboard" data-magnet>Sign in</a>
+      </div>
     </header>
 
-    <!-- Every entry points at a section that exists, on this page or the one
-         the wordmark goes back to. Nothing here links to a page we have not
-         built. -->
-    <div class="menu" id="menu-panel" data-menu-panel hidden>
-      <nav class="container menu__nav" aria-label="Sections">
-        <ol class="menu__list">
-          <li class="menu__item">
-            <a class="menu__link" href="#vocabulary"
-              ><span class="label menu__num">01</span
-              ><span class="display menu__word">Vocabulary</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#guarantee"
-              ><span class="label menu__num">02</span
-              ><span class="display menu__word">Guarantee</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#trail"
-              ><span class="label menu__num">03</span
-              ><span class="display menu__word">Trail</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="#redaction"
-              ><span class="label menu__num">04</span
-              ><span class="display menu__word">Redaction</span></a
-            >
-          </li>
-          <li class="menu__item">
-            <a class="menu__link" href="/"
-              ><span class="label menu__num">05</span
-              ><span class="display menu__word">Home</span></a
-            >
-          </li>
-        </ol>
+    <main id="main">
+      <!-- ==========================================================
+           Hero
+           ========================================================== -->
+      <section class="phero">
+        <div class="phero__orb" aria-hidden="true"></div>
+        <div class="phero__grain" aria-hidden="true"></div>
 
-        <p class="label quiet menu__note">
-          No payment processor is attached &middot; nothing settles
-        </p>
-      </nav>
-    </div>
+        <div class="wrap">
+          <div class="phero__inner">
+            <span class="eyebrow" data-reveal>Audit log</span>
 
-    <main>
-      <!-- ===========================================================
-           Hero — ink
-           =========================================================== -->
-      <section class="ground ground--ink audit-hero" id="top">
-        <div class="container audit-hero__inner">
-          <p class="label quiet audit-hero__eyebrow">Audit log</p>
+            <h1 class="display phero__title" data-reveal data-reveal-delay="70">
+              Who let<br />
+              <span class="sweep">that through</span>
+            </h1>
 
-          <h1 class="display audit-hero__title">Who let that through</h1>
+            <p class="lede phero__lede" data-reveal data-reveal-delay="130">
+              Months after an agent spent your money, that question has one
+              answer and it should not be a reconstruction. Adeia writes an
+              event for every step an action takes — what was asked for, which
+              rule answered, the figure that produced the answer, the person who
+              said yes, and what the adapter did next — in order, at the time,
+              and never edited since.
+            </p>
 
-          <p class="lead audit-hero__body">
-            Months after an agent spent your money, that question has one answer and
-            it should not be a reconstruction. Adeia writes an event for every step
-            an action takes — what was asked for, which rule answered, the figure
-            that produced the answer, the person who said yes, and what the adapter
-            did next — in order, at the time, and never edited since.
-          </p>
+            <div class="phero__facts" data-reveal data-reveal-delay="190">
+              <div class="phero__fact">
+                <b>12</b>
+                <span>events in the vocabulary</span>
+              </div>
+              <div class="phero__fact">
+                <b>0</b>
+                <span>code paths that update or delete</span>
+              </div>
+              <div class="phero__fact">
+                <b>4 KB</b>
+                <span>cap on the data column</span>
+              </div>
+              <div class="phero__fact">
+                <b>write</b>
+                <span>when redaction happens</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Vocabulary — bone
-           =========================================================== -->
-      <section
-        class="ground ground--bone section audit-vocab"
-        id="vocabulary"
-        aria-labelledby="vocab-title"
-      >
-        <div class="container">
-          <header class="audit-vocab__head">
-            <p class="label quiet">Vocabulary</p>
-            <h2 class="h2 audit-vocab__title js-reveal" data-delay="80" id="vocab-title">
-              Eleven events. Nothing outside the list.
+      <nav class="anchors" aria-label="On this page">
+        <div class="wrap anchors__inner">
+          <a href="#vocabulary">Vocabulary</a>
+          <a href="#guarantee">The guarantee</a>
+          <a href="#trail">One action, end to end</a>
+          <a href="#redaction">Redaction</a>
+        </div>
+      </nav>
+
+      <!-- ==========================================================
+           Vocabulary
+           ========================================================== -->
+      <section class="section" id="vocabulary" aria-labelledby="vocab-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>Vocabulary</span>
+            <h2 class="h1" id="vocab-title" data-reveal data-reveal-delay="70">
+              Twelve events. Nothing outside the list.
             </h2>
-            <p class="body quiet audit-vocab__intro">
+            <p class="lede" data-reveal data-reveal-delay="130">
               The event name is not a free-text string. It is a TypeScript union
-              exported from <span class="audit-code">audit/log.ts</span>, so
-              <span class="audit-code">action.exectued</span> is a compile error
-              rather than a trail that quietly loses a step. A test also reads back
-              every distinct event name in the database and fails if one of them is
-              not on this list.
+              exported from <span class="lit">audit/log.ts</span>, so
+              <span class="lit">action.exectued</span> is a compile error rather
+              than a trail that quietly loses a step. A test also reads back
+              every distinct event name in the database and fails if one of them
+              is not on this list.
             </p>
           </header>
 
-          <div
-            class="audit-vocab__scroll"
-            tabindex="0"
-            role="group"
-            aria-labelledby="vocab-title"
-          >
-            <table class="audit-vocab__table">
-              <caption class="visually-hidden">
-                Every audit event, the code that writes it, and the fields recorded
-                in its data column.
+          <div class="spec-wrap" data-reveal tabindex="0">
+            <table class="spec">
+              <caption>
+                Every audit event, the code that writes it, and the fields
+                recorded in its data column
               </caption>
               <thead>
                 <tr>
@@ -148,104 +133,105 @@
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row"><span class="audit-code">action.requested</span></th>
-                  <td><span class="audit-code">actions/service.ts</span> · requestAction()</td>
+                  <td>action.requested</td>
+                  <td class="spec__type">service.ts · requestAction()</td>
                   <td>
-                    <span class="audit-code">{ type, params }</span> — the request
+                    <span class="lit">{ type, params }</span> — the request
                     exactly as it validated
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="audit-code">policy.evaluated</span></th>
-                  <td><span class="audit-code">actions/service.ts</span> · requestAction()</td>
+                  <td>policy.evaluated</td>
+                  <td class="spec__type">service.ts · requestAction()</td>
                   <td>
-                    <span class="audit-code"
-                      >{ decision, reason, spentTodayCents, policyId }</span
-                    >
+                    <span class="lit">{ decision, reason, spentTodayCents, policyId }</span>
                     — the verdict and the running total it was measured against
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row">
-                    <span class="audit-code">action.denied</span>
-                    <span class="audit-tag">terminal</span>
-                  </th>
-                  <td><span class="audit-code">actions/service.ts</span> · requestAction()</td>
+                  <td>action.classified</td>
+                  <td class="spec__type">service.ts · resolveOutcome()</td>
                   <td>
-                    <span class="audit-code">{ reason }</span> — the rule that refused
+                    <span class="lit">{ risk, reason, model }</span> — a model,
+                    not a person, judged this one. Its own event rather than a
+                    field on <span class="lit">policy.evaluated</span>, so
+                    reading the trail never confuses the two
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    action.denied <span class="tag tag--warm">terminal</span>
+                  </td>
+                  <td class="spec__type">service.ts · requestAction()</td>
+                  <td>
+                    <span class="lit">{ reason }</span> — the rule that refused
                     it, with the number
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="audit-code">action.pending_approval</span></th>
-                  <td><span class="audit-code">actions/service.ts</span> · requestAction()</td>
+                  <td>action.pending_approval</td>
+                  <td class="spec__type">service.ts · requestAction()</td>
                   <td>
-                    <span class="audit-code">{ reason }</span> — why a human is being
+                    <span class="lit">{ reason }</span> — why a human is being
                     asked
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="audit-code">approval.sent</span></th>
+                  <td>approval.sent</td>
+                  <td class="spec__type">server.ts · createApprovalNotifier()</td>
                   <td>
-                    <span class="audit-code">server.ts</span> · createApprovalNotifier()
-                  </td>
-                  <td>
-                    <span class="audit-code">{ to, expiresAt }</span> — the address the
-                    request went to, and when the link stops working. The token itself
-                    is never written here
+                    <span class="lit">{ to, expiresAt }</span> — the address the
+                    request went to, and when the link stops working. The token
+                    itself is never written here
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="audit-code">approval.granted</span></th>
-                  <td><span class="audit-code">actions/service.ts</span> · approveAction()</td>
-                  <td><span class="audit-code">{ decidedBy }</span> — who said yes</td>
+                  <td>approval.granted</td>
+                  <td class="spec__type">service.ts · approveAction()</td>
+                  <td><span class="lit">{ decidedBy }</span> — who said yes</td>
                 </tr>
                 <tr>
-                  <th scope="row">
-                    <span class="audit-code">approval.denied</span>
-                    <span class="audit-tag">terminal</span>
-                  </th>
-                  <td><span class="audit-code">actions/service.ts</span> · denyAction()</td>
-                  <td><span class="audit-code">{ decidedBy }</span> — who said no</td>
-                </tr>
-                <tr>
-                  <th scope="row">
-                    <span class="audit-code">approval.expired</span>
-                    <span class="audit-tag">terminal</span>
-                  </th>
-                  <td><span class="audit-code">actions/service.ts</span> · expireAction()</td>
                   <td>
-                    <span class="audit-code">{ expiredAt }</span> — nobody decided in
+                    approval.denied <span class="tag tag--warm">terminal</span>
+                  </td>
+                  <td class="spec__type">service.ts · denyAction()</td>
+                  <td><span class="lit">{ decidedBy }</span> — who said no</td>
+                </tr>
+                <tr>
+                  <td>
+                    approval.expired <span class="tag tag--warm">terminal</span>
+                  </td>
+                  <td class="spec__type">service.ts · expireAction()</td>
+                  <td>
+                    <span class="lit">{ expiredAt }</span> — nobody decided in
                     time, and the action stopped waiting
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><span class="audit-code">action.executing</span></th>
-                  <td><span class="audit-code">actions/service.ts</span> · execute()</td>
+                  <td>action.executing</td>
+                  <td class="spec__type">service.ts · execute()</td>
                   <td>
-                    <span class="audit-code">{ adapter }</span> — which adapter was
+                    <span class="lit">{ adapter }</span> — which adapter was
                     handed the action
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row">
-                    <span class="audit-code">action.executed</span>
-                    <span class="audit-tag">terminal</span>
-                  </th>
-                  <td><span class="audit-code">actions/service.ts</span> · execute()</td>
                   <td>
-                    <span class="audit-code">{ result }</span> — whatever the adapter
+                    action.executed <span class="tag tag--warm">terminal</span>
+                  </td>
+                  <td class="spec__type">service.ts · execute()</td>
+                  <td>
+                    <span class="lit">{ result }</span> — whatever the adapter
                     returned, written through unchanged
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row">
-                    <span class="audit-code">action.failed</span>
-                    <span class="audit-tag">terminal</span>
-                  </th>
-                  <td><span class="audit-code">actions/service.ts</span> · execute()</td>
                   <td>
-                    <span class="audit-code">{ error }</span> — the adapter's own error
+                    action.failed <span class="tag tag--warm">terminal</span>
+                  </td>
+                  <td class="spec__type">service.ts · execute()</td>
+                  <td>
+                    <span class="lit">{ error }</span> — the adapter's own error
                     code where it has one, its message otherwise
                   </td>
                 </tr>
@@ -253,104 +239,111 @@
             </table>
           </div>
 
-          <p class="body quiet audit-vocab__note">
-            Ten of the eleven come out of one file, and that is deliberate:
-            <span class="audit-code">actions/service.ts</span> is the only module
-            allowed to change an action's status, so the event is written next to
-            the change it describes rather than somewhere that has to be kept in
-            step with it. <span class="audit-code">approval.sent</span> is the
-            exception, because it is a claim about the outside world — it is written
-            by the notifier, after the mail provider has accepted the message, not
-            when the send was attempted.
-          </p>
+          <div class="note note--flush" data-reveal>
+            Eleven of the twelve come out of one file, and that is deliberate:
+            <span class="mono">actions/service.ts</span> is the only module
+            allowed to change an action's status, so the event is written next
+            to the change it describes rather than somewhere that has to be kept
+            in step with it. <span class="mono">approval.sent</span> is the
+            exception, because it is a claim about the outside world — it is
+            written by the notifier, after the mail provider has accepted the
+            message, not when the send was attempted.
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Guarantee — bone
-           =========================================================== -->
-      <section
-        class="ground ground--bone section audit-guarantee"
-        id="guarantee"
-        aria-labelledby="guarantee-title"
-      >
-        <div class="container">
-          <header class="audit-guarantee__head">
-            <p class="label quiet">The guarantee</p>
-            <h2 class="h1 audit-guarantee__title" id="guarantee-title">
+      <!-- ==========================================================
+           The guarantee
+           ========================================================== -->
+      <section class="section" id="guarantee" aria-labelledby="guarantee-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>The guarantee</span>
+            <h2 class="h1" id="guarantee-title" data-reveal data-reveal-delay="70">
               Append-only, and complete
             </h2>
           </header>
 
-          <ol class="audit-guarantee__list">
-            <li class="audit-guarantee__item">
-              <span class="mono audit-guarantee__ordinal" aria-hidden="true">01</span>
-              <h3 class="h3 audit-guarantee__item-title">No update, no delete</h3>
-              <p class="body quiet audit-guarantee__copy">
-                One function writes the table and all it does is insert. There is no
-                code path that edits an event or removes one, and none is coming — a
-                log you can quietly correct answers a different question from the one
-                people ask it. When a record turns out to be wrong, the fix is
-                another event, so the mistake and the correction both stay in the
-                trail where anyone reading it can see what happened.
-              </p>
-            </li>
+          <div class="entries">
+            <article class="entry" data-reveal>
+              <p class="entry__num">01</p>
+              <div>
+                <h3 class="h3 entry__title">No update, no delete</h3>
+                <p class="body">
+                  One function writes the table and all it does is insert. There
+                  is no code path that edits an event or removes one, and none
+                  is coming — a log you can quietly correct answers a different
+                  question from the one people ask it. When a record turns out
+                  to be wrong, the fix is another event, so the mistake and the
+                  correction both stay in the trail where anyone reading it can
+                  see what happened.
+                </p>
+              </div>
+            </article>
 
-            <li class="audit-guarantee__item">
-              <span class="mono audit-guarantee__ordinal" aria-hidden="true">02</span>
-              <h3 class="h3 audit-guarantee__item-title">
-                Every transition writes a row
-              </h3>
-              <p class="body quiet audit-guarantee__copy">
-                A status change with no event is a bug, not a gap we live with. The
-                suite drives an action down each terminal path and asserts the exact
-                sequence, then walks every action in the database and fails if one is
-                sitting in a terminal status with no terminal event beside it. That
-                second check is the one that catches a transition somebody adds later
-                and forgets to record.
-              </p>
-            </li>
+            <article class="entry" data-reveal>
+              <p class="entry__num">02</p>
+              <div>
+                <h3 class="h3 entry__title">Every transition writes a row</h3>
+                <p class="body">
+                  A status change with no event is a bug, not a gap we live
+                  with. The suite drives an action down each terminal path and
+                  asserts the exact sequence, then walks every action in the
+                  database and fails if one is sitting in a terminal status with
+                  no terminal event beside it. That second check is the one that
+                  catches a transition somebody adds later and forgets to
+                  record.
+                </p>
+              </div>
+            </article>
 
-            <li class="audit-guarantee__item">
-              <span class="mono audit-guarantee__ordinal" aria-hidden="true">03</span>
-              <h3 class="h3 audit-guarantee__item-title">
-                The record never takes the action down with it
-              </h3>
-              <p class="body quiet audit-guarantee__copy">
-                The write cannot throw. If the insert fails it says so loudly on
-                stderr, names the event and the action, and returns. Losing a record
-                is bad; unwinding an action that already completed because the
-                logging failed is worse, and reversing a real transaction over a
-                logging error is worse still.
-              </p>
-            </li>
+            <article class="entry" data-reveal>
+              <p class="entry__num">03</p>
+              <div>
+                <h3 class="h3 entry__title">
+                  The record never takes the action down with it
+                </h3>
+                <p class="body">
+                  The write cannot throw. If the insert fails it says so loudly
+                  on stderr, names the event and the action, and returns. Losing
+                  a record is bad; unwinding an action that already completed
+                  because the logging failed is worse, and reversing a real
+                  transaction over a logging error is worse still.
+                </p>
+              </div>
+            </article>
 
-            <li class="audit-guarantee__item">
-              <span class="mono audit-guarantee__ordinal" aria-hidden="true">04</span>
-              <h3 class="h3 audit-guarantee__item-title">Stable order, bounded size</h3>
-              <p class="body quiet audit-guarantee__copy">
-                Events come back sorted by timestamp and then by insertion order,
-                because SQLite routinely writes several of them inside the same
-                millisecond and sorting on the clock alone reshuffles the trail on
-                every read. The data column is capped at four kilobytes; past that
-                the row keeps a marker, the real byte count and the first 512
-                characters, so a chatty adapter cannot bloat the table.
-              </p>
-            </li>
-          </ol>
+            <article class="entry" data-reveal>
+              <p class="entry__num">04</p>
+              <div>
+                <h3 class="h3 entry__title">Stable order, bounded size</h3>
+                <p class="body">
+                  Events come back sorted by timestamp and then by insertion
+                  order, because SQLite routinely writes several of them inside
+                  the same millisecond and sorting on the clock alone reshuffles
+                  the trail on every read. The data column is capped at four
+                  kilobytes; past that the row keeps a marker, the real byte
+                  count and the first 512 characters, so a chatty adapter cannot
+                  bloat the table.
+                </p>
+              </div>
+            </article>
+          </div>
 
-          <p class="lead audit-guarantee__payoff">
-            What that buys you is a straight answer. Not "it looks like it was
-            approved" — a name, a timestamp, and the figure that produced the
-            decision. And when the answer is that nobody let it through, that the
-            policy refused it outright and no approval request was ever sent, the
-            same trail says so with the number that refused it.
-          </p>
+          <div class="prose" data-reveal style="margin-top: 2.5rem">
+            <p>
+              What that buys you is a straight answer. Not "it looks like it was
+              approved" — a name, a timestamp, and the figure that produced the
+              decision. And when the answer is that nobody let it through, that
+              the policy refused it outright and no approval request was ever
+              sent, the same trail says so with the number that refused it.
+            </p>
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Trail — paper. The centrepiece.
+      <!-- ==========================================================
+           Trail — the centrepiece.
 
            The four blocks below are the real output of
            `npm run audit -- <actionId>`, generated by replaying the
@@ -358,453 +351,350 @@
            the same padding, the same colour mapping, the same
            util.inspect settings. The only thing added is the markup
            that carries the colour.
-           =========================================================== -->
-      <section
-        class="ground ground--paper section audit-trail"
-        id="trail"
-        aria-labelledby="trail-title"
-      >
-        <div class="container">
-          <header class="audit-trail__head">
-            <p class="label quiet">One action, end to end</p>
-            <h2 class="h2 audit-trail__title js-reveal" data-delay="80" id="trail-title">
+           ========================================================== -->
+      <section class="section" id="trail" aria-labelledby="trail-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>One action, end to end</span>
+            <h2 class="h1" id="trail-title" data-reveal data-reveal-delay="70">
               This is the artefact
             </h2>
-            <p class="body audit-trail__intro">
+            <p class="lede" data-reveal data-reveal-delay="130">
               Everything else Adeia does exists to produce this block. It is what
-              <span class="audit-code">npm run audit -- &lt;actionId&gt;</span> prints:
-              the action row first, then every event that was written against it, in
-              the order they were written. The time column is the UTC time of day cut
-              straight out of the stored ISO-8601 timestamp — the CLI does not shift
-              it into a local zone, so two people in two countries reading the same
-              trail read the same numbers.
+              <span class="lit">npm run audit -- &lt;actionId&gt;</span> prints:
+              the action row first, then every event that was written against
+              it, in the order they were written. The time column is the UTC
+              time of day cut straight out of the stored ISO-8601 timestamp —
+              the CLI does not shift it into a local zone, so two people in two
+              countries reading the same trail read the same numbers.
             </p>
           </header>
 
-          <div class="audit-trail__tabs" data-trail>
-            <div class="audit-trail__tablist" data-trail-tablist aria-label="Terminal paths">
-              <button
-                class="audit-trail__tab"
-                type="button"
-                id="trail-tab-executed"
-                data-trail-tab
-              >
+          <div class="rail" data-rail data-reveal>
+            <div class="rail__nav" role="tablist" aria-orientation="vertical">
+              <button class="rail__item" role="tab" id="t-auto" aria-controls="p-auto">
                 Auto-executed
               </button>
-              <button
-                class="audit-trail__tab"
-                type="button"
-                id="trail-tab-approved"
-                data-trail-tab
-                data-trail-default
-              >
+              <button class="rail__item" role="tab" id="t-approved" aria-controls="p-approved">
                 Approved by a human
               </button>
-              <button
-                class="audit-trail__tab"
-                type="button"
-                id="trail-tab-refused"
-                data-trail-tab
-              >
+              <button class="rail__item" role="tab" id="t-refused" aria-controls="p-refused">
                 Refused by a human
               </button>
-              <button
-                class="audit-trail__tab"
-                type="button"
-                id="trail-tab-denied"
-                data-trail-tab
-              >
+              <button class="rail__item" role="tab" id="t-policy-deny" aria-controls="p-policy-deny">
                 Denied by policy
               </button>
             </div>
 
-            <!-- 1 — auto-executed -->
-            <div class="audit-trail__panel" id="trail-panel-executed" data-trail-panel>
-              <p class="label audit-trail__path">
-                Inside the fence &middot; four events &middot; nobody was asked
-              </p>
-
-              <div class="audit-trail__terminal ground ground--ink">
-                <p class="audit-trail__prompt" aria-hidden="true">
-                  <span class="audit-trail__sigil">$</span> npm run audit --
-                  act_j4m0q7wc2rt8zb5nka13v
+            <div>
+              <!-- 1 — auto-executed -->
+              <div class="rail__panel" role="tabpanel" id="p-auto" aria-labelledby="t-auto">
+                <p class="card__label">
+                  Inside the fence · four events · nobody was asked
                 </p>
-                <div
-                  class="audit-trail__scroll"
-                  tabindex="0"
-                  role="group"
-                  aria-label="Audit trail for an auto-executed payment"
-                ><pre class="audit-trail__pre"><span class="t-bold">act_j4m0q7wc2rt8zb5nka13v</span>  payment  <span class="t-green">executed</span>
-  <span class="t-dim">params</span>  { amountCents: <span class="t-yellow">2500</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_cloudhost'</span>, description: <span class="t-green">'monthly hosting'</span> }
-  <span class="t-dim">policy</span>  within policy
-  <span class="t-dim">result</span>  { ledgerEntryId: <span class="t-green">'led_act_j4m0q7wc2rt8zb5nka13v'</span>, status: <span class="t-green">'recorded'</span>, settled: <span class="t-yellow">false</span>, amountCents: <span class="t-yellow">2500</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_cloudhost'</span> }
+                <h3 class="h2 rail__title">$25.00, straight through</h3>
 
-<span class="t-dim">14:02:09</span>  action.requested         { type: <span class="t-green">'payment'</span>, params: { amountCents: <span class="t-yellow">2500</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_cloudhost'</span>, description: <span class="t-green">'monthly hosting'</span> } }
-<span class="t-dim">14:02:09</span>  policy.evaluated         { decision: <span class="t-green">'allow'</span>, reason: <span class="t-green">'within policy'</span>, spentTodayCents: <span class="t-yellow">0</span>, policyId: <span class="t-green">'pol_5r8t1yc6ks0m3wq9dz47b'</span> }
-<span class="t-dim">14:02:09</span>  action.executing         { adapter: <span class="t-green">'ledger'</span> }
-<span class="t-dim">14:02:09</span>  <span class="t-green">action.executed        </span>  { result: { ledgerEntryId: <span class="t-green">'led_act_j4m0q7wc2rt8zb5nka13v'</span>, status: <span class="t-green">'recorded'</span>, settled: <span class="t-yellow">false</span>, amountCents: <span class="t-yellow">2500</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_cloudhost'</span> } }</pre></div>
+                <div class="pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">npm run audit -- act_j4m0q7wc2rt8zb5nka13v</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="out-dim">act_j4m0q7wc2rt8zb5nka13v</span>  payment  <span class="out-ok">executed</span>
+  params  { amountCents: <span class="tok-num">2500</span>, currency: <span class="tok-str">'usd'</span>, recipient: <span class="tok-str">'acct_cloudhost'</span> }
+  policy  within policy
+  result  { status: <span class="tok-str">'recorded'</span>, settled: <span class="tok-num">false</span>, amountCents: <span class="tok-num">2500</span> }
+
+<span class="out-dim">14:02:09</span>  action.requested    { type: <span class="tok-str">'payment'</span>, params: { … } }
+<span class="out-dim">14:02:09</span>  policy.evaluated    { decision: <span class="tok-str">'allow'</span>, reason: <span class="tok-str">'within policy'</span>, spentTodayCents: <span class="tok-num">0</span> }
+<span class="out-dim">14:02:09</span>  action.executing    { adapter: <span class="tok-str">'ledger'</span> }
+<span class="out-dim">14:02:09</span>  <mark>action.executed</mark>     { result: { status: <span class="tok-str">'recorded'</span>, settled: <span class="tok-num">false</span> } }</code></pre>
+                </div>
+
+                <p class="body rail__body">
+                  $25.00, under the $50.00 per-action limit, so the policy
+                  answered allow and the action went straight to its adapter. No
+                  email, no waiting, and the whole trail is four rows long. Note
+                  the result: <span class="lit">status: 'recorded'</span> and
+                  <span class="lit">settled: false</span>. The action completed;
+                  no money moved.
+                </p>
               </div>
 
-              <p class="body quiet audit-trail__gloss">
-                $25.00, under the $50.00 per-action limit, so the policy answered
-                allow and the action went straight to its adapter. No email, no
-                waiting, and the whole trail is four rows long. Note the result:
-                <span class="audit-code">status: 'recorded'</span> and
-                <span class="audit-code">settled: false</span>. The action completed;
-                no money moved.
-              </p>
-            </div>
-
-            <!-- 2 — approved by a human -->
-            <div class="audit-trail__panel" id="trail-panel-approved" data-trail-panel>
-              <p class="label audit-trail__path">
-                Over the limit &middot; seven events &middot; held for 95 seconds
-              </p>
-
-              <div class="audit-trail__terminal ground ground--ink">
-                <p class="audit-trail__prompt" aria-hidden="true">
-                  <span class="audit-trail__sigil">$</span> npm run audit --
-                  act_7h2vq9dk4m1x6ts0bz8ry
+              <!-- 2 — approved by a human -->
+              <div class="rail__panel" role="tabpanel" id="p-approved" aria-labelledby="t-approved" hidden>
+                <p class="card__label">
+                  Over the limit · seven events · held for 95 seconds
                 </p>
-                <div
-                  class="audit-trail__scroll"
-                  tabindex="0"
-                  role="group"
-                  aria-label="Audit trail for an over-limit payment a human approved"
-                ><pre class="audit-trail__pre"><span class="t-bold">act_7h2vq9dk4m1x6ts0bz8ry</span>  payment  <span class="t-green">executed</span>
-  <span class="t-dim">params</span>  { amountCents: <span class="t-yellow">50000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span>, description: <span class="t-green">'Q3 design work'</span> }
-  <span class="t-dim">policy</span>  amount 50000 exceeds per-action limit 5000
-  <span class="t-dim">result</span>  { ledgerEntryId: <span class="t-green">'led_act_7h2vq9dk4m1x6ts0bz8ry'</span>, status: <span class="t-green">'recorded'</span>, settled: <span class="t-yellow">false</span>, amountCents: <span class="t-yellow">50000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span> }
+                <h3 class="h2 rail__title">$500.00, and a person decided</h3>
 
-<span class="t-dim">14:02:11</span>  action.requested         { type: <span class="t-green">'payment'</span>, params: { amountCents: <span class="t-yellow">50000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span>, description: <span class="t-green">'Q3 design work'</span> } }
-<span class="t-dim">14:02:11</span>  policy.evaluated         { decision: <span class="t-green">'require_approval'</span>, reason: <span class="t-green">'amount 50000 exceeds per-action limit 5000'</span>, spentTodayCents: <span class="t-yellow">2500</span>, policyId: <span class="t-green">'pol_5r8t1yc6ks0m3wq9dz47b'</span> }
-<span class="t-dim">14:02:11</span>  <span class="t-yellow">action.pending_approval</span>  { reason: <span class="t-green">'amount 50000 exceeds per-action limit 5000'</span> }
-<span class="t-dim">14:02:12</span>  <span class="t-yellow">approval.sent          </span>  { to: <span class="t-green">'ops@example.com'</span>, expiresAt: <span class="t-green">'2026-08-11T14:02:12.086Z'</span> }
-<span class="t-dim">14:03:47</span>  <span class="t-green">approval.granted       </span>  { decidedBy: <span class="t-green">'ops@example.com'</span> }
-<span class="t-dim">14:03:47</span>  action.executing         { adapter: <span class="t-green">'ledger'</span> }
-<span class="t-dim">14:03:47</span>  <span class="t-green">action.executed        </span>  { result: { ledgerEntryId: <span class="t-green">'led_act_7h2vq9dk4m1x6ts0bz8ry'</span>, status: <span class="t-green">'recorded'</span>, settled: <span class="t-yellow">false</span>, amountCents: <span class="t-yellow">50000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span> } }</pre></div>
+                <div class="pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">npm run audit -- act_7h2vq9dk4m1x6ts0bz8ry</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="out-dim">act_7h2vq9dk4m1x6ts0bz8ry</span>  payment  <span class="out-ok">executed</span>
+  params  { amountCents: <span class="tok-num">50000</span>, currency: <span class="tok-str">'usd'</span>, recipient: <span class="tok-str">'acct_contractor'</span> }
+  policy  amount 50000 exceeds per-action limit 5000
+
+<span class="out-dim">14:02:11</span>  action.requested    { type: <span class="tok-str">'payment'</span>, params: { … } }
+<span class="out-dim">14:02:11</span>  policy.evaluated    { decision: <span class="tok-str">'require_approval'</span>, spentTodayCents: <span class="tok-num">2500</span> }
+<span class="out-dim">14:02:11</span>  <span class="out-hold">action.pending_approval</span>  { reason: <span class="tok-str">'amount 50000 exceeds per-action limit 5000'</span> }
+<span class="out-dim">14:02:12</span>  <span class="out-hold">approval.sent</span>       { to: <span class="tok-str">'ops@example.com'</span>, expiresAt: <span class="tok-str">'…T14:02:12.086Z'</span> }
+
+<span class="out-dim">                    ── a person is deciding ──</span>
+
+<span class="out-dim">14:03:47</span>  <span class="out-ok">approval.granted</span>    { decidedBy: <span class="tok-str">'ops@example.com'</span> }
+<span class="out-dim">14:03:47</span>  action.executing    { adapter: <span class="tok-str">'ledger'</span> }
+<span class="out-dim">14:03:47</span>  <mark>action.executed</mark>     { result: { status: <span class="tok-str">'recorded'</span>, settled: <span class="tok-num">false</span> } }</code></pre>
+                </div>
+
+                <p class="body rail__body">
+                  $500.00 against a $50.00 per-action limit. The policy said
+                  hold, the action stopped where it stood, and the notifier
+                  mailed a named address one second later. Nothing touched the
+                  adapter for the next ninety-five seconds. Read the gap between
+                  <span class="lit">approval.sent</span> at 14:02:12 and
+                  <span class="lit">approval.granted</span> at 14:03:47: that is
+                  a person reading an email and deciding, and the fact that
+                  <span class="lit">action.executing</span> comes after it and
+                  not before is the entire claim this product makes.
+                </p>
               </div>
 
-              <p class="body quiet audit-trail__gloss">
-                $500.00 against a $50.00 per-action limit. The policy said hold, the
-                action stopped where it stood, and the notifier mailed a named
-                address one second later. Nothing touched the adapter for the next
-                ninety-five seconds. Read the gap between
-                <span class="audit-code">approval.sent</span> at 14:02:12 and
-                <span class="audit-code">approval.granted</span> at 14:03:47: that is
-                a person reading an email and deciding, and the fact that
-                <span class="audit-code">action.executing</span> comes after it and
-                not before is the entire claim this product makes.
-              </p>
-            </div>
-
-            <!-- 3 — refused by a human -->
-            <div class="audit-trail__panel" id="trail-panel-refused" data-trail-panel>
-              <p class="label audit-trail__path">
-                Over the limit &middot; five events &middot; the adapter was never
-                reached
-              </p>
-
-              <div class="audit-trail__terminal ground ground--ink">
-                <p class="audit-trail__prompt" aria-hidden="true">
-                  <span class="audit-trail__sigil">$</span> npm run audit --
-                  act_8k3rq0vm6c2t9wz5nb1xd
+              <!-- 3 — refused by a human -->
+              <div class="rail__panel" role="tabpanel" id="p-refused" aria-labelledby="t-refused" hidden>
+                <p class="card__label">
+                  Over the limit · five events · the adapter was never reached
                 </p>
-                <div
-                  class="audit-trail__scroll"
-                  tabindex="0"
-                  role="group"
-                  aria-label="Audit trail for a payment a human refused"
-                ><pre class="audit-trail__pre"><span class="t-bold">act_8k3rq0vm6c2t9wz5nb1xd</span>  payment  <span class="t-red">denied</span>
-  <span class="t-dim">params</span>  { amountCents: <span class="t-yellow">90000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_newvendor'</span>, description: <span class="t-green">'design tooling licence'</span> }
-  <span class="t-dim">policy</span>  denied by ops@example.com
+                <h3 class="h2 rail__title">$900.00, and a person said no</h3>
 
-<span class="t-dim">14:11:30</span>  action.requested         { type: <span class="t-green">'payment'</span>, params: { amountCents: <span class="t-yellow">90000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_newvendor'</span>, description: <span class="t-green">'design tooling licence'</span> } }
-<span class="t-dim">14:11:30</span>  policy.evaluated         { decision: <span class="t-green">'require_approval'</span>, reason: <span class="t-green">'amount 90000 exceeds per-action limit 5000'</span>, spentTodayCents: <span class="t-yellow">52500</span>, policyId: <span class="t-green">'pol_5r8t1yc6ks0m3wq9dz47b'</span> }
-<span class="t-dim">14:11:30</span>  <span class="t-yellow">action.pending_approval</span>  { reason: <span class="t-green">'amount 90000 exceeds per-action limit 5000'</span> }
-<span class="t-dim">14:11:31</span>  <span class="t-yellow">approval.sent          </span>  { to: <span class="t-green">'ops@example.com'</span>, expiresAt: <span class="t-green">'2026-08-11T14:11:31.400Z'</span> }
-<span class="t-dim">14:14:06</span>  <span class="t-red">approval.denied        </span>  { decidedBy: <span class="t-green">'ops@example.com'</span> }</pre></div>
+                <div class="pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">npm run audit -- act_8k3rq0vm6c2t9wz5nb1xd</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="out-dim">act_8k3rq0vm6c2t9wz5nb1xd</span>  payment  <span class="out-hold">denied</span>
+  params  { amountCents: <span class="tok-num">90000</span>, currency: <span class="tok-str">'usd'</span>, recipient: <span class="tok-str">'acct_newvendor'</span> }
+  policy  denied by ops@example.com
+
+<span class="out-dim">14:11:30</span>  action.requested    { type: <span class="tok-str">'payment'</span>, params: { … } }
+<span class="out-dim">14:11:30</span>  policy.evaluated    { decision: <span class="tok-str">'require_approval'</span>, spentTodayCents: <span class="tok-num">52500</span> }
+<span class="out-dim">14:11:30</span>  <span class="out-hold">action.pending_approval</span>  { reason: <span class="tok-str">'amount 90000 exceeds per-action limit 5000'</span> }
+<span class="out-dim">14:11:31</span>  <span class="out-hold">approval.sent</span>       { to: <span class="tok-str">'ops@example.com'</span> }
+<span class="out-dim">14:14:06</span>  <mark>approval.denied</mark>     { decidedBy: <span class="tok-str">'ops@example.com'</span> }</code></pre>
+                </div>
+
+                <p class="body rail__body">
+                  $900.00 to a recipient nobody recognised. It cleared the
+                  $1,000.00 ceiling and the daily cap, so the policy asked
+                  rather than refused — and the human said no. There is no
+                  <span class="lit">action.executing</span> row, because there
+                  was no execution: the trail simply ends at the decision. The
+                  action row's policy line is rewritten to
+                  <span class="lit">denied by ops@example.com</span>, so the
+                  summary and the events agree about who stopped it.
+                </p>
               </div>
 
-              <p class="body quiet audit-trail__gloss">
-                $900.00 to a recipient nobody recognised. It cleared the $1,000.00
-                ceiling and the daily cap, so the policy asked rather than refused —
-                and the human said no. There is no
-                <span class="audit-code">action.executing</span> row, because there
-                was no execution: the trail simply ends at the decision. The action
-                row's policy line is rewritten to
-                <span class="audit-code">denied by ops@example.com</span>, so the
-                summary and the events agree about who stopped it.
-              </p>
-            </div>
-
-            <!-- 4 — denied by policy -->
-            <div class="audit-trail__panel" id="trail-panel-denied" data-trail-panel>
-              <p class="label audit-trail__path">
-                Past the ceiling &middot; three events &middot; no email was sent
-              </p>
-
-              <div class="audit-trail__terminal ground ground--ink">
-                <p class="audit-trail__prompt" aria-hidden="true">
-                  <span class="audit-trail__sigil">$</span> npm run audit --
-                  act_2c9wq5nk7b0m4rt1xz8dh
+              <!-- 4 — denied by policy -->
+              <div class="rail__panel" role="tabpanel" id="p-policy-deny" aria-labelledby="t-policy-deny" hidden>
+                <p class="card__label">
+                  Past the ceiling · three events · no email was sent
                 </p>
-                <div
-                  class="audit-trail__scroll"
-                  tabindex="0"
-                  role="group"
-                  aria-label="Audit trail for a payment the policy denied outright"
-                ><pre class="audit-trail__pre"><span class="t-bold">act_2c9wq5nk7b0m4rt1xz8dh</span>  payment  <span class="t-red">denied</span>
-  <span class="t-dim">params</span>  { amountCents: <span class="t-yellow">500000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span>, description: <span class="t-green">'annual retainer'</span> }
-  <span class="t-dim">policy</span>  amount 500000 exceeds hard maximum 100000
+                <h3 class="h2 rail__title">$5,000.00, and nobody was asked</h3>
 
-<span class="t-dim">14:05:02</span>  action.requested         { type: <span class="t-green">'payment'</span>, params: { amountCents: <span class="t-yellow">500000</span>, currency: <span class="t-green">'usd'</span>, recipient: <span class="t-green">'acct_contractor'</span>, description: <span class="t-green">'annual retainer'</span> } }
-<span class="t-dim">14:05:02</span>  policy.evaluated         { decision: <span class="t-green">'deny'</span>, reason: <span class="t-green">'amount 500000 exceeds hard maximum 100000'</span>, spentTodayCents: <span class="t-yellow">52500</span>, policyId: <span class="t-green">'pol_5r8t1yc6ks0m3wq9dz47b'</span> }
-<span class="t-dim">14:05:02</span>  <span class="t-red">action.denied          </span>  { reason: <span class="t-green">'amount 500000 exceeds hard maximum 100000'</span> }</pre></div>
+                <div class="pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">npm run audit -- act_2c9wq5nk7b0m4rt1xz8dh</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="out-dim">act_2c9wq5nk7b0m4rt1xz8dh</span>  payment  <span class="out-hold">denied</span>
+  params  { amountCents: <span class="tok-num">500000</span>, currency: <span class="tok-str">'usd'</span>, recipient: <span class="tok-str">'acct_contractor'</span> }
+  policy  amount 500000 exceeds hard maximum 100000
+
+<span class="out-dim">14:05:02</span>  action.requested    { type: <span class="tok-str">'payment'</span>, params: { … } }
+<span class="out-dim">14:05:02</span>  policy.evaluated    { decision: <span class="tok-str">'deny'</span>, spentTodayCents: <span class="tok-num">52500</span> }
+<span class="out-dim">14:05:02</span>  <mark>action.denied</mark>       { reason: <span class="tok-str">'amount 500000 exceeds hard maximum 100000'</span> }</code></pre>
+                </div>
+
+                <p class="body rail__body">
+                  $5,000.00 against a $1,000.00 hard ceiling. Three events, all
+                  inside the same millisecond, and no
+                  <span class="lit">approval.sent</span> anywhere in them —
+                  nobody was asked, because there is no button that lets a tired
+                  human wave this one through. The reason carries the figure
+                  that produced it, which is what lets the agent read the
+                  refusal, say it out loud to whoever asked, and stop rather
+                  than retry a call that will never pass.
+                </p>
               </div>
-
-              <p class="body quiet audit-trail__gloss">
-                $5,000.00 against a $1,000.00 hard ceiling. Three events, all inside
-                the same millisecond, and no
-                <span class="audit-code">approval.sent</span> anywhere in them —
-                nobody was asked, because there is no button that lets a tired human
-                wave this one through. The reason carries the figure that produced
-                it, which is what lets the agent read the refusal, say it out loud to
-                whoever asked, and stop rather than retry a call that will never
-                pass.
-              </p>
             </div>
           </div>
 
-          <p class="body quiet audit-trail__coda">
-            Two more terminal paths exist and print the same way. An adapter that
-            throws ends at <span class="audit-code">action.failed</span> with the
+          <div class="note note--flush" data-reveal>
+            Two more terminal paths exist and print the same way. An adapter
+            that throws ends at <span class="mono">action.failed</span> with the
             error code it raised, and an approval nobody answers ends at
-            <span class="audit-code">approval.expired</span> once the token's
-            twenty-four hours are up — which is what stops an ignored email leaving
-            an action pending forever and the SDK polling a status that will never
-            change.
-          </p>
+            <span class="mono">approval.expired</span> once the token's
+            twenty-four hours are up — which is what stops an ignored email
+            leaving an action pending forever and the SDK polling a status that
+            will never change.
+          </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Redaction — paper
-           =========================================================== -->
-      <section
-        class="ground ground--paper section audit-redaction"
-        id="redaction"
-        aria-labelledby="redaction-title"
-      >
-        <div class="container">
-          <header class="audit-redaction__head">
-            <p class="label quiet">Redaction</p>
-            <h2 class="h2 audit-redaction__title js-reveal" data-delay="80" id="redaction-title">
+      <!-- ==========================================================
+           Redaction
+           ========================================================== -->
+      <section class="section" id="redaction" aria-labelledby="redaction-title">
+        <div class="wrap">
+          <header class="head">
+            <span class="eyebrow" data-reveal>Redaction</span>
+            <h2 class="h1" id="redaction-title" data-reveal data-reveal-delay="70">
               Stripped as the row is written
             </h2>
           </header>
 
-          <div class="audit-redaction__grid">
-            <div class="audit-redaction__prose">
-              <p class="body audit-redaction__copy">
+          <div class="pair pair--wide">
+            <div class="prose" data-reveal>
+              <p>
                 One expression decides:
-                <span class="audit-code">/secret|key|token|password|authorization/i</span>,
-                tested against the key names in the data payload, not the values. A
-                match replaces the value with
-                <span class="audit-code">[redacted]</span> and leaves the key in
-                place, so the trail still shows that a field was there. It recurses
-                through nested objects and arrays, and stops at a depth limit rather
-                than following a cycle forever.
+                <span class="lit">/secret|key|token|password|authorization/i</span>,
+                tested against the key names in the data payload, not the
+                values. A match replaces the value with
+                <span class="lit">[redacted]</span> and leaves the key in place,
+                so the trail still shows that a field was there. It recurses
+                through nested objects and arrays, and stops at a depth limit
+                rather than following a cycle forever.
               </p>
-
-              <p class="body audit-redaction__copy">
-                It runs at write time. Redacting on read would be the easier change
-                and the wrong one: the secret would still be sitting in the database
-                file, and the file is the thing that leaves the building — copied to
-                a laptop, attached to a bug report, handed to whoever is debugging
-                this on Friday. An API response that hides a value the disk still
-                holds is a courtesy, not a control.
+              <p>
+                It runs at write time. Redacting on read would be the easier
+                change and the wrong one: the secret would still be sitting in
+                the database file, and the file is the thing that leaves the
+                building — copied to a laptop, attached to a bug report, handed
+                to whoever is debugging this on Friday. An API response that
+                hides a value the disk still holds is a courtesy, not a control.
               </p>
-
-              <p class="body audit-redaction__copy">
+              <p>
                 It over-catches on purpose.
-                <span class="audit-code">idempotencyKey</span> contains "key" and gets
+                <span class="lit">idempotencyKey</span> contains "key" and gets
                 redacted along with everything else, and that is fine — losing a
-                harmless field from a trail is a cosmetic problem, and the mistake in
-                the other direction is not.
+                harmless field from a trail is a cosmetic problem, and the
+                mistake in the other direction is not.
               </p>
-
-              <p class="body audit-redaction__copy audit-redaction__copy--mark">
-                Now the part that matters: this is a denylist, and denylists leak. It
-                catches key names it knows. It will not catch a live credential that
-                an agent pasted into a free-text
-                <span class="audit-code">description</span>, because the key is called
-                "description" and nothing about the value says otherwise. The real
-                defence is not putting secrets in there in the first place. Redaction
-                is the backstop, not the plan, and treating it as the plan is how a
-                key ends up in an append-only table that by design cannot be edited
-                to remove it.
+              <p>
+                Now the part that matters: <strong>this is a denylist, and
+                denylists leak.</strong> It catches key names it knows. It will
+                not catch a live credential that an agent pasted into a
+                free-text <span class="lit">description</span>, because the key
+                is called "description" and nothing about the value says
+                otherwise. The real defence is not putting secrets in there in
+                the first place. Redaction is the backstop, not the plan, and
+                treating it as the plan is how a key ends up in an append-only
+                table that by design cannot be edited to remove it.
               </p>
             </div>
 
-            <figure class="audit-redaction__figure">
-              <figcaption class="label audit-redaction__figcaption">
-                What the caller passes
-              </figcaption>
-              <div
-                class="audit-redaction__code ground ground--ink"
-                tabindex="0"
-                role="group"
-                aria-label="Example call to appendAudit carrying a secret"
-              ><pre class="audit-redaction__pre">appendAudit(db, {
+            <div data-reveal data-reveal-delay="90">
+              <div class="pane">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">what the caller passes</span>
+                </div>
+                <pre class="pane__body"><code>appendAudit(db, {
   projectId,
-  event: <span class="t-green">"policy.evaluated"</span>,
+  event: <span class="tok-str">"policy.evaluated"</span>,
   data: {
-    apiKey: <span class="t-green">"adeia_sk_live_9f3k…"</span>,
-    amountCents: <span class="t-yellow">100</span>,
+    apiKey: <span class="tok-str">"adeia_sk_live_9f3k…"</span>,
+    amountCents: <span class="tok-num">100</span>,
   },
-});</pre></div>
+});</code></pre>
+              </div>
 
-              <figcaption class="label audit-redaction__figcaption">
-                What the row holds
-              </figcaption>
-              <div
-                class="audit-redaction__code ground ground--ink"
-                tabindex="0"
-                role="group"
-                aria-label="The stored audit row after redaction"
-              ><pre class="audit-redaction__pre">{<span class="t-green">"apiKey"</span>:<span class="t-green">"[redacted]"</span>,<span class="t-green">"amountCents"</span>:<span class="t-yellow">100</span>}</pre></div>
+              <div class="pane" style="margin-top: 1rem">
+                <div class="pane__bar">
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__dot"></span>
+                  <span class="pane__name">what the row holds</span>
+                </div>
+                <pre class="pane__body"><code>{<span class="tok-key">"apiKey"</span>:<mark>"[redacted]"</mark>,<span class="tok-key">"amountCents"</span>:<span class="tok-num">100</span>}</code></pre>
+              </div>
 
-              <p class="body quiet audit-redaction__figurenote">
+              <div class="note note--flush">
                 A test asserts exactly this: that the string
-                <span class="audit-code">amountCents</span> is present in the stored
+                <span class="mono">amountCents</span> is present in the stored
                 bytes and the secret is not.
-              </p>
-            </figure>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ===========================================================
-           Closing — forest
-           =========================================================== -->
-      <section class="ground ground--forest audit-closing" id="contact">
-        <div class="container audit-closing__inner">
-          <p class="label quiet audit-closing__eyebrow">Where this sits</p>
+      <!-- ==========================================================
+           Closing
+           ========================================================== -->
+      <section class="section closing" aria-labelledby="closing-title">
+        <div class="wrap">
+          <div class="head">
+            <span class="eyebrow" data-reveal>Where this sits</span>
+            <h2 class="h1" id="closing-title" data-reveal data-reveal-delay="70">
+              The record is the product
+            </h2>
+            <p class="lede" data-reveal data-reveal-delay="130">
+              A policy engine you cannot audit is a promise. The trail is what
+              turns it into something a finance team, a security review or a
+              colleague eight months from now can check for themselves — without
+              asking anyone to remember what happened.
+            </p>
+          </div>
 
-          <h2 class="display audit-closing__title">The record is the product</h2>
-
-          <p class="lead audit-closing__body">
-            A policy engine you cannot audit is a promise. The trail is what turns it
-            into something a finance team, a security review or a colleague eight
-            months from now can check for themselves — without asking anyone to
-            remember what happened.
-          </p>
-
-          <p class="audit-closing__cta">
-            <a class="plus-link" href="/#proof">
-              <span class="plus-link__box" aria-hidden="true">+</span>
-              <span>SEE THE LEDGER</span>
-            </a>
-          </p>
+          <a class="next" href="/proof" data-reveal data-magnet>
+            <span>
+              <span class="next__label">Next</span>
+              <span class="h3">What is actually proven</span>
+            </span>
+            <span class="btn btn--ghost">Read the proof</span>
+          </a>
         </div>
       </section>
     </main>
 
-    <footer class="ground ground--forest site-footer">
-      <div class="container">
-        <div class="site-footer__inner">
-          <nav class="site-footer__nav" aria-label="Documentation">
-            <a class="site-footer__link" href="/quickstart">Quickstart</a>
-            <a class="site-footer__link" href="/sdk">SDK</a>
-            <a class="site-footer__link" href="/policy">Policy</a>
-            <a class="site-footer__link" href="/audit" aria-current="page">Audit</a>
-          </nav>
-
-          <p class="label site-footer__meta">
-            Adeia &middot; agent execution &amp; permissions layer &middot; 2026
-          </p>
-
-          <p class="site-footer__note">
-            No payment processor is attached. Payments are authorised and recorded;
-            nothing settles.
-          </p>
-        </div>
+    <footer class="foot">
+      <div class="wrap foot__inner">
+        <a class="mast__mark" href="/">
+          <span>adeia</span>
+          <span>fence</span>
+        </a>
+        <nav class="foot__nav" aria-label="Pages">
+          <a href="/capability">Capability</a>
+          <a href="/approach">Approach</a>
+          <a href="/proof">Proof</a>
+          <a href="/policy">Policy</a>
+          <a href="/quickstart">Quickstart</a>
+          <a href="/sdk">SDK</a>
+          <a href="/audit">Audit</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <p class="mono foot__note">
+          Source available under BSL 1.1 ·
+          <span id="visit-count" class="foot__count"></span>
+        </p>
       </div>
     </footer>
 
-    <script src="motion.js"></script>
-    <script src="nav.js"></script>
-
-    <script>
-      /* ---------------------------------------------------------------
-         The trail's terminal-path switcher.
-
-         Inline because this page owns two files and neither is a script.
-         It is progressive enhancement, not scaffolding: the markup ships
-         with all four trails visible and the tab strip hidden by CSS.
-         This adds the ARIA, the handlers and the roving tabindex, then
-         sets data-enhanced, which is what reveals the strip and lets the
-         [hidden] panels actually hide. If the script never runs, the page
-         is four labelled trails stacked in order — longer, but complete.
-         --------------------------------------------------------------- */
-      (function () {
-        "use strict";
-
-        var group = document.querySelector("[data-trail]");
-        if (!group) return;
-
-        var tablist = group.querySelector("[data-trail-tablist]");
-        var tabs = Array.prototype.slice.call(group.querySelectorAll("[data-trail-tab]"));
-        var panels = Array.prototype.slice.call(group.querySelectorAll("[data-trail-panel]"));
-        if (!tablist || tabs.length === 0 || tabs.length !== panels.length) return;
-
-        function select(index, moveFocus) {
-          for (var i = 0; i < tabs.length; i++) {
-            var on = i === index;
-            tabs[i].setAttribute("aria-selected", on ? "true" : "false");
-            tabs[i].tabIndex = on ? 0 : -1;
-            panels[i].hidden = !on;
-          }
-          if (moveFocus) tabs[index].focus();
-        }
-
-        tablist.setAttribute("role", "tablist");
-
-        var initial = 0;
-
-        tabs.forEach(function (tab, i) {
-          if (tab.hasAttribute("data-trail-default")) initial = i;
-
-          tab.setAttribute("role", "tab");
-          tab.setAttribute("aria-controls", panels[i].id);
-          panels[i].setAttribute("role", "tabpanel");
-          panels[i].setAttribute("aria-labelledby", tab.id);
-
-          tab.addEventListener("click", function () {
-            select(i, false);
-          });
-
-          tab.addEventListener("keydown", function (e) {
-            var next = null;
-            if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-              next = (i + 1) % tabs.length;
-            } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-              next = (i - 1 + tabs.length) % tabs.length;
-            } else if (e.key === "Home") {
-              next = 0;
-            } else if (e.key === "End") {
-              next = tabs.length - 1;
-            }
-            if (next === null) return;
-            e.preventDefault();
-            select(next, true);
-          });
-        });
-
-        group.setAttribute("data-enhanced", "true");
-        select(initial, false);
-      })();
-    </script>
+    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/motion.js?v=1787081142085" type="module"></script>
+    <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>
