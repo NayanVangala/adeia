@@ -144,7 +144,11 @@ fly secrets set \
   SMTP_PASSWORD="your-16-char-app-password" \
   APPROVAL_FROM_EMAIL="hello@adeia.xyz" \
   APPROVER_EMAIL="the-address-that-approves@example.com" \
-  ADEIA_VISIT_SALT="$(openssl rand -hex 32)"
+  ADEIA_VISIT_SALT="$(openssl rand -hex 32)" \
+  GITHUB_CLIENT_ID="from-your-oauth-app" \
+  GITHUB_CLIENT_SECRET="from-your-oauth-app" \
+  GITHUB_REDIRECT_URI="https://adeia.xyz/auth/github/callback" \
+  ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
 `SMTP_PASSWORD` is a Google **app password**, not your account password —
@@ -155,6 +159,25 @@ deployment rather than reusing the one in your local `.env`.
 rainbow table away from an IP address. Generate it, never ship the
 development default, and note that changing it later resets deduplication:
 today's returning visitors count once more, nothing else moves.
+
+The three `GITHUB_*` values come from a GitHub OAuth app and are what make
+the dashboard work. A **GitHub OAuth app holds exactly one callback URL**, so
+the app you registered against `http://localhost:3000/...` cannot also serve
+production: register a second app for the deployed site, and keep the local
+one for development. `GITHUB_REDIRECT_URI` must match that app's callback
+character for character, this host included — GitHub refuses the sign-in on
+any difference, including a trailing slash.
+
+Leave all three unset and the server still boots. The dashboard then serves a
+page explaining how to configure sign-in rather than a login button that
+cannot work, and every other part of Adeia behaves exactly as it does with
+them set. Sign-in is a feature, not a dependency of the fence.
+
+`ANTHROPIC_API_KEY` powers the risk classifier. Leave it unset and the server
+falls back to a stub that **refuses every classification**, sending those
+actions to a person instead. That is the deliberate direction to fail in: a
+missing key must never quietly widen what an agent may do unattended. The
+boot line says which one is live, so you never have to guess.
 
 ```bash
 fly deploy
