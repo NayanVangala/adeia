@@ -193,8 +193,13 @@ If you came from Path A, first delete the Pages custom domain for
 adeia.xyz — two things cannot answer for the same hostname.
 
 ```bash
-fly ips allocate-v4 && fly ips allocate-v6 && fly ips list
+fly ips allocate-v4 --shared && fly ips allocate-v6 && fly ips list
 ```
+
+`--shared` matters. A dedicated IPv4 is billed monthly; a shared one costs
+nothing and is enough for anything reached by hostname over HTTP, which is
+all of this. Drop the flag only if you later need something that must own
+its address outright, like sending mail directly from the machine.
 
 In Cloudflare DNS, using the addresses `fly ips list` printed:
 
