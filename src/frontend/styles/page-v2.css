@@ -555,3 +555,73 @@
     min-width: 34rem;
   }
 }
+
+/* ---------------------------------------------------------------
+   The fence.
+
+   The last thing on the page, and the only interactive picture on it.
+   The canvas is a backdrop the closing headline stands in front of, so
+   it takes no pointer events and carries no meaning a screen reader
+   needs — fence.js draws the argument the copy above it already makes.
+   --------------------------------------------------------------- */
+
+.closing--fence {
+  /* Short of a full viewport on purpose: the section plus the footer
+     under it has to fit on one screen, or scrolling to the very bottom
+     — which is what people do — clips the headline off the top and
+     leaves the fence with nothing to be the closing image of. */
+  min-height: 84svh;
+  /* Ranged from the top rather than centred. Centring inside a section
+     with a bottom padding this large pushes the headline up under the
+     masthead, which is where the first attempt put it. */
+  padding-block: clamp(5.5rem, 13vh, 8.5rem) clamp(11rem, 26vh, 18rem);
+}
+
+.fence {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 0;
+  width: 100%;
+  /* Tall enough that the strokes have somewhere to grow from, short
+     enough that the headline is never inside the field. */
+  height: min(52%, 26rem);
+  pointer-events: none;
+}
+
+/* The closing orb sits behind the fence rather than over it, so the
+   strokes read as standing in front of a light rather than floating in
+   a haze. It is pulled down and dimmed to make room. */
+.closing--fence::before {
+  bottom: -76%;
+  opacity: 0.34;
+}
+
+.closing--fence .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* A line of type under the fence, naming what it is. Without it the
+   picture is decoration; with it, it is the last sentence of the
+   argument. */
+.fence__note {
+  margin-top: clamp(1.75rem, 4vh, 2.5rem);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* Reads over the top of the fence, so it needs more ink than the
+     --faint the other small print gets. */
+  color: var(--muted);
+}
+
+@media (max-width: 48rem) {
+  .closing--fence {
+    min-height: auto;
+    padding-block: clamp(4rem, 10vh, 7rem) clamp(12rem, 30vh, 18rem);
+  }
+
+  .fence {
+    height: min(52%, 18rem);
+  }
+}

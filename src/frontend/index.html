@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787033624166" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787118890441" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
@@ -569,7 +569,11 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       <!-- ==========================================================
            Closing
            ========================================================== -->
-      <section class="section closing" aria-labelledby="closing-title">
+      <section class="section closing closing--fence" aria-labelledby="closing-title">
+        <!-- Drawn by fence.js. Decorative: the copy above says what it
+             means, so there is nothing here for a screen reader. -->
+        <canvas class="fence" data-fence aria-hidden="true"></canvas>
+
         <div class="wrap">
           <div class="section-head">
             <h2 class="h1" id="closing-title" data-reveal>
@@ -586,6 +590,10 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
                 >Read the quickstart</a
               >
             </div>
+
+            <p class="fence__note" data-reveal data-reveal-delay="240">
+              push it — it bends, it warms, it holds
+            </p>
           </div>
         </div>
       </section>
@@ -616,6 +624,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
 
     <script src="/cursor.js?v=1787081002123" type="module"></script>
     <script src="/motion.js?v=1787081142085" type="module"></script>
+    <script src="/fence.js?v=1787119030295" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>
