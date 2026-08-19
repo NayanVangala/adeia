@@ -28,6 +28,12 @@ function cursor() {
   point.className = "cursor";
   const ring = document.createElement("div");
   ring.className = "cursor-ring";
+  /* The visible square lives in a child. The anchor carries the position
+     and nothing else, so a state that rotates the square cannot rotate
+     where it is standing — see the note in cursor.css. */
+  const ringBox = document.createElement("div");
+  ringBox.className = "cursor-ring__box";
+  ring.append(ringBox);
   document.body.append(ring, point);
 
   let px = window.innerWidth / 2;

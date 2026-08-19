@@ -34,11 +34,30 @@
   z-index: 9999;
   pointer-events: none;
   will-change: transform;
-  /* Positioned entirely from JS; these are the resting values so the
-     first paint does not flash at the origin. */
-  translate: -50% -50%;
   opacity: 0;
   transition: opacity var(--quick) var(--ease-cursor);
+}
+
+/* The point carries its own centring, because nothing ever rotates it
+   and two translations compose in any order. */
+.cursor {
+  translate: -50% -50%;
+}
+
+/* The ring does not. It is a bare positioning anchor with no size and
+   no transform of its own beyond the one JS writes each frame, and the
+   square that you actually see is the child.
+
+   The split is not tidiness. CSS composes the individual properties in
+   a fixed order — translate, then rotate, then scale, then transform —
+   so a `rotate: 45deg` on the same element as a JS-written
+   `transform: translate(x, y)` rotates the position itself, and the
+   ring flies off to one wrong spot on screen the moment the pointer is
+   over anything clickable. Keeping the rotation on a child that carries
+   no positioning is what makes the two independent. */
+.cursor-ring {
+  width: 0;
+  height: 0;
 }
 
 .has-cursor .cursor,
@@ -55,12 +74,18 @@
   border-radius: 1px;
 }
 
-/* The ring. Outlined, larger, late. */
-.cursor-ring {
+/* The ring itself. Outlined, larger, late. Centred on its anchor by its
+   own `translate`, which composes before `rotate` and therefore rotates
+   about its own middle — which is what you want. */
+.cursor-ring__box {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 34px;
   height: 34px;
   border: 1px solid color-mix(in srgb, var(--paper) 45%, transparent);
   border-radius: 4px;
+  translate: -50% -50%;
   transition:
     width var(--quick) var(--ease-cursor),
     height var(--quick) var(--ease-cursor),
@@ -73,7 +98,7 @@
 /* Over something clickable: the ring opens up, takes the warm end of
    the gradient, and turns 45° so the state change is legible in shape
    as well as colour — not everyone reads the colour. */
-.cursor-ring.is-hot {
+.cursor-ring.is-hot .cursor-ring__box {
   width: 52px;
   height: 52px;
   border-color: var(--warm);
@@ -83,18 +108,18 @@
 
 /* Over the classifier's material, it takes the cold end instead. Same
    distinction the rest of the interface makes. */
-.cursor-ring.is-cold {
+.cursor-ring.is-cold .cursor-ring__box {
   border-color: var(--cold);
 }
 
 /* Pressed. */
-.cursor-ring.is-down {
+.cursor-ring.is-down .cursor-ring__box {
   width: 26px;
   height: 26px;
 }
 
 /* Over text worth reading, it becomes a thin bar rather than a box. */
-.cursor-ring.is-text {
+.cursor-ring.is-text .cursor-ring__box {
   width: 2px;
   height: 26px;
   border-radius: 1px;
