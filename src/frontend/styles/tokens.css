@@ -1,13 +1,18 @@
 /* ---------------------------------------------------------------
    Adeia — design tokens
 
-   Near-black field, one gradient, two marks.
+   Warm ink, bone, and one lamp.
 
-   The gradient is not decoration. It runs cold to warm — cyan through
-   violet to rose — and that is the product's axis: cold is what a
-   machine decided, warm is what a person decided. Every place the two
-   appear apart in the interface, they are pulled from these same two
-   ends.
+   The field is a warm near-black rather than a blue one, the ink is
+   bone rather than white, and there is no violet or magenta anywhere.
+   That is deliberate: near-black plus a cyan-to-magenta gradient is the
+   house style of every generated landing page of the last two years,
+   and a product about money and records has no business wearing it.
+
+   The gradient still runs cold to warm, because that axis is the
+   product: cold is what a machine decided, warm is what a person
+   decided. It just runs steel to amber to rust now — one family, five
+   stops, no rainbow.
 
    Every pairing below states its measured contrast. Nothing is chosen
    for looking right on one monitor.
@@ -30,22 +35,26 @@
 }
 
 :root {
-  /* ---- the field ---- */
-  --black: #08080a;
-  --near: #0d0d10;
-  --raised: #131318;
-  --lifted: #1a1a21;
-  --hair: #232329;
-  --hair-lit: #33333d;
+  /* ---- the field ----
+     Warm blacks. Every one of these has more red than blue in it, which
+     is what stops the page reading as the usual blue-black slab. */
+  --black: #0b0a09;
+  --near: #121110;
+  --raised: #1a1815;
+  --lifted: #232019;
+  --hair: #2c2823;
+  --hair-lit: #3f3931;
 
   /* ---- the gradient, as stops ----
      Named by temperature rather than hue, so the meaning survives a
-     future palette change. */
-  --cold: #4fd1c5;
-  --cool: #5b9be8;
-  --mid: #9b7bd4;
-  --warm: #e0679f;
-  --hot: #f2568c;
+     future palette change — which is exactly what happened to the last
+     one. Steel, sand, amber, copper, rust: one family, and the coldest
+     stop is still recognisably not a warm one. */
+  --cold: #8fa9bb;
+  --cool: #b9ae90;
+  --mid: #e5a44b;
+  --warm: #d97742;
+  --hot: #d15f3f;
 
   /* The gradient itself, reused everywhere so it cannot drift. */
   --sweep: linear-gradient(
@@ -58,31 +67,35 @@
   );
 
   /* ---- the two marks ----
-     Warm is a person: approvals, your decisions, the primary path.
-     --black on --warm is 8.9:1.
-     Cold is a model: classifier verdicts, anything judged not decided.
-     --cold on --black is 10.6:1. */
-  --person: var(--warm);
-  --machine: var(--cold);
+     Warm is a person: approvals, your decisions, the primary path. An
+     amber lamp, because the thing it marks is somebody being woken at
+     2am. --person on --black is 9.2:1, and --black on --person is the
+     same, so it works as ink or as ground.
+     Cold is a model: classifier verdicts, anything judged rather than
+     decided. --machine on --black is 8.1:1. */
+  --person: #e5a44b;
+  --machine: #8fa9bb;
 
   /* ---- outcomes ----
-     Fixed pairs. A pill paints its own ground, so it states its own ink
-     rather than inheriting one that flips. */
-  --ran: #cfe8d8;
-  --ran-ink: #123024;
-  --held: #f3e3c6;
-  --held-ink: #4d3204;
-  --refused: #f2d7d4;
-  --refused-ink: #551a14;
-  --idle: #d8d8de;
-  --idle-ink: #26262e;
+     Fixed pairs, warmed to the new field. A pill paints its own ground,
+     so it states its own ink rather than inheriting one that flips. */
+  --ran: #d8e3c8;
+  --ran-ink: #263118;
+  --held: #f2e0bd;
+  --held-ink: #4a3308;
+  --refused: #ecd6cd;
+  --refused-ink: #4f2418;
+  --idle: #ded8cf;
+  --idle-ink: #2b2721;
 
   /* ---- inks ----
-     --paper on --black is 18.4:1. --muted is 7.4:1. --faint is 4.8:1,
-     so 16px and up only, never small print. */
-  --paper: #f4f4f6;
-  --muted: #a6a6b4;
-  --faint: #6e6e7e;
+     Bone rather than white: on a warm ground, a true white reads as a
+     hole punched in the page. --paper on --black is 17.4:1, --muted is
+     7.8:1, --faint is 5.1:1 — which is a full step better than the
+     --faint this palette replaced, and it is used at 11px. */
+  --paper: #f5f0e8;
+  --muted: #aaa196;
+  --faint: #8a8078;
 
   /* ---- type ----
      Geist, not Inter. Both are geometric grotesks, but Geist has a

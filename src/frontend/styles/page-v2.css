@@ -444,12 +444,15 @@
   font-style: italic;
 }
 
-/* Terminal output states, matching the pills elsewhere. */
+/* Terminal output states, matching the pills elsewhere. A sage that
+   belongs to the same warm family as --ran rather than the cyan-green a
+   terminal usually reaches for, and the person's own amber for the one
+   that means somebody is being waited on. */
 .out-ok {
-  color: #7fd4a0;
+  color: #b5c9a0;
 }
 .out-hold {
-  color: #e8c07a;
+  color: var(--person);
 }
 .out-model {
   color: var(--cold);
