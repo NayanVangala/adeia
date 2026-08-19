@@ -111,8 +111,26 @@ function localSheen() {
       "pointermove",
       (event) => {
         const rect = el.getBoundingClientRect();
-        el.style.setProperty("--mx", `${((event.clientX - rect.left) / rect.width) * 100}%`);
-        el.style.setProperty("--my", `${((event.clientY - rect.top) / rect.height) * 100}%`);
+        const fx = (event.clientX - rect.left) / rect.width;
+        const fy = (event.clientY - rect.top) / rect.height;
+
+        /* 0..100% for the wash, which is a position on the card. */
+        el.style.setProperty("--mx", `${fx * 100}%`);
+        el.style.setProperty("--my", `${fy * 100}%`);
+        /* -1..1 from the middle for the lean, which is a direction. */
+        el.style.setProperty("--tx", (fx * 2 - 1).toFixed(3));
+        el.style.setProperty("--ty", (fy * 2 - 1).toFixed(3));
+      },
+      { passive: true },
+    );
+
+    /* Back to flat on the way out, or the card keeps whatever angle the
+       pointer left it at. */
+    el.addEventListener(
+      "pointerleave",
+      () => {
+        el.style.setProperty("--tx", "0");
+        el.style.setProperty("--ty", "0");
       },
       { passive: true },
     );

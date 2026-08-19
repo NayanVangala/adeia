@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787119634741" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787120538891" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
 
@@ -151,6 +151,24 @@
                 <li>Injected text points a call at a host you never approved.</li>
                 <li>Nothing is written down, so nobody can say what happened.</li>
               </ul>
+
+              <!-- The same retry loop, run against both halves. The
+                   figures here are the seed policy's, and the end state
+                   is written into the markup so this is not blank
+                   without JavaScript. -->
+              <div class="burn" data-burn data-burn-state-name="spent">
+                <div class="burn__row">
+                  <span class="burn__label">Budget left</span>
+                  <span class="burn__figure" data-burn-figure>$0.00</span>
+                </div>
+                <div class="burn__track">
+                  <span class="burn__fill" data-burn-fill style="width: 0%"></span>
+                </div>
+                <p class="burn__state">
+                  <span data-burn-count>9</span> calls ·
+                  <span data-burn-state>budget gone, and nobody was asked</span>
+                </p>
+              </div>
             </div>
             <div class="split__half split__half--lit" data-reveal data-reveal-delay="90">
               <p class="mono split__label">With one</p>
@@ -160,6 +178,20 @@
                 <li>Private addresses are blocked at three separate layers.</li>
                 <li>Every decision is in an append-only trail, with its reason.</li>
               </ul>
+
+              <div class="burn" data-burn data-burn-fenced data-burn-state-name="held">
+                <div class="burn__row">
+                  <span class="burn__label">Budget left</span>
+                  <span class="burn__figure" data-burn-figure>$2,000.00</span>
+                </div>
+                <div class="burn__track">
+                  <span class="burn__fill" data-burn-fill style="width: 100%"></span>
+                </div>
+                <p class="burn__state">
+                  <span data-burn-count>1</span> call ·
+                  <span data-burn-state>held at $50.00 — waiting on a person</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -345,21 +377,26 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
                 <span class="pane__dot"></span>
                 <span class="pane__name">npm run demo</span>
               </div>
-              <pre class="pane__body"><code><span class="out-dim">the agent reads the repo</span>
-<span class="tok-key">GET</span> api.github.com/repos/…
-<span class="out-ok">✓  executed</span>
-
-<span class="out-dim">the agent files an issue</span>
-<span class="tok-key">POST</span> api.github.com/…/issues
-<span class="out-model">⚖  model: creates an ordinary issue,
-   easily noticed and reversible</span>
-<span class="out-ok">✓  executed</span>
-
-<span class="out-dim">the agent tries to delete a DNS record</span>
-<span class="tok-key">DELETE</span> api.cloudflare.com/…
-<span class="out-hold">⏸  waiting on a human</span>
-
-<mark>Nothing has been sent.</mark></code></pre>
+              <!-- Replayed line by line by scenes.js once it is scrolled
+                   into view. Every line is in the markup, so with no
+                   JavaScript this is the finished transcript and nothing
+                   is missing — the script only chooses when each one
+                   appears. -->
+              <pre class="pane__body" data-replay><code><span class="tl out-dim">the agent reads the repo</span>
+<span class="tl" data-in="140"><span class="tok-key">GET</span> api.github.com/repos/…</span>
+<span class="tl out-ok" data-in="420">✓  executed</span>
+<span class="tl" data-in="120"> </span>
+<span class="tl out-dim" data-in="200">the agent files an issue</span>
+<span class="tl" data-in="140"><span class="tok-key">POST</span> api.github.com/…/issues</span>
+<span class="tl out-model" data-in="700">⚖  model: creates an ordinary issue,</span>
+<span class="tl out-model" data-in="90">   easily noticed and reversible</span>
+<span class="tl out-ok" data-in="260">✓  executed</span>
+<span class="tl" data-in="120"> </span>
+<span class="tl out-dim" data-in="200">the agent tries to delete a DNS record</span>
+<span class="tl" data-in="140"><span class="tok-key">DELETE</span> api.cloudflare.com/…</span>
+<span class="tl out-hold" data-in="520" data-hold>⏸  waiting on a human</span>
+<span class="tl" data-in="2200"> </span>
+<span class="tl" data-in="0"><mark>Nothing has been sent.</mark></span></code></pre>
             </div>
           </div>
 
@@ -713,7 +750,8 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       </div>
     </footer>
 
-    <script src="/cursor.js?v=1787081002123" type="module"></script>
+    <script src="/cursor.js?v=1787120388225" type="module"></script>
+    <script src="/scenes.js?v=1787120328375" type="module"></script>
     <script src="/motion.js?v=1787119962681" type="module"></script>
     <script src="/fence.js?v=1787119420453" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>

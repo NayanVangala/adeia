@@ -779,3 +779,185 @@
   text-transform: uppercase;
   color: var(--zone);
 }
+
+/* ---------------------------------------------------------------
+   The terminal replay.
+
+   Every line is in the markup. While the script is playing, the ones it
+   has not reached yet are hidden; when it finishes, or if it never runs
+   at all, they are simply visible — so no-JS and reduced-motion get the
+   finished transcript rather than an empty pane.
+   --------------------------------------------------------------- */
+
+.pane__body .tl {
+  display: block;
+  min-height: 1.75em;
+}
+
+[data-replaying] .tl:not([data-shown]) {
+  visibility: hidden;
+}
+
+/* The caret sits after the last line the replay has reached — the last
+   shown line that is not followed by another shown one. Decorative, so
+   a browser without :has() simply gets no caret. */
+[data-replaying] .tl[data-shown]:not(:has(+ .tl[data-shown]))::after {
+  content: "▍";
+  color: var(--warm);
+  animation: caret 1s steps(2) infinite;
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Waiting on a person: the whole pane breathes while nothing happens,
+   which is the one moment in the demo where nothing happening is the
+   thing being demonstrated. */
+[data-held] {
+  animation: held-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes held-breathe {
+  50% {
+    background: color-mix(in srgb, var(--held) 5%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-replaying] .tl:not([data-shown]) {
+    visibility: visible;
+  }
+  [data-held] {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   The diagram's traveller.
+   --------------------------------------------------------------- */
+
+.flow__dot {
+  fill: var(--paper);
+  filter: drop-shadow(0 0 6px var(--warm));
+  transition: opacity var(--quick) var(--ease-cursor);
+}
+
+/* A node the action has reached. */
+.flow__node.is-lit {
+  stroke: var(--paper);
+  fill: var(--lifted);
+  transition:
+    stroke var(--mid-dur) var(--ease),
+    fill var(--mid-dur) var(--ease);
+}
+
+.flow__node--warm.is-lit {
+  stroke: var(--warm);
+}
+
+.flow__node--cold.is-lit {
+  stroke: var(--cold);
+}
+
+/* ---------------------------------------------------------------
+   The budget meters.
+
+   Same starting figure on both sides, same retry loop. One empties;
+   the other never spends anything, because the first call is already
+   over the per-action limit and the fence answers before the money
+   moves.
+   --------------------------------------------------------------- */
+
+.burn {
+  margin-top: 1.75rem;
+  padding-top: 1.375rem;
+  border-top: 1px solid var(--hair);
+}
+
+.burn__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.625rem;
+}
+
+.burn__label {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.burn__figure {
+  font-family: var(--mono);
+  font-size: 1.0625rem;
+  letter-spacing: -0.02em;
+  color: var(--burn, var(--paper));
+  font-variant-numeric: tabular-nums;
+}
+
+.burn__track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--lifted);
+  overflow: hidden;
+}
+
+.burn__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--burn, var(--muted));
+  transition: width 180ms linear;
+}
+
+.burn__state {
+  margin-top: 0.625rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--faint);
+}
+
+/* Draining is grey and going out, because nobody decided anything — it
+   simply ran out. --refused is a pill ground meant to carry dark ink,
+   and on this field it came out brighter than the fenced meter beside
+   it, which put the emphasis on exactly the wrong half. Held is the
+   person's warm, because a person is what it is waiting for. */
+[data-burn-state-name="spent"] {
+  --burn: var(--muted);
+}
+
+[data-burn-state-name="held"] {
+  --burn: var(--warm);
+}
+
+[data-burn-state-name="held"] .burn__state {
+  color: color-mix(in srgb, var(--warm) 75%, var(--muted));
+}
+
+/* ---------------------------------------------------------------
+   Cards lean toward the pointer.
+
+   --tx/--ty come from cursor.js, in the range -1..1 from the middle of
+   the card. Four degrees: enough that the page has a surface, not
+   enough to make anyone chase a moving target.
+   --------------------------------------------------------------- */
+
+.card,
+.bento__cell {
+  transform: perspective(800px) rotateX(calc(var(--ty, 0) * -4deg))
+    rotateY(calc(var(--tx, 0) * 4deg));
+  transition: transform var(--mid-dur) var(--ease-cursor);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .bento__cell {
+    transform: none;
+  }
+}
