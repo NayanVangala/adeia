@@ -625,3 +625,157 @@
     height: min(52%, 18rem);
   }
 }
+
+/* ---------------------------------------------------------------
+   The rail's demonstrations.
+
+   Each layer's panel used to be two paragraphs and nothing else, which
+   left the widest column on the page carrying only prose. Every panel
+   now ends in the thing it is describing actually refusing something.
+   --------------------------------------------------------------- */
+
+.rail__pane {
+  margin-top: clamp(1.5rem, 3vh, 2rem);
+}
+
+/* The tab column is 14rem of sticky nav and then nothing for the height
+   of a panel. One line of type is enough to stop it reading as a
+   mistake. */
+.rail__aside {
+  margin-top: 1.5rem;
+  padding-left: 1.25rem;
+  font-size: var(--t-micro);
+  line-height: 1.6;
+  color: var(--faint);
+}
+
+@media (max-width: 60rem) {
+  .rail__aside {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   The authority bands.
+
+   Three stacked zones: what you refused, what you opened to a model,
+   and what you kept for a person. The middle one is the only place a
+   model has any say, and the only place injected text can reach — which
+   is the section's whole argument and was previously only words.
+
+   Hairline seams, like .bento and .entries: the band boundaries are the
+   point, so they are the only rules on it.
+   --------------------------------------------------------------- */
+
+.bands {
+  display: grid;
+  gap: 1px;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--hair);
+  overflow: hidden;
+}
+
+.band {
+  position: relative;
+  padding: clamp(1.5rem, 3.5vw, 2.25rem) clamp(1.5rem, 3.5vw, 2.25rem)
+    clamp(1.5rem, 3.5vw, 2.25rem) clamp(2rem, 4vw, 2.75rem);
+  background: var(--near);
+}
+
+/* The band's own colour, carried on one property so the bar, the verbs
+   and the label cannot disagree about which zone this is. */
+.band::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--zone, var(--hair-lit));
+}
+
+/* Deliberately colourless — neither a person nor a model decided this
+   one, a rule did. But --faint at 3px is invisible against --near, so
+   the top band read as having no bar at all. */
+.band--deny {
+  --zone: var(--muted);
+}
+
+.band--model {
+  --zone: var(--machine);
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--cold) 7%, var(--near)),
+    var(--near) 70%
+  );
+}
+
+.band--person {
+  --zone: var(--person);
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--warm) 7%, var(--near)),
+    var(--near) 70%
+  );
+}
+
+.band__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.band__label {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.1875rem);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  color: var(--paper);
+}
+
+.band__verbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.band__verbs span {
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--zone) 45%, transparent);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--zone);
+  white-space: nowrap;
+}
+
+.band__who {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--zone);
+  margin-bottom: 0.75rem;
+}
+
+.band__note {
+  color: var(--muted);
+  font-size: var(--t-small);
+  line-height: 1.65;
+  max-width: 52ch;
+}
+
+/* The one line that says why the middle band matters. */
+.band__reach {
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px dashed color-mix(in srgb, var(--zone) 35%, transparent);
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zone);
+}

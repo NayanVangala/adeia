@@ -14,6 +14,12 @@
  * arriving at the bottom of the page builds the fence rather than
  * switching a backdrop on.
  *
+ * Once built it travels, the way a jumbotron does: the whole field
+ * slides left to right and wraps, carrying its skyline and its gap with
+ * it. That is why there is no idle parking here — a marquee is never
+ * settled, so the only thing that stops the loop is the section leaving
+ * the screen, or a reader who has asked for no motion.
+ *
  * Every colour is read from tokens.css at startup rather than written
  * here, so the canvas cannot drift from the rest of the interface.
  */
@@ -30,9 +36,11 @@ const RADIUS = 190; /* how far the pointer's influence reaches, px */
 const MAX_BEND = 21; /* the cap. A fence that bends further is a fence that broke. */
 const LIFT = 14; /* how much a pressed stroke rises */
 const STAGGER = 0.55; /* how much of the build is spent sweeping left to right */
+const DRIFT = 52; /* px a second the whole field travels, left to right */
 
-/* Frames with nothing moving before the loop parks itself. */
-const IDLE_FRAMES = 40;
+/* A tab that was in the background hands back an enormous first delta.
+   Clamped so the fence does not teleport half a lap on return. */
+const MAX_STEP = 1 / 30;
 
 const canvas = document.querySelector("[data-fence]");
 if (canvas) fence(canvas);
@@ -58,7 +66,8 @@ function fence(canvas) {
   let progress = 0; /* 0..1, how far the section has entered the viewport */
   let visible = false;
   let running = false;
-  let idle = 0;
+  let offset = 0; /* how far the field has travelled, px */
+  let last = 0; /* timestamp of the previous frame */
   /* Reduced motion: the finished fence, drawn once, with no build and no
      loop. It has to bypass the scroll-driven progress entirely — reading
      it would draw nothing at all whenever the section starts below the
@@ -111,20 +120,23 @@ function fence(canvas) {
 
   /* ---------- the frame ---------- */
 
-  function draw() {
+  function draw(step = 0) {
     ctx.clearRect(0, 0, width, height);
 
     /* How far the section has entered the viewport. Recomputed per frame
        rather than observed, because it has to track a scroll that is
        being eased by motion.js. */
-    let next = 1;
-    if (!staticDraw) {
+    if (staticDraw) {
+      progress = 1;
+    } else {
       const rect = section.getBoundingClientRect();
       const entered = window.innerHeight - rect.top;
-      next = clamp(entered / (rect.height * 0.72), 0, 1);
+      progress = clamp(entered / (rect.height * 0.72), 0, 1);
+
+      /* Travel, scaled by the build so the fence assembles first and only
+         then gets under way, rather than sliding in half-grown. */
+      offset = (offset + DRIFT * step * ease(progress)) % width;
     }
-    if (Math.abs(next - progress) > 0.0005) idle = 0;
-    progress = next;
 
     /* The ground the fence stands on, drawn in before the strokes. */
     ctx.strokeStyle = `rgba(${stops.hair.join(",")},${0.55 * ease(progress)})`;
@@ -144,11 +156,17 @@ function fence(canvas) {
 
       const h = s.h * grown;
 
+      /* Where this stroke currently stands, after the field's travel.
+         Everything below reads from here rather than from s.x — the
+         pointer presses on what it is over, not on where a stroke
+         started out. */
+      const at = wrap(s.x + offset, width);
+
       /* Pressure falls off from the pointer to the middle of the stroke,
          so a tall one is reachable further up than a short one. */
       let target = 0;
       if (canHover.matches && !reduced.matches) {
-        const dx = px - s.x;
+        const dx = px - at;
         const dy = py - (baseY - h * 0.5);
         const near = clamp(1 - Math.hypot(dx, dy) / RADIUS, 0, 1);
         target = near * near * (3 - 2 * near);
@@ -160,20 +178,10 @@ function fence(canvas) {
            nothing directly under the pointer and peak partway out, which
            is how a curtain actually moves. */
         const push = clamp(-dx / (RADIUS * 0.55), -1, 1);
-        const bend = s.bend + (push * target * MAX_BEND - s.bend) * 0.14;
-
-        /* Settled means stopped moving, not stopped being displaced. The
-           first version tested the displacement itself, so a pointer
-           resting inside the field held the strokes bent and redrew a
-           motionless picture sixty times a second for as long as it sat
-           there. */
-        if (Math.abs(bend - s.bend) > 0.015) idle = 0;
-        s.bend = bend;
+        s.bend += (push * target * MAX_BEND - s.bend) * 0.14;
       }
 
-      const press = s.press + (target - s.press) * 0.14;
-      if (Math.abs(press - s.press) > 0.0015) idle = 0;
-      s.press = press;
+      s.press += (target - s.press) * 0.14;
 
       const top = baseY - h - s.press * LIFT;
       const bend = s.bend;
@@ -195,10 +203,10 @@ function fence(canvas) {
       }
 
       ctx.beginPath();
-      ctx.moveTo(s.x, baseY);
+      ctx.moveTo(at, baseY);
       /* The control point sits low, so the stroke bows out of the ground
          rather than hinging at it. */
-      ctx.quadraticCurveTo(s.x + bend * 0.3, baseY - h * 0.55, s.x + bend, top);
+      ctx.quadraticCurveTo(at + bend * 0.3, baseY - h * 0.55, at + bend, top);
       ctx.stroke();
 
       ctx.shadowBlur = 0;
@@ -213,7 +221,8 @@ function fence(canvas) {
       ctx.shadowColor = `rgba(${r},${g},${b},0.65)`;
       ctx.shadowBlur = 16;
       const size = 5;
-      ctx.fillRect(gapX - size / 2, baseY - 26 - size / 2, size, size);
+      const markAt = wrap(gapX + offset, width);
+      ctx.fillRect(markAt - size / 2, baseY - 26 - size / 2, size, size);
       ctx.shadowBlur = 0;
     }
   }
@@ -223,27 +232,26 @@ function fence(canvas) {
      nothing has moved for a while. Anything that could change the
      picture wakes it again. */
 
-  function tick() {
+  function tick(now) {
     if (!visible) {
       running = false;
       return;
     }
 
-    idle += 1;
-    draw();
+    const step = last ? Math.min((now - last) / 1000, MAX_STEP) : 0;
+    last = now;
 
-    if (idle > IDLE_FRAMES) {
-      running = false;
-      return;
-    }
-
+    draw(step);
     requestAnimationFrame(tick);
   }
 
   function wake() {
-    idle = 0;
     if (running || !visible) return;
     running = true;
+    /* Dropped rather than carried: the gap since the last frame may be
+       a whole scroll away, and the field should resume from where it
+       stopped, not jump. */
+    last = 0;
     requestAnimationFrame(tick);
   }
 
@@ -350,6 +358,11 @@ function mix(list, t) {
 
 function clamp(n, min, max) {
   return n < min ? min : n > max ? max : n;
+}
+
+/** Positive modulo, so a field travelling either way stays on screen. */
+function wrap(n, span) {
+  return ((n % span) + span) % span;
 }
 
 /** Smoothstep, so the build eases in and out rather than ramping. */

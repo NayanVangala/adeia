@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787118890441" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787119634741" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787033549258" />
   </head>
 
@@ -189,6 +189,11 @@
               <button class="rail__item" role="tab" id="t-adapter" aria-controls="p-adapter">
                 Adapter
               </button>
+
+              <p class="rail__aside">
+                Each one assumes the one before it was lied to. That is why
+                there are three and not one.
+              </p>
             </div>
 
             <div>
@@ -207,6 +212,23 @@
                   attacker-chosen hostname can resolve to any of those
                   addresses without saying so. That is what layer three is for.
                 </p>
+
+                <div class="pane rail__pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">what never gets past the shape</span>
+                  </div>
+                  <pre class="pane__body"><code>{ <span class="tok-key">"url"</span>: <span class="tok-str">"http://api.example.com/zones"</span> }
+<span class="out-hold">400</span> <span class="out-dim">url must use https</span>
+
+{ <span class="tok-key">"url"</span>: <span class="tok-str">"https://169.254.169.254/latest/meta-data"</span> }
+<span class="out-hold">400</span> <span class="out-dim">url must not point at a private address</span>
+
+{ <span class="tok-key">"url"</span>: <span class="tok-str">"https://api.example.com/zones/9"</span> }
+<span class="out-ok">ok</span> <span class="out-dim">— on to layer two</span></code></pre>
+                </div>
               </div>
 
               <div class="rail__panel" role="tabpanel" id="p-policy" aria-labelledby="t-policy" hidden>
@@ -224,6 +246,22 @@
                   approval rule — so a $2,000,000 payment is refused outright
                   rather than offered to a tired human as a button.
                 </p>
+
+                <div class="pane rail__pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">evaluate() — everything it is given, and all it returns</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="tok-fn">evaluate</span>({ request, policy, spentTodayCents: <span class="tok-num">3750</span> })
+
+<span class="tok-num">$25</span>      <span class="out-ok">allow</span>             <span class="out-dim">within policy</span>
+<span class="tok-num">$500</span>     <span class="out-hold">require_approval</span>  <span class="out-dim">amount 50000 exceeds per-action limit 5000</span>
+<span class="tok-num">$5,000</span>   <span class="out-dim">deny</span>              <span class="out-dim">amount 500000 exceeds hard maximum 100000</span>
+
+<span class="tok-com">// no clock, no database, no network</span></code></pre>
+                </div>
               </div>
 
               <div class="rail__panel" role="tabpanel" id="p-adapter" aria-labelledby="t-adapter" hidden>
@@ -242,6 +280,20 @@
                   headers. The first would let a 302 walk it into your own
                   network. The second is where the credential is.
                 </p>
+
+                <div class="pane rail__pane">
+                  <div class="pane__bar">
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__dot"></span>
+                    <span class="pane__name">the check nobody can talk around</span>
+                  </div>
+                  <pre class="pane__body"><code><span class="out-dim">policy written</span>  api.example.com <span class="out-dim">→</span> <span class="tok-str">93.184.216.34</span>  <span class="out-ok">public</span>
+<span class="out-dim">approved</span>        <span class="out-dim">…95 seconds pass…</span>
+<span class="out-dim">call goes out</span>   api.example.com <span class="out-dim">→</span> <span class="tok-str">169.254.169.254</span>  <span class="out-hold">private</span>
+
+<mark>refused at the adapter</mark>  <span class="out-dim">the name moved; the fence did not</span></code></pre>
+                </div>
               </div>
             </div>
           </div>
@@ -399,10 +451,49 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
             </article>
           </div>
 
-          <p class="note" data-reveal>
-            <span class="mono">DELETE</span> stays with a person forever,
-            whatever any model concludes. That is a floor, and it is yours.
-          </p>
+          <!-- The picture the section was missing: where the model's
+               authority actually sits, and what it is fenced by on both
+               sides. The verbs are one policy's, not a fixed set. -->
+          <div class="bands" data-reveal>
+            <article class="band band--deny">
+              <div class="band__head">
+                <p class="band__label">Deny list — you wrote it</p>
+                <p class="band__verbs"><span>DELETE</span></p>
+              </div>
+              <p class="band__who">no model is asked</p>
+              <p class="band__note">
+                Refused outright, with the rule that refused it. Nothing
+                downstream is contacted and no approval is sent.
+              </p>
+            </article>
+
+            <article class="band band--model">
+              <div class="band__head">
+                <p class="band__label">The band you opened</p>
+                <p class="band__verbs"><span>POST</span><span>PATCH</span></p>
+              </div>
+              <p class="band__who">a model decides</p>
+              <p class="band__note">
+                Judged low risk, it runs and the trail says a model let it
+                through. Anything else — and every failure — goes up a band.
+              </p>
+              <p class="band__reach">
+                the only reach an injected instruction has
+              </p>
+            </article>
+
+            <article class="band band--person">
+              <div class="band__head">
+                <p class="band__label">Approval list — you wrote it</p>
+                <p class="band__verbs"><span>PUT</span></p>
+              </div>
+              <p class="band__who">always a person</p>
+              <p class="band__note">
+                Stops for a human forever, whatever any model concludes. That
+                is a floor, and it is yours.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -624,7 +715,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
 
     <script src="/cursor.js?v=1787081002123" type="module"></script>
     <script src="/motion.js?v=1787081142085" type="module"></script>
-    <script src="/fence.js?v=1787119030295" type="module"></script>
+    <script src="/fence.js?v=1787119420453" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>
