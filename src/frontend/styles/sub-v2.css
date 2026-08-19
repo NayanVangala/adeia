@@ -284,7 +284,7 @@
 
 .entry {
   display: grid;
-  grid-template-columns: 7rem 1fr;
+  grid-template-columns: 7rem minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3rem);
   padding-block: clamp(2rem, 5vh, 3.25rem);
   background: var(--black);
@@ -311,7 +311,7 @@
 
 @media (max-width: 48rem) {
   .entry {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 }
@@ -400,6 +400,7 @@
 
 .steps {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(2.5rem, 6vh, 4rem);
   margin-top: clamp(2.5rem, 6vh, 4.5rem);
   position: relative;
@@ -423,6 +424,7 @@
 
 .step {
   position: relative;
+  min-width: 0;
 }
 
 .step__marker {
@@ -494,7 +496,7 @@
 
 .kv > div {
   display: grid;
-  grid-template-columns: 16rem 1fr;
+  grid-template-columns: 16rem minmax(0, 1fr);
   gap: 1rem clamp(1.5rem, 4vw, 3rem);
   padding-block: 1.125rem;
   border-bottom: 1px solid var(--hair);
@@ -516,7 +518,7 @@
 
 @media (max-width: 48rem) {
   .kv > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.375rem;
   }
 }
@@ -603,14 +605,14 @@
 
 .pair {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   gap: clamp(1.5rem, 4vw, 3rem);
   margin-top: clamp(2.5rem, 6vh, 4rem);
   align-items: start;
 }
 
 .pair--wide {
-  grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(26rem, 100%), 1fr));
 }
 
 /* ---------- next page ----------
@@ -665,7 +667,7 @@
 
 .api__item {
   display: grid;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 15rem minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3rem);
   padding-block: clamp(2rem, 5vh, 3.25rem);
   background: var(--black);
@@ -702,7 +704,7 @@
 
 @media (max-width: 60rem) {
   .api__item {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
   }
   .api__side {
@@ -899,4 +901,46 @@
 
 .rule__out .tag {
   margin-bottom: 0.5rem;
+}
+
+/* ---------------------------------------------------------------
+   The field behind a page's opening.
+
+   Drawn by field.js, one scene per page. It sits behind the hero's
+   text and in front of the orb, takes no pointer events, and carries
+   nothing a reader needs — every scene is a picture of what the page
+   below it already says in words.
+   --------------------------------------------------------------- */
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Held back from the headline, which has to stay the brightest thing
+     in the hero whatever the scene is doing. */
+  opacity: 0.85;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 18%,
+    #000 72%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 18%,
+    #000 72%,
+    transparent
+  );
+}
+
+/* The orb is the light source and the field stands in front of it, so
+   the hero's own glow is dimmed where a scene is carrying the interest
+   instead. */
+.phero:has(.field) .phero__orb {
+  opacity: 0.22;
 }
