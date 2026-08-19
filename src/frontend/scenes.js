@@ -64,7 +64,21 @@ function replay() {
     pre.style.minHeight = `${pre.getBoundingClientRect().height}px`;
     pre.setAttribute("data-replaying", "");
 
+    /* If the reader never gets here — a tab left open on another
+       section, an observer that never fires — the pane must not sit as
+       a hole where a transcript should be. After this it simply shows
+       the finished thing. */
+    let started = false;
+    const bail = setTimeout(() => {
+      if (started) return;
+      pre.removeAttribute("data-replaying");
+      pre.setAttribute("data-replay-done", "");
+    }, 12000);
+
     onceVisible(pre, async () => {
+      started = true;
+      clearTimeout(bail);
+
       for (const line of lines) {
         await wait(Number(line.dataset.in ?? 120));
         line.setAttribute("data-shown", "");

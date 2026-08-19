@@ -288,13 +288,17 @@
 
 .rail {
   display: grid;
-  grid-template-columns: 14rem 1fr;
+  /* minmax(0, …) rather than 1fr. A grid item's automatic minimum size is
+     its content, so the code pane inside a panel widened the whole
+     column past the viewport instead of scrolling inside itself. */
+  grid-template-columns: 14rem minmax(0, 1fr);
   gap: clamp(2rem, 5vw, 4rem);
   margin-top: clamp(2.5rem, 6vh, 4.5rem);
   align-items: start;
 }
 
 .rail__nav {
+  min-width: 0;
   position: sticky;
   top: 8rem;
   display: flex;
@@ -340,6 +344,7 @@
 }
 
 .rail__panel {
+  min-width: 0;
   border: 1px solid var(--hair);
   border-radius: var(--radius);
   background: var(--near);
@@ -352,7 +357,7 @@
 
 @media (max-width: 60rem) {
   .rail {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .rail__nav {
     position: static;

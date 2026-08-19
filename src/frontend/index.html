@@ -11,8 +11,8 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/styles/tokens.css?v=1787032924539" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787033833243" />
-    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787033278387" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787120538891" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787121234866" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787121181312" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
 
@@ -126,7 +126,7 @@
       <!-- ==========================================================
            The problem
            ========================================================== -->
-      <section class="section" aria-labelledby="problem-title">
+      <section class="section" data-num="01" aria-labelledby="problem-title">
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow" data-reveal>The problem</span>
@@ -200,9 +200,9 @@
       <!-- ==========================================================
            How it works — sticky rail
            ========================================================== -->
-      <section class="section" aria-labelledby="layers-title">
+      <section class="section section--raised" data-num="02" aria-labelledby="layers-title">
         <div class="wrap">
-          <div class="section-head">
+          <div class="section-head section-head--split">
             <span class="eyebrow" data-reveal>How it works</span>
             <h2 class="h1" id="layers-title" data-reveal data-reveal-delay="80">
               Three layers, and each one assumes the last
@@ -335,7 +335,7 @@
       <!-- ==========================================================
            Showcase — the code, and what it prints
            ========================================================== -->
-      <section class="section" aria-labelledby="see-title">
+      <section class="section" data-num="03" aria-labelledby="see-title">
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow" data-reveal>See it</span>
@@ -346,6 +346,7 @@
           </div>
 
           <div class="showcase">
+            <div class="showcase__panes">
             <div class="pane" data-reveal>
               <div class="pane__bar" aria-hidden="true">
                 <span class="pane__dot"></span>
@@ -382,22 +383,47 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
                    JavaScript this is the finished transcript and nothing
                    is missing — the script only chooses when each one
                    appears. -->
-              <pre class="pane__body" data-replay><code><span class="tl out-dim">the agent reads the repo</span>
-<span class="tl" data-in="140"><span class="tok-key">GET</span> api.github.com/repos/…</span>
-<span class="tl out-ok" data-in="420">✓  executed</span>
-<span class="tl" data-in="120"> </span>
-<span class="tl out-dim" data-in="200">the agent files an issue</span>
-<span class="tl" data-in="140"><span class="tok-key">POST</span> api.github.com/…/issues</span>
-<span class="tl out-model" data-in="700">⚖  model: creates an ordinary issue,</span>
-<span class="tl out-model" data-in="90">   easily noticed and reversible</span>
-<span class="tl out-ok" data-in="260">✓  executed</span>
-<span class="tl" data-in="120"> </span>
-<span class="tl out-dim" data-in="200">the agent tries to delete a DNS record</span>
-<span class="tl" data-in="140"><span class="tok-key">DELETE</span> api.cloudflare.com/…</span>
-<span class="tl out-hold" data-in="520" data-hold>⏸  waiting on a human</span>
-<span class="tl" data-in="2200"> </span>
-<span class="tl" data-in="0"><mark>Nothing has been sent.</mark></span></code></pre>
+              <pre class="pane__body" data-replay><code><span class="tl out-dim">the agent reads the repo</span><span class="tl" data-in="140"><span class="tok-key">GET</span> api.github.com/repos/…</span><span class="tl out-ok" data-in="420">✓  executed</span><span class="tl" data-in="120"> </span><span class="tl out-dim" data-in="200">the agent files an issue</span><span class="tl" data-in="140"><span class="tok-key">POST</span> api.github.com/…/issues</span><span class="tl out-model" data-in="700">⚖  model: creates an ordinary issue,</span><span class="tl out-model" data-in="90">   easily noticed and reversible</span><span class="tl out-ok" data-in="260">✓  executed</span><span class="tl" data-in="120"> </span><span class="tl out-dim" data-in="200">the agent tries to delete a DNS record</span><span class="tl" data-in="140"><span class="tok-key">DELETE</span> api.cloudflare.com/…</span><span class="tl out-hold" data-in="520" data-hold>⏸  waiting on a human</span><span class="tl" data-in="2200"> </span><span class="tl" data-in="0"><mark>Nothing has been sent.</mark></span></code></pre>
             </div>
+            </div>
+
+            <!-- The one thing on this page that is not dark, because the
+                 one moment this product touches a person is not either.
+                 The wording is the real approval mail's, from
+                 notify/email.ts. -->
+            <figure class="phone" data-reveal data-reveal-delay="220">
+              <div class="phone__screen">
+                <div class="phone__status" aria-hidden="true">
+                  <span>9:41</span>
+                  <span class="phone__dots"><i></i><i></i><i></i></span>
+                </div>
+
+                <div class="mail">
+                  <p class="mail__from">Adeia · approvals</p>
+                  <p class="mail__subject">
+                    Approval needed: $500.00 to acct_contractor
+                  </p>
+
+                  <div class="mail__body">
+                    <p class="mail__eyebrow">Approval needed</p>
+                    <p class="mail__amount">$500.00</p>
+                    <p class="mail__to">to acct_contractor</p>
+                    <p class="mail__reason">
+                      amount 50000 exceeds per-action limit 5000
+                    </p>
+                    <p class="mail__cta">Review and decide</p>
+                    <p class="mail__fine">
+                      The request has not been sent. Opening this link does not
+                      approve anything — you decide on the page itself. The link
+                      can be used once.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="phone__cap">
+                what lands on the phone of whoever you named
+              </figcaption>
+            </figure>
           </div>
 
           <!-- The same journey, drawn. -->
@@ -439,11 +465,31 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       </section>
 
       <!-- ==========================================================
+           The statement — the one place on the page with no container
+           in it. Sits between what the product does and how the model
+           fits into it, because this is the sentence both halves are
+           arguments for.
+           ========================================================== -->
+      <section class="statement" aria-labelledby="statement-title">
+        <div class="wrap">
+          <p class="statement__line" id="statement-title" data-reveal>
+            An agent you cannot trust is
+            <span class="sweep">still worth having</span> — as long as it
+            cannot act alone.
+          </p>
+          <p class="statement__by" data-reveal data-reveal-delay="140">
+            That is the whole design. Everything above is how it is enforced,
+            and everything below is what it costs.
+          </p>
+        </div>
+      </section>
+
+      <!-- ==========================================================
            The classifier
            ========================================================== -->
-      <section class="section" aria-labelledby="model-title">
+      <section class="section section--raised" data-num="04" aria-labelledby="model-title">
         <div class="wrap">
-          <div class="section-head">
+          <div class="section-head section-head--split">
             <span class="eyebrow eyebrow--machine" data-reveal>The model's part</span>
             <h2 class="h1" id="model-title" data-reveal data-reveal-delay="80">
               A model decides, but only inside a
@@ -537,7 +583,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       <!-- ==========================================================
            Capability — bento
            ========================================================== -->
-      <section class="section" aria-labelledby="parts-title">
+      <section class="section" data-num="05" aria-labelledby="parts-title">
         <div class="wrap">
           <div class="bento" data-reveal>
             <div class="bento__cell bento__cell--wide bento__cell--lead">
@@ -632,7 +678,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       <!-- ==========================================================
            FAQ
            ========================================================== -->
-      <section class="section" aria-labelledby="faq-title">
+      <section class="section section--raised" data-num="06" aria-labelledby="faq-title">
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow" data-reveal>FAQ</span>
@@ -751,7 +797,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
     </footer>
 
     <script src="/cursor.js?v=1787120388225" type="module"></script>
-    <script src="/scenes.js?v=1787120328375" type="module"></script>
+    <script src="/scenes.js?v=1787121181350" type="module"></script>
     <script src="/motion.js?v=1787119962681" type="module"></script>
     <script src="/fence.js?v=1787119420453" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
