@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/server.ts",
+  "main": "./src/server.node.ts",
   "scripts": {
-    "dev": "node --experimental-strip-types src/server.ts",
+    "dev": "node --experimental-strip-types src/server.node.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

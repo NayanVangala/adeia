@@ -100,7 +100,7 @@ it is the same seam a second processor would use later. Three steps:
    distinguishes test from live credentials, **enforce the test prefix on
    environment parse**, not at charge time — the check is worth nothing if it
    runs after the request.
-3. Swap the registration in [`server.ts`](../src/backend/src/server.ts):
+3. Swap the registration in [`server.node.ts`](../src/backend/src/server.node.ts):
    `createRegistry([createLedgerAdapter()])` becomes the new adapter, and the
    "no processor attached" banner comes out with it.
 

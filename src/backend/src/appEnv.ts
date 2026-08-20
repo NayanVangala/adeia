@@ -1,3 +1,4 @@
+import type { MiddlewareHandler } from "hono";
 import type { RequestDeps } from "./actions/service.ts";
 import type { GithubOauthConfig } from "./auth/github.ts";
 
@@ -20,11 +21,18 @@ export interface AppDeps extends RequestDeps {
   approverEmail?: string;
 
   /**
-   * Absolute path to the directory holding the landing page. When set, the
-   * app serves it from the same origin as the API; when absent, the app is
-   * API-only, which is what the tests build.
+   * Serves the landing page, when something is serving it from this process.
+   *
+   * Injected rather than built here, because reading files off a disk is the
+   * one thing this app does that not every host can do. The Node entry point
+   * passes `@hono/node-server`'s static handler; the serverless deployment
+   * passes nothing, because the marketing pages are on a CDN in front and this
+   * process never sees those requests. The tests pass nothing either and get an
+   * API-only app that 404s on `/`.
+   *
+   * Mounted last, so it can never shadow a route.
    */
-  siteRoot?: string;
+  staticMiddleware?: MiddlewareHandler<AppEnv>;
 }
 
 /**
