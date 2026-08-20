@@ -9,3 +9,18 @@
 /sdk.html        /sdk         301
 /policy.html     /policy      301
 /audit.html      /audit       301
+
+# The app lives on its own host. These ten pages are static files on a CDN;
+# the dashboard, the approval pages and the OAuth callback are a function on
+# Vercel, and adeia.xyz forwards to it rather than duplicating it.
+#
+# 302 rather than 301 on purpose. This is deployment topology, not a canonical
+# URL, and a browser that has cached a permanent redirect to a host we later
+# move off is a browser that cannot be told otherwise.
+#
+# Apply these only once the Vercel deployment answers — until then they point
+# at a host that does not exist. See docs/deploy.md.
+/dashboard      https://app.adeia.xyz/dashboard          302
+/dashboard/*    https://app.adeia.xyz/dashboard/:splat   302
+/approvals/*    https://app.adeia.xyz/approvals/:splat   302
+/auth/*         https://app.adeia.xyz/auth/:splat        302

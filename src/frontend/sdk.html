@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The API answers on its own host: these pages are static on a CDN, the
+         server is a function elsewhere. visits.js reads this. Absent means
+         same origin, which is what local development wants. -->
+    <meta name="adeia-api" content="https://app.adeia.xyz" />
     <title>Adeia SDK — the client your agent calls</title>
     <link rel="canonical" href="https://adeia.xyz/sdk" />
     <meta

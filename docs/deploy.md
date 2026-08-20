@@ -1,15 +1,16 @@
 # Deploying adeia.xyz
 
 Two paths. The site is static, so it can go up on a CDN tonight with nothing
-to maintain. The API needs a server with a real disk, and that is a separate
-decision you can make later without redoing any of the first part.
+to maintain. The app needs somewhere to run and a database that survives between
+requests, and that is a separate decision you can make later without redoing
+any of the first part.
 
 - **[Path A — Cloudflare Pages](#path-a--cloudflare-pages)** is the current
   plan. Static files, free, nothing running. The footer visit counter stays
   hidden, and the approval flow keeps running from a laptop through a tunnel.
-- **[Path B — Fly.io](#path-b--flyio)** is for when somebody other than you
-  needs to hit the API — an approval email tapped by a person who is not
-  sitting at your machine.
+- **[Path B — Vercel and Turso](#path-b--vercel-and-turso)** is for when
+  somebody other than you needs to hit the API — an approval email tapped by
+  a person who is not sitting at your machine.
 
 Switching from A to B is a DNS change and one deploy. Nothing in the site
 itself changes.
@@ -61,8 +62,8 @@ npx wrangler pages deploy src/frontend --project-name adeia
 ```
 
 The first run prompts you to log in and creates the project. `src/frontend`
-is the whole deployable — the HTML, `styles/`, `fonts/`, `images/`,
-`vendor/`, and the four documentation pages. There is no build step to run
+is the whole deployable — the HTML, `styles/`, `fonts/`, `vendor/`, and the
+four documentation pages. There is no build step to run
 first; `site:build` only reassembles `index.html` from `partials/`.
 
 `_headers` and `_redirects` in that directory are read by Pages
@@ -110,141 +111,187 @@ npm run site:check && npx wrangler pages deploy src/frontend --project-name adei
 
 ---
 
-## Path B — Fly.io
+## Path B — Vercel and Turso
 
 Take this path when the API has to be reachable without you starting a
-tunnel. One machine serves the site and `/v1` from one origin: no CORS, one
-certificate, and the visit counter works.
+tunnel: an approval email tapped by somebody who is not sitting at your
+machine.
 
-The database is SQLite on a mounted volume, so this is **one machine**. Do
-not scale it past a single instance without moving the database somewhere
-built for concurrent writers.
+The split is deliberate. The nine marketing pages stay on Cloudflare Pages
+at `adeia.xyz` — they are static files and a CDN is the right thing to serve
+them. The app is a Next.js function on Vercel at `app.adeia.xyz`, and the
+database is Turso, which is SQLite reached over HTTPS.
 
-### Deploy
+The database has to be remote because a serverless function's filesystem is
+discarded when the request ends. Anything written to a local file would be
+gone by the time somebody taps the link it just emailed them.
+
+Two free accounts, neither asking for a card: <https://turso.tech> and
+<https://vercel.com>.
+
+### 1. The database
 
 ```bash
-brew install flyctl && fly auth login
+brew install tursodatabase/tap/turso && turso auth login
 ```
 
 ```bash
-fly launch --no-deploy --copy-config --name adeia --region syd
-```
-
-`--copy-config` uses the committed `fly.toml` rather than generating one.
-Change `primary_region` if `syd` is not closest; `fly platform regions`
-lists them.
-
-```bash
-fly volumes create adeia_data --size 1 --region syd
+turso db create adeia
 ```
 
 ```bash
-fly secrets set \
-  SMTP_USER="your-gmail-address" \
-  SMTP_PASSWORD="your-16-char-app-password" \
-  APPROVAL_FROM_EMAIL="hello@adeia.xyz" \
-  APPROVER_EMAIL="the-address-that-approves@example.com" \
-  ADEIA_VISIT_SALT="$(openssl rand -hex 32)" \
-  GITHUB_CLIENT_ID="from-your-oauth-app" \
-  GITHUB_CLIENT_SECRET="from-your-oauth-app" \
-  GITHUB_REDIRECT_URI="https://adeia.xyz/auth/github/callback" \
-  ANTHROPIC_API_KEY="sk-ant-..."
+turso db show adeia --url && turso db tokens create adeia
 ```
 
-`SMTP_PASSWORD` is a Google **app password**, not your account password —
-Gmail rejects the account password over SMTP. Generate a fresh one for this
-deployment rather than reusing the one in your local `.env`.
+The dashboard at <https://turso.tech> does the same thing without installing
+anything, which is faster if you only need it once.
 
-`ADEIA_VISIT_SALT` is what stops the stored visitor hash from being a
-rainbow table away from an IP address. Generate it, never ship the
-development default, and note that changing it later resets deduplication:
-today's returning visitors count once more, nothing else moves.
+Put both values in `.env` at the repo root:
 
-The three `GITHUB_*` values come from a GitHub OAuth app and are what make
-the dashboard work. A **GitHub OAuth app holds exactly one callback URL**, so
-the app you registered against `http://localhost:3000/...` cannot also serve
-production: register a second app for the deployed site, and keep the local
-one for development. `GITHUB_REDIRECT_URI` must match that app's callback
-character for character, this host included — GitHub refuses the sign-in on
-any difference, including a trailing slash.
+```
+TURSO_DATABASE_URL=libsql://adeia-<org>.turso.io
+TURSO_AUTH_TOKEN=<token>
+```
 
-Leave all three unset and the server still boots. The dashboard then serves a
-page explaining how to configure sign-in rather than a login button that
-cannot work, and every other part of Adeia behaves exactly as it does with
-them set. Sign-in is a feature, not a dependency of the fence.
-
-`ANTHROPIC_API_KEY` powers the risk classifier. Leave it unset and the server
-falls back to a stub that **refuses every classification**, sending those
-actions to a person instead. That is the deliberate direction to fail in: a
-missing key must never quietly widen what an agent may do unattended. The
-boot line says which one is live, so you never have to guess.
+Then create the tables:
 
 ```bash
-fly deploy
+npm run db:migrate
 ```
 
-Boot verifies the SMTP credentials before the server listens, so bad
-credentials fail the deploy rather than surfacing the first time an
-over-limit action tries to email someone.
+That reads the same environment the server does, so there is no way to
+migrate one database while the app talks to another. It applies the four
+migrations in `src/backend/drizzle` unchanged — libSQL is a fork of SQLite,
+not a different database, which is why nothing about the schema or the
+queries had to move.
 
-### Point the domain at it
+### 2. A production OAuth app
 
-If you came from Path A, first delete the Pages custom domain for
-adeia.xyz — two things cannot answer for the same hostname.
+The existing GitHub OAuth app points at `localhost`. Register a second one
+at <https://github.com/settings/developers> rather than editing the first,
+so local sign-in keeps working:
+
+| Field                      | Value                                          |
+| -------------------------- | ---------------------------------------------- |
+| Homepage URL               | `https://adeia.xyz`                            |
+| Authorization callback URL | `https://app.adeia.xyz/auth/github/callback`   |
+
+The callback must match exactly, including scheme and no trailing slash.
+
+### 3. Deploy
+
+Import the repository at <https://vercel.com/new>. Leave the root directory
+as the repository root — `vercel.json` already names the build:
+
+```json
+"buildCommand": "npm run build --workspace @adeia/web",
+"outputDirectory": "src/web/.next"
+```
+
+Set these in Vercel's environment variables, for Production. Everything not
+listed has a working default:
+
+| Variable                | Value                                          |
+| ----------------------- | ---------------------------------------------- |
+| `TURSO_DATABASE_URL`    | from step 1                                    |
+| `TURSO_AUTH_TOKEN`      | from step 1                                    |
+| `PUBLIC_BASE_URL`       | `https://app.adeia.xyz`                        |
+| `GITHUB_REDIRECT_URI`   | `https://app.adeia.xyz/auth/github/callback`   |
+| `GITHUB_CLIENT_ID`      | from step 2                                    |
+| `GITHUB_CLIENT_SECRET`  | from step 2                                    |
+| `APPROVAL_FROM_EMAIL`   | a sender your mail provider has verified       |
+| `APPROVER_EMAIL`        | where approval requests land                   |
+| `ADEIA_SITE_ORIGINS`    | `https://adeia.xyz`                            |
+| `ADEIA_TRUST_PROXY`     | `true`                                         |
+| `ADEIA_VISIT_SALT`      | any long random string                         |
+| `ANTHROPIC_API_KEY`     | optional; without it the classifier refuses    |
+
+Then one of:
+
+| Transport | Variables                                     |
+| --------- | --------------------------------------------- |
+| Resend    | `RESEND_API_KEY`                              |
+| SMTP      | `SMTP_USER` and `SMTP_PASSWORD`               |
+
+Resend is the better fit here. SMTP works — the send is awaited inside the
+request, so nothing is frozen mid-flight — but every cold start pays for a
+TLS handshake and a login, and consumer providers routinely refuse mail from
+datacenter addresses, which looks exactly like an approval nobody answered.
+
+`ADEIA_SITE_ORIGINS` matters now in a way it did not before. The visit
+counter is on `adeia.xyz` and the endpoint it calls is on `app.adeia.xyz`,
+so the request is cross-origin and the server has to name the origin it will
+answer. `ADEIA_TRUST_PROXY` is safe here because Vercel overwrites
+`x-forwarded-for`; on a directly exposed server it would let one client
+inflate the count by changing a header.
+
+### 4. Point the subdomain at it
+
+Vercel gives you a hostname when the first deploy finishes. In Cloudflare
+DNS:
+
+| Type    | Name  | Value                   | Proxy |
+| ------- | ----- | ----------------------- | ----- |
+| `CNAME` | `app` | `cname.vercel-dns.com`  | off   |
+
+Proxy **off**. Vercel terminates TLS itself, and proxying puts two
+certificate authorities in the same path.
+
+Add `app.adeia.xyz` as a domain on the Vercel project so it issues the
+certificate.
+
+`adeia.xyz` itself does not change. It stays on Pages.
+
+### 5. Turn on the forwards, then check
+
+`src/frontend/_redirects` sends `/dashboard`, `/approvals/*` and `/auth/*`
+to `app.adeia.xyz`. Those rules point at a host that does not answer until
+step 4 is done, so redeploy Pages last:
 
 ```bash
-fly ips allocate-v4 --shared && fly ips allocate-v6 && fly ips list
+npm run site:build && npx wrangler pages deploy src/frontend --project-name adeia --branch main
 ```
 
-`--shared` matters. A dedicated IPv4 is billed monthly; a shared one costs
-nothing and is enough for anything reached by hostname over HTTP, which is
-all of this. Drop the flag only if you later need something that must own
-its address outright, like sending mail directly from the machine.
-
-In Cloudflare DNS, using the addresses `fly ips list` printed:
-
-| Type    | Name  | Value          | Proxy |
-| ------- | ----- | -------------- | ----- |
-| `A`     | `@`   | the IPv4       | off   |
-| `AAAA`  | `@`   | the IPv6       | off   |
-| `CNAME` | `www` | `adeia.xyz`    | off   |
-
-Turn the orange proxy cloud **off** for these. Fly terminates TLS itself,
-and proxying puts two certificate authorities in the same path.
+Then:
 
 ```bash
-fly certs add adeia.xyz && fly certs add www.adeia.xyz
-```
-
-`fly certs show adeia.xyz` reports progress. If it stalls, check the DNS
-record first.
-
-### Check it
-
-```bash
-curl -s https://adeia.xyz/healthz
+curl -s https://app.adeia.xyz/healthz
 ```
 
 ```bash
-curl -s -X POST https://adeia.xyz/v1/site/visits
+curl -s -X POST https://app.adeia.xyz/v1/site/visits
 ```
 
-The second should return `{"total":N,"today":M}`, and the footer counter
-will then appear.
+The second returns `{"total":N,"today":M}`, and the footer counter on
+adeia.xyz appears.
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' https://adeia.xyz/v1/actions
+curl -s -o /dev/null -w '%{http_code}\n' https://app.adeia.xyz/v1/actions
 ```
 
-`401` is correct — the action API is key-authenticated. A `404` would mean
-the static file handler is catching routes it should not.
+`401` is correct — the action API is key-authenticated.
+
+Then sign in at <https://adeia.xyz/dashboard>, which should forward to
+`app.adeia.xyz` and offer GitHub. That exercises the OAuth callback, the
+session cookie and the database in one go.
 
 ### Redeploying
 
 ```bash
-npm run site:check && npm test && fly deploy
+npm run site:check && npm test && git push
 ```
 
+Vercel builds on push. The static site is separate and only needs a deploy
+when something under `src/frontend` changes:
+
+```bash
+npx wrangler pages deploy src/frontend --project-name adeia --branch main
+```
+
+Migrations are never automatic. Run `npm run db:migrate` yourself, before the
+deploy that needs the new column — a function has no filesystem to read the
+migration folder from, and every cold start would otherwise race every other
+one to alter the same tables.
 ---
 
 ## What is not set up
@@ -256,9 +303,9 @@ npm run site:check && npm test && fly deploy
 - **No rate limiting** on the public endpoints. `/v1/site/visits` writes at
   most one row per visitor per day, so the write is bounded, but nothing
   throttles the requests themselves.
-- **No backups** on Path B. The volume is a single disk. `fly volumes
-  snapshots list adeia_data` shows Fly's automatic daily snapshots;
-  restoring one is manual and has never been rehearsed.
+- **No backups** on Path B. Turso keeps point-in-time restore on its own
+  schedule; nothing here has ever rehearsed a restore, and no dump is taken
+  on any schedule of ours. `turso db shell adeia .dump` is the manual one.
 - **No Content-Security-Policy.** `audit.html` carries an inline script for
   its tab strip, so a policy worth having needs that moved to a file first.
   `_headers` explains the reasoning where the policy would go.

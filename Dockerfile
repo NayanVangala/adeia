@@ -1,5 +1,10 @@
 # Adeia — one image serving the landing page and the API from one origin.
 #
+# This is the self-hosting path, not the deployed one. Production is a Next.js
+# function on Vercel with the database on Turso (see docs/deploy.md); this
+# image is what you want on a machine you own, where a mounted volume and
+# ADEIA_DB_PATH still make sense.
+#
 # Two stages. The first needs a compiler because better-sqlite3 is a native
 # module; the second does not, and copying the built node_modules across
 # keeps the toolchain out of the shipped image. Both stages share a base, so
