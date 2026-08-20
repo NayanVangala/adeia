@@ -53,7 +53,7 @@ export async function mintApprovalToken(
   const token = randomBytes(TOKEN_BYTES).toString("base64url");
   const expiresAt = new Date(Date.now() + ttlMs).toISOString();
 
-  const row = insertApproval(db, {
+  const row = await insertApproval(db, {
     actionId,
     tokenHash: hashApprovalToken(token),
     expiresAt,
@@ -72,7 +72,7 @@ export async function mintApprovalToken(
  */
 export async function verifyApprovalToken(db: Db, token: string): Promise<ApprovalRow> {
   const presented = digest(token);
-  const row = getApprovalByTokenHash(db, presented.toString("hex"));
+  const row = await getApprovalByTokenHash(db, presented.toString("hex"));
   if (!row) throw new ApprovalTokenError("unknown", "this approval link is not valid", null);
 
   // The lookup already matched on the hash; this re-confirms it without a
@@ -113,5 +113,5 @@ export async function markApprovalDecided(
   by: string,
 ): Promise<ApprovalRow | null> {
   const row = await verifyApprovalToken(db, token);
-  return markApprovalRowDecided(db, row.id, decision, by);
+  return await markApprovalRowDecided(db, row.id, decision, by);
 }

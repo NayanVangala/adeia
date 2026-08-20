@@ -48,8 +48,8 @@ export interface NewProject {
   ownerUserId?: string;
 }
 
-export function insertProject(db: Db, p: NewProject): Project {
-  const [row] = db
+export async function insertProject(db: Db, p: NewProject): Promise<Project> {
+  const [row] = await db
     .insert(projects)
     .values({
       id: p.id ?? newId("proj"),
@@ -70,8 +70,8 @@ export function insertProject(db: Db, p: NewProject): Project {
  * nobody. That matters: `npm run seed` still creates ownerless projects, and
  * "unowned" must never read as "everyone's".
  */
-export function listProjectsByOwner(db: Db, userId: string): Project[] {
-  return db
+export async function listProjectsByOwner(db: Db, userId: string): Promise<Project[]> {
+  return await db
     .select()
     .from(projects)
     .where(eq(projects.ownerUserId, userId))
@@ -80,8 +80,8 @@ export function listProjectsByOwner(db: Db, userId: string): Project[] {
 }
 
 /** Rotating a key replaces the hash; the old key stops working immediately. */
-export function updateProjectKeyHash(db: Db, projectId: string, apiKeyHash: string): Project | null {
-  const [row] = db
+export async function updateProjectKeyHash(db: Db, projectId: string, apiKeyHash: string): Promise<Project | null> {
+  const [row] = await db
     .update(projects)
     .set({ apiKeyHash })
     .where(eq(projects.id, projectId))
@@ -90,12 +90,12 @@ export function updateProjectKeyHash(db: Db, projectId: string, apiKeyHash: stri
   return row ?? null;
 }
 
-export function getProjectByKeyHash(db: Db, hash: string): Project | null {
-  return db.select().from(projects).where(eq(projects.apiKeyHash, hash)).get() ?? null;
+export async function getProjectByKeyHash(db: Db, hash: string): Promise<Project | null> {
+  return await db.select().from(projects).where(eq(projects.apiKeyHash, hash)).get() ?? null;
 }
 
-export function getProject(db: Db, id: string): Project | null {
-  return db.select().from(projects).where(eq(projects.id, id)).get() ?? null;
+export async function getProject(db: Db, id: string): Promise<Project | null> {
+  return await db.select().from(projects).where(eq(projects.id, id)).get() ?? null;
 }
 
 // --- policies ---------------------------------------------------------------
@@ -117,8 +117,8 @@ export interface NewPolicy {
   config?: Record<string, unknown> | null;
 }
 
-export function insertPolicy(db: Db, p: NewPolicy): PolicyRow {
-  const [row] = db
+export async function insertPolicy(db: Db, p: NewPolicy): Promise<PolicyRow> {
+  const [row] = await db
     .insert(policies)
     .values({
       id: p.id ?? newId("pol"),
@@ -233,9 +233,9 @@ function toHttpPolicy(row: PolicyRow): Policy {
   };
 }
 
-export function getPolicy(db: Db, projectId: string, actionType: string): PolicyRow | null {
+export async function getPolicy(db: Db, projectId: string, actionType: string): Promise<PolicyRow | null> {
   return (
-    db
+    await db
       .select()
       .from(policies)
       .where(and(eq(policies.projectId, projectId), eq(policies.actionType, actionType)))
@@ -286,8 +286,8 @@ export function toActionRecord(row: ActionRow): ActionRecord {
 }
 
 /** Throws a unique-constraint error on a repeated (project_id, idempotency_key). */
-export function insertAction(db: Db, a: NewAction): ActionRecord {
-  const [row] = db
+export async function insertAction(db: Db, a: NewAction): Promise<ActionRecord> {
+  const [row] = await db
     .insert(actions)
     .values({
       id: a.id ?? newId("act"),
@@ -305,12 +305,12 @@ export function insertAction(db: Db, a: NewAction): ActionRecord {
   return toActionRecord(row!);
 }
 
-export function getAction(db: Db, id: string): ActionRecord | null {
-  const row = db.select().from(actions).where(eq(actions.id, id)).get();
+export async function getAction(db: Db, id: string): Promise<ActionRecord | null> {
+  const row = await db.select().from(actions).where(eq(actions.id, id)).get();
   return row ? toActionRecord(row) : null;
 }
 
-export function updateActionStatus(db: Db, id: string, patch: StatusPatch): ActionRecord {
+export async function updateActionStatus(db: Db, id: string, patch: StatusPatch): Promise<ActionRecord> {
   const values: Partial<ActionRow> = { status: patch.status };
   if (patch.decision !== undefined) values.decision = patch.decision;
   if (patch.decisionReason !== undefined) values.decisionReason = patch.decisionReason;
@@ -319,17 +319,17 @@ export function updateActionStatus(db: Db, id: string, patch: StatusPatch): Acti
   if (patch.decidedAt !== undefined) values.decidedAt = patch.decidedAt;
   if (patch.executedAt !== undefined) values.executedAt = patch.executedAt;
 
-  const [row] = db.update(actions).set(values).where(eq(actions.id, id)).returning().all();
+  const [row] = await db.update(actions).set(values).where(eq(actions.id, id)).returning().all();
   if (!row) throw new Error(`action ${id} not found`);
   return toActionRecord(row);
 }
 
-export function findActionByIdempotencyKey(
+export async function findActionByIdempotencyKey(
   db: Db,
   projectId: string,
   key: string,
-): ActionRecord | null {
-  const row = db
+): Promise<ActionRecord | null> {
+  const row = await db
     .select()
     .from(actions)
     .where(and(eq(actions.projectId, projectId), eq(actions.idempotencyKey, key)))
@@ -353,8 +353,8 @@ export function findActionByIdempotencyKey(
  * only, on the same reasoning — a request that was denied or is still waiting
  * on a person has not used anything up.
  */
-export function countExecutedTodayByType(db: Db, projectId: string, actionType: string): number {
-  const row = db
+export async function countExecutedTodayByType(db: Db, projectId: string, actionType: string): Promise<number> {
+  const row = await db
     .select({ total: sql<number>`count(*)` })
     .from(actions)
     .where(
@@ -369,8 +369,8 @@ export function countExecutedTodayByType(db: Db, projectId: string, actionType: 
   return Number(row?.total ?? 0);
 }
 
-export function sumSpentTodayCents(db: Db, projectId: string, currency: string): number {
-  const row = db
+export async function sumSpentTodayCents(db: Db, projectId: string, currency: string): Promise<number> {
+  const row = await db
     .select({
       total: sql<number>`coalesce(sum(json_extract(${actions.params}, '$.amountCents')), 0)`,
     })
@@ -397,8 +397,8 @@ export interface NewApproval {
   expiresAt: string;
 }
 
-export function insertApproval(db: Db, a: NewApproval): ApprovalRow {
-  const [row] = db
+export async function insertApproval(db: Db, a: NewApproval): Promise<ApprovalRow> {
+  const [row] = await db
     .insert(approvals)
     .values({
       id: a.id ?? newId("apr"),
@@ -412,16 +412,16 @@ export function insertApproval(db: Db, a: NewApproval): ApprovalRow {
   return row!;
 }
 
-export function getApprovalByTokenHash(db: Db, tokenHash: string): ApprovalRow | null {
-  return db.select().from(approvals).where(eq(approvals.tokenHash, tokenHash)).get() ?? null;
+export async function getApprovalByTokenHash(db: Db, tokenHash: string): Promise<ApprovalRow | null> {
+  return await db.select().from(approvals).where(eq(approvals.tokenHash, tokenHash)).get() ?? null;
 }
 
-export function getApprovalByActionId(db: Db, actionId: string): ApprovalRow | null {
-  return db.select().from(approvals).where(eq(approvals.actionId, actionId)).get() ?? null;
+export async function getApprovalByActionId(db: Db, actionId: string): Promise<ApprovalRow | null> {
+  return await db.select().from(approvals).where(eq(approvals.actionId, actionId)).get() ?? null;
 }
 
-export function listApprovals(db: Db): ApprovalRow[] {
-  return db.select().from(approvals).all();
+export async function listApprovals(db: Db): Promise<ApprovalRow[]> {
+  return await db.select().from(approvals).all();
 }
 
 /**
@@ -429,13 +429,13 @@ export function listApprovals(db: Db): ApprovalRow[] {
  * concurrent decisions cannot both win — the second updates zero rows and this
  * returns null.
  */
-export function markApprovalRowDecided(
+export async function markApprovalRowDecided(
   db: Db,
   approvalId: string,
   decision: "approve" | "deny",
   decidedBy: string,
-): ApprovalRow | null {
-  const [row] = db
+): Promise<ApprovalRow | null> {
+  const [row] = await db
     .update(approvals)
     .set({ decision, decidedBy, decidedAt: now() })
     .where(and(eq(approvals.id, approvalId), isNull(approvals.decidedAt)))
@@ -454,8 +454,8 @@ export interface NewAuditEvent {
   data?: string | null;
 }
 
-export function insertAuditEvent(db: Db, e: NewAuditEvent): AuditRow {
-  const [row] = db
+export async function insertAuditEvent(db: Db, e: NewAuditEvent): Promise<AuditRow> {
+  const [row] = await db
     .insert(auditEvents)
     .values({
       id: e.id ?? newId("evt"),
@@ -483,8 +483,8 @@ export function insertAuditEvent(db: Db, e: NewAuditEvent): AuditRow {
  * append-only (no DELETE, so no rowid reuse), which makes it exactly the
  * monotonic counter needed here.
  */
-export function listAudit(db: Db, actionId: string): AuditRow[] {
-  return db
+export async function listAudit(db: Db, actionId: string): Promise<AuditRow[]> {
+  return await db
     .select()
     .from(auditEvents)
     .where(eq(auditEvents.actionId, actionId))
@@ -499,14 +499,14 @@ export function listAudit(db: Db, actionId: string): AuditRow[] {
  * when the table is written to between pages, which for an append-only log is
  * every page.
  */
-export function listProjectAudit(
+export async function listProjectAudit(
   db: Db,
   projectId: string,
   opts: { limit: number; cursor?: string | undefined },
-): { events: AuditRow[]; nextCursor: string | null } {
+): Promise<{ events: AuditRow[]; nextCursor: string | null }> {
   let before: number | null = null;
   if (opts.cursor) {
-    const anchor = db
+    const anchor = await db
       .select({ seq: sql<number>`rowid` })
       .from(auditEvents)
       .where(and(eq(auditEvents.id, opts.cursor), eq(auditEvents.projectId, projectId)))
@@ -517,7 +517,7 @@ export function listProjectAudit(
     before = anchor.seq;
   }
 
-  const rows = db
+  const rows = await db
     .select()
     .from(auditEvents)
     .where(
@@ -551,9 +551,9 @@ export interface VisitCounts {
  * `INSERT OR IGNORE` is correct here rather than a read-then-write, which would
  * race between two requests arriving together.
  */
-export function recordVisit(db: Db, visitorHash: string, at: Date = new Date()): VisitCounts {
+export async function recordVisit(db: Db, visitorHash: string, at: Date = new Date()): Promise<VisitCounts> {
   const day = at.toISOString().slice(0, 10);
-  db.insert(siteVisits)
+  await db.insert(siteVisits)
     .values({
       id: newId("vis"),
       day,
@@ -565,13 +565,13 @@ export function recordVisit(db: Db, visitorHash: string, at: Date = new Date()):
   return getVisitCounts(db, at);
 }
 
-export function getVisitCounts(db: Db, at: Date = new Date()): VisitCounts {
+export async function getVisitCounts(db: Db, at: Date = new Date()): Promise<VisitCounts> {
   const day = at.toISOString().slice(0, 10);
-  const total = db
+  const total = await db
     .select({ n: sql<number>`count(*)` })
     .from(siteVisits)
     .get();
-  const today = db
+  const today = await db
     .select({ n: sql<number>`count(*)` })
     .from(siteVisits)
     .where(eq(siteVisits.day, day))
@@ -588,12 +588,12 @@ export interface NewUser {
   avatarUrl?: string | null;
 }
 
-export function getUserByGithubId(db: Db, githubId: string): UserRow | null {
-  return db.select().from(users).where(eq(users.githubId, githubId)).get() ?? null;
+export async function getUserByGithubId(db: Db, githubId: string): Promise<UserRow | null> {
+  return await db.select().from(users).where(eq(users.githubId, githubId)).get() ?? null;
 }
 
-export function getUser(db: Db, id: string): UserRow | null {
-  return db.select().from(users).where(eq(users.id, id)).get() ?? null;
+export async function getUser(db: Db, id: string): Promise<UserRow | null> {
+  return await db.select().from(users).where(eq(users.id, id)).get() ?? null;
 }
 
 /**
@@ -603,12 +603,12 @@ export function getUser(db: Db, id: string): UserRow | null {
  * and claimed by somebody else, and matching on it would hand that person the
  * original account's projects.
  */
-export function upsertUserFromGithub(db: Db, u: NewUser): UserRow {
+export async function upsertUserFromGithub(db: Db, u: NewUser): Promise<UserRow> {
   const at = now();
-  const existing = getUserByGithubId(db, u.githubId);
+  const existing = await getUserByGithubId(db, u.githubId);
 
   if (existing) {
-    const [row] = db
+    const [row] = await db
       .update(users)
       .set({
         login: u.login,
@@ -622,7 +622,7 @@ export function upsertUserFromGithub(db: Db, u: NewUser): UserRow {
     return row!;
   }
 
-  const [row] = db
+  const [row] = await db
     .insert(users)
     .values({
       id: newId("usr"),
@@ -638,11 +638,11 @@ export function upsertUserFromGithub(db: Db, u: NewUser): UserRow {
   return row!;
 }
 
-export function insertSession(
+export async function insertSession(
   db: Db,
   s: { userId: string; tokenHash: string; expiresAt: string },
-): SessionRow {
-  const [row] = db
+): Promise<SessionRow> {
+  const [row] = await db
     .insert(sessions)
     .values({
       id: newId("ses"),
@@ -656,23 +656,23 @@ export function insertSession(
   return row!;
 }
 
-export function getSessionByTokenHash(db: Db, tokenHash: string): SessionRow | null {
-  return db.select().from(sessions).where(eq(sessions.tokenHash, tokenHash)).get() ?? null;
+export async function getSessionByTokenHash(db: Db, tokenHash: string): Promise<SessionRow | null> {
+  return await db.select().from(sessions).where(eq(sessions.tokenHash, tokenHash)).get() ?? null;
 }
 
 /** Signing out. Idempotent: revoking an already-revoked session is a no-op. */
-export function revokeSession(db: Db, id: string): void {
-  db.update(sessions)
+export async function revokeSession(db: Db, id: string): Promise<void> {
+  await db.update(sessions)
     .set({ revokedAt: now() })
     .where(and(eq(sessions.id, id), isNull(sessions.revokedAt)))
     .run();
 }
 
-export function insertOauthState(
+export async function insertOauthState(
   db: Db,
   s: { stateHash: string; expiresAt: string },
-): OauthStateRow {
-  const [row] = db
+): Promise<OauthStateRow> {
+  const [row] = await db
     .insert(oauthStates)
     .values({
       id: newId("oas"),
@@ -692,9 +692,9 @@ export function insertOauthState(
  * writing, so two callbacks arriving with the same state cannot both pass —
  * SQLite settles it, not a race between two reads.
  */
-export function consumeOauthState(db: Db, stateHash: string): OauthStateRow | null {
+export async function consumeOauthState(db: Db, stateHash: string): Promise<OauthStateRow | null> {
   const at = now();
-  const [row] = db
+  const [row] = await db
     .update(oauthStates)
     .set({ usedAt: at })
     .where(
@@ -710,26 +710,26 @@ export function consumeOauthState(db: Db, stateHash: string): OauthStateRow | nu
 }
 
 /** Housekeeping. Spent and stale states are of no further use. */
-export function deleteExpiredOauthStates(db: Db): void {
-  db.delete(oauthStates).where(lt(oauthStates.expiresAt, now())).run();
+export async function deleteExpiredOauthStates(db: Db): Promise<void> {
+  await db.delete(oauthStates).where(lt(oauthStates.expiresAt, now())).run();
 }
 
 // --- dashboard reads --------------------------------------------------------
 
 /** Newest first. Bounded, because the dashboard renders every row it gets. */
-export function listActionsByProject(db: Db, projectId: string, limit = 50): ActionRecord[] {
-  return db
+export async function listActionsByProject(db: Db, projectId: string, limit = 50): Promise<ActionRecord[]> {
+  const rows = await db
     .select()
     .from(actions)
     .where(eq(actions.projectId, projectId))
     .orderBy(desc(actions.createdAt))
     .limit(limit)
-    .all()
-    .map(toActionRecord);
+    .all();
+  return rows.map(toActionRecord);
 }
 
-export function countActionsByStatus(db: Db, projectId: string, status: ActionStatus): number {
-  const [row] = db
+export async function countActionsByStatus(db: Db, projectId: string, status: ActionStatus): Promise<number> {
+  const [row] = await db
     .select({ n: sql<number>`count(*)` })
     .from(actions)
     .where(and(eq(actions.projectId, projectId), eq(actions.status, status)))
@@ -738,12 +738,12 @@ export function countActionsByStatus(db: Db, projectId: string, status: ActionSt
 }
 
 /** Same UTC-day boundary the policy engine uses, for the same reason. */
-export function countActionsByStatusToday(
+export async function countActionsByStatusToday(
   db: Db,
   projectId: string,
   status: ActionStatus,
-): number {
-  const [row] = db
+): Promise<number> {
+  const [row] = await db
     .select({ n: sql<number>`count(*)` })
     .from(actions)
     .where(
@@ -771,11 +771,11 @@ export interface ClassifierVerdict {
  * is already the record of who decided what and duplicating it invites the two
  * to disagree.
  */
-export function classifierVerdictsFor(db: Db, actionIds: string[]): Map<string, ClassifierVerdict> {
+export async function classifierVerdictsFor(db: Db, actionIds: string[]): Promise<Map<string, ClassifierVerdict>> {
   const found = new Map<string, ClassifierVerdict>();
   if (actionIds.length === 0) return found;
 
-  const rows = db
+  const rows = await db
     .select()
     .from(auditEvents)
     .where(and(eq(auditEvents.event, "action.classified"), inArray(auditEvents.actionId, actionIds)))
@@ -807,12 +807,12 @@ export function classifierVerdictsFor(db: Db, actionIds: string[]): Map<string, 
  * and a partial write that silently kept an old key is how an allowlist ends up
  * containing something nobody remembers adding.
  */
-export function updatePolicyConfig(
+export async function updatePolicyConfig(
   db: Db,
   policyId: string,
   config: Record<string, unknown>,
-): PolicyRow | null {
-  const [row] = db
+): Promise<PolicyRow | null> {
+  const [row] = await db
     .update(policies)
     .set({ config: JSON.stringify(config) })
     .where(eq(policies.id, policyId))

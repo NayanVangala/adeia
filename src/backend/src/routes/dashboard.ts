@@ -104,20 +104,20 @@ export function normaliseHost(raw: string): string | null {
 }
 
 /** Creates the project, both policies and the first key. Returns the key once. */
-function provisionProject(
+async function provisionProject(
   db: Db,
   userId: string,
   login: string,
-): { project: Project; apiKey: string } {
+): Promise<{ project: Project; apiKey: string }> {
   const apiKey = generateApiKey();
-  const project = insertProject(db, {
+  const project = await insertProject(db, {
     name: `${login}'s project`,
     apiKeyHash: hashApiKey(apiKey),
     ownerUserId: userId,
   });
 
-  insertPolicy(db, { ...STARTER_PAYMENT_POLICY, projectId: project.id });
-  insertPolicy(db, {
+  await insertPolicy(db, { ...STARTER_PAYMENT_POLICY, projectId: project.id });
+  await insertPolicy(db, {
     projectId: project.id,
     actionType: STARTER_HTTP_POLICY.actionType,
     requiresApproval: STARTER_HTTP_POLICY.requiresApproval,
@@ -135,22 +135,22 @@ function provisionProject(
  * rather than carried over from whatever just happened, so the page cannot
  * claim a state the engine would not agree with.
  */
-function renderDashboardFor(
+async function renderDashboardFor(
   deps: AppDeps,
   session: ResolvedSession,
   project: Project,
   freshApiKey?: string,
   flash?: { text: string; kind: "approved" | "denied" },
-): string {
-  const httpRow = getPolicy(deps.db, project.id, "http");
+): Promise<string> {
+  const httpRow = await getPolicy(deps.db, project.id, "http");
   let allowedHosts: string[] = [];
   if (httpRow) {
     const parsed = toPolicy(httpRow);
     if (parsed.actionType === "http") allowedHosts = parsed.allowedHosts;
   }
 
-  const records = listActionsByProject(deps.db, project.id);
-  const verdicts = classifierVerdictsFor(
+  const records = await listActionsByProject(deps.db, project.id);
+  const verdicts = await classifierVerdictsFor(
     deps.db,
     records.map((r) => r.id),
   );
@@ -163,9 +163,9 @@ function renderDashboardFor(
       classifier: verdicts.get(action.id) ?? null,
     })),
     counts: {
-      waiting: countActionsByStatus(deps.db, project.id, "pending_approval"),
-      ranToday: countActionsByStatusToday(deps.db, project.id, "executed"),
-      refusedToday: countActionsByStatusToday(deps.db, project.id, "denied"),
+      waiting: await countActionsByStatus(deps.db, project.id, "pending_approval"),
+      ranToday: await countActionsByStatusToday(deps.db, project.id, "executed"),
+      refusedToday: await countActionsByStatusToday(deps.db, project.id, "denied"),
     },
     freshApiKey,
     csrf: session.csrf,
@@ -192,7 +192,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
    */
   routes.post("/dashboard/actions/:id/decision", async (c) => {
     const deps = c.get("deps");
-    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
     if (!session) return c.redirect("/dashboard", 302);
 
     const form = await c.req.parseBody();
@@ -200,8 +200,8 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       return c.text("This form has expired. Reload the dashboard and try again.", 403);
     }
 
-    const action = getAction(deps.db, c.req.param("id"));
-    const owned = listProjectsByOwner(deps.db, session.user.id).map((p) => p.id);
+    const action = await getAction(deps.db, c.req.param("id"));
+    const owned = (await listProjectsByOwner(deps.db, session.user.id)).map((p) => p.id);
     // 404 rather than 403: someone probing action ids learns nothing about
     // whether the id exists.
     if (!action || !owned.includes(action.projectId)) {
@@ -244,7 +244,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
    */
   routes.post("/dashboard/policy/hosts", async (c) => {
     const deps = c.get("deps");
-    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
     if (!session) return c.redirect("/dashboard", 302);
 
     const form = await c.req.parseBody();
@@ -252,10 +252,10 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       return c.text("This form has expired. Reload the dashboard and try again.", 403);
     }
 
-    const project = listProjectsByOwner(deps.db, session.user.id)[0];
+    const project = (await listProjectsByOwner(deps.db, session.user.id))[0];
     if (!project) return c.redirect("/dashboard", 302);
 
-    const row = getPolicy(deps.db, project.id, "http");
+    const row = await getPolicy(deps.db, project.id, "http");
     if (!row) return c.redirect("/dashboard", 302);
 
     const policy = toPolicy(row);
@@ -282,7 +282,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       if (!hosts.includes(candidate)) hosts.push(candidate);
     }
 
-    updatePolicyConfig(deps.db, row.id, {
+    await updatePolicyConfig(deps.db, row.id, {
       allowedHosts: hosts,
       approvalMethods: policy.approvalMethods,
       classifyMethods: policy.classifyMethods,
@@ -306,7 +306,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
    */
   routes.post("/dashboard/key", async (c) => {
     const deps = c.get("deps");
-    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
     if (!session) return c.redirect("/dashboard", 302);
 
     const form = await c.req.parseBody();
@@ -314,30 +314,30 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       return c.text("This form has expired. Reload the dashboard and try again.", 403);
     }
 
-    const project = listProjectsByOwner(deps.db, session.user.id)[0];
+    const project = (await listProjectsByOwner(deps.db, session.user.id))[0];
     if (!project) return c.redirect("/dashboard", 302);
 
     const apiKey = generateApiKey();
-    updateProjectKeyHash(deps.db, project.id, hashApiKey(apiKey));
+    await updateProjectKeyHash(deps.db, project.id, hashApiKey(apiKey));
 
     // Rendered directly rather than redirected, because a redirect would have
     // to carry the key in a URL — into browser history, the referer header and
     // every log between here and the user.
-    return c.html(renderDashboardFor(deps, session, project, apiKey));
+    return c.html(await renderDashboardFor(deps, session, project, apiKey));
   });
 
-  routes.get("/dashboard", (c) => {
+  routes.get("/dashboard", async (c) => {
     const deps = c.get("deps");
-    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
 
     if (!session) return c.html(renderSignIn(Boolean(deps.oauth)));
 
     const { user } = session;
-    let projects = listProjectsByOwner(deps.db, user.id);
+    let projects = await listProjectsByOwner(deps.db, user.id);
     let freshApiKey: string | undefined;
 
     if (projects.length === 0) {
-      const created = provisionProject(deps.db, user.id, user.login);
+      const created = await provisionProject(deps.db, user.id, user.login);
       projects = [created.project];
       freshApiKey = created.apiKey;
     }
@@ -371,7 +371,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
                     }
                   : undefined;
 
-    return c.html(renderDashboardFor(deps, session, project, freshApiKey, flash));
+    return c.html(await renderDashboardFor(deps, session, project, freshApiKey, flash));
   });
 
   return routes;

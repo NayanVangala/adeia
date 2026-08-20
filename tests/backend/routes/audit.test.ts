@@ -4,8 +4,8 @@ import { createHarness, paymentRequest, type Harness } from "../../helpers/harne
 
 let h: Harness;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
 });
 
 interface AuditBody {

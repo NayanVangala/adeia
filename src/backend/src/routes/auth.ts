@@ -41,15 +41,15 @@ function cookieSecurity(redirectUri: string): { secure: boolean } {
 export function createAuthRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
 
-  routes.get("/github", (c) => {
+  routes.get("/github", async (c) => {
     const oauth = c.get("deps").oauth;
     if (!oauth) return c.html(renderSignInUnavailable(), 503);
 
     // Cheap housekeeping on a route nobody hammers.
-    deleteExpiredOauthStates(c.get("deps").db);
+    await deleteExpiredOauthStates(c.get("deps").db);
 
     const state = randomBytes(32).toString("base64url");
-    insertOauthState(c.get("deps").db, {
+    await insertOauthState(c.get("deps").db, {
       stateHash: hashState(state),
       expiresAt: new Date(Date.now() + STATE_TTL_MS).toISOString(),
     });
@@ -85,7 +85,7 @@ export function createAuthRoutes(): Hono<AppEnv> {
     if (!cookieState || cookieState !== state) {
       return c.text("Sign-in could not be verified. Start again from the dashboard.", 400);
     }
-    if (!consumeOauthState(deps.db, hashState(state))) {
+    if (!await consumeOauthState(deps.db, hashState(state))) {
       return c.text("This sign-in link has already been used or has expired.", 400);
     }
 
@@ -100,8 +100,8 @@ export function createAuthRoutes(): Hono<AppEnv> {
       return c.text(detail, 502);
     }
 
-    const user = upsertUserFromGithub(deps.db, profile);
-    const { token } = mintSession(deps.db, user.id);
+    const user = await upsertUserFromGithub(deps.db, profile);
+    const { token } = await mintSession(deps.db, user.id);
 
     setCookie(c, SESSION_COOKIE, token, {
       httpOnly: true,
@@ -118,10 +118,10 @@ export function createAuthRoutes(): Hono<AppEnv> {
    * POST, not GET. A signout link that worked on GET would be triggered by any
    * page embedding it as an image, and by every link prefetcher.
    */
-  routes.post("/logout", (c) => {
+  routes.post("/logout", async (c) => {
     const deps = c.get("deps");
-    const session = resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
-    if (session) endSession(deps.db, session.sessionId);
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (session) await endSession(deps.db, session.sessionId);
 
     deleteCookie(c, SESSION_COOKIE, { path: "/" });
     return c.redirect("/", 302);

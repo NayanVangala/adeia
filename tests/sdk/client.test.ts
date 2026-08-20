@@ -12,13 +12,13 @@ const appFetch =
   async (input, init) =>
     harness.app.request(String(input), init as RequestInit);
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
   client = new AdeiaClient({ apiKey: h.apiKey, baseUrl: "http://adeia.test", fetch: appFetch(h) });
 });
 
 describe("constructor", () => {
-  it("requires an api key", () => {
+  it("requires an api key", async () => {
     expect(() => new AdeiaClient({ apiKey: "" })).toThrow(/apiKey/);
   });
 
@@ -98,7 +98,7 @@ describe("AdeiaError", () => {
       fetch: appFetch(h),
     });
 
-    await expect(bad.getAction("act_x")).rejects.toMatchObject({
+    (await expect(bad.getAction("act_x"))).rejects.toMatchObject({
       name: "AdeiaError",
       status: 401,
       code: "unauthorized",
@@ -111,7 +111,7 @@ describe("AdeiaError", () => {
       params: { amountCents: 25.5, currency: "usd", recipient: "acct_demo" },
     });
 
-    await expect(promise).rejects.toBeInstanceOf(AdeiaError);
+    (await expect(promise)).rejects.toBeInstanceOf(AdeiaError);
     await promise.catch((err: AdeiaError) => {
       expect(err.status).toBe(400);
       expect(err.code).toBe("invalid_request");
@@ -120,14 +120,14 @@ describe("AdeiaError", () => {
   });
 
   it("reports 404 for an unknown action", async () => {
-    await expect(client.getAction("act_nope")).rejects.toMatchObject({ status: 404 });
+    (await expect(client.getAction("act_nope"))).rejects.toMatchObject({ status: 404 });
   });
 
   it("does not retry a 5xx — a blind retry on a payment endpoint double charges", async () => {
     const spy = vi.fn(async () => new Response("{}", { status: 503 }));
     const c = new AdeiaClient({ apiKey: h.apiKey, baseUrl: "http://adeia.test", fetch: spy });
 
-    await expect(c.requestAction(paymentRequest(2_500))).rejects.toBeInstanceOf(AdeiaError);
+    (await expect(c.requestAction(paymentRequest(2_500)))).rejects.toBeInstanceOf(AdeiaError);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 });
@@ -191,7 +191,7 @@ describe("waitForAction", () => {
     const { client: c } = stubbed(["pending_approval"]);
 
     const promise = c.waitForAction("act_1", { timeoutMs: 5, pollMs: 1 });
-    await expect(promise).rejects.toBeInstanceOf(AdeiaTimeoutError);
+    (await expect(promise)).rejects.toBeInstanceOf(AdeiaTimeoutError);
     await promise.catch((err: AdeiaTimeoutError) => {
       expect(err.lastStatus).toBe("pending_approval");
       expect(err.actionId).toBe("act_1");
@@ -205,8 +205,8 @@ describe("waitForAction", () => {
     // Stand in for Phase 5's approval route.
     const { executeApproved } = await import("../../src/backend/src/actions/service.ts");
     const { updateActionStatus } = await import("../../src/backend/src/db/repo.ts");
-    setTimeout(() => {
-      updateActionStatus(h.db, pending.id, { status: "approved" });
+    setTimeout(async () => {
+      await updateActionStatus(h.db, pending.id, { status: "approved" });
       void executeApproved(h.deps, pending.id);
     }, 5);
 

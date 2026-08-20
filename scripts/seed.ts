@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { generateApiKey, hashApiKey } from "../src/backend/src/auth/apiKey.ts";
-import { createDb, migrate } from "../src/backend/src/db/client.ts";
+import { createDb, migrate } from "../src/backend/src/db/client.node.ts";
 import { insertPolicy, insertProject } from "../src/backend/src/db/repo.ts";
 import { env } from "../src/backend/src/env.ts";
 
@@ -61,16 +61,16 @@ export const DEMO_HTTP_POLICY = {
   },
 } as const;
 
-function main(): void {
+async function main(): Promise<void> {
   const name = process.argv[2] ?? "demo";
 
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
 
   const apiKey = generateApiKey();
-  const project = insertProject(db, { name, apiKeyHash: hashApiKey(apiKey) });
-  const policy = insertPolicy(db, { projectId: project.id, ...DEMO_POLICY });
-  const httpPolicy = insertPolicy(db, {
+  const project = await insertProject(db, { name, apiKeyHash: hashApiKey(apiKey) });
+  const policy = await insertPolicy(db, { projectId: project.id, ...DEMO_POLICY });
+  const httpPolicy = await insertPolicy(db, {
     projectId: project.id,
     actionType: DEMO_HTTP_POLICY.actionType,
     requiresApproval: DEMO_HTTP_POLICY.requiresApproval,
@@ -107,4 +107,11 @@ function main(): void {
 
 // Guarded so DEMO_POLICY can be imported (by the docs generator, by tests)
 // without seeding a database as a side effect of the import.
-if (process.argv[1] === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  // The database is remote now, so main() is async. An unhandled rejection
+  // would print a warning and exit 0, which in a seed script reads as success.
+  main().catch((err: unknown) => {
+    console.error(err);
+    process.exitCode = 1;
+  });
+}

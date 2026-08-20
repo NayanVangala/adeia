@@ -50,8 +50,8 @@ export function createActionRoutes(): Hono<AppEnv> {
    * system. Both answers mean "you cannot have this"; return the one that
    * leaks nothing.
    */
-  routes.get("/:id", (c) => {
-    const action = getAction(c.get("deps").db, c.req.param("id"));
+  routes.get("/:id", async (c) => {
+    const action = await getAction(c.get("deps").db, c.req.param("id"));
     if (!action || action.projectId !== c.get("projectId")) {
       return c.json({ error: "not_found" }, 404);
     }

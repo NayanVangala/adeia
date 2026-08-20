@@ -5,8 +5,8 @@ import { APPROVER_EMAIL, createHarness, paymentRequest, type Harness } from "../
 
 let h: Harness;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
 });
 
 /** Requests an over-limit payment and returns the token the "email" carried. */
@@ -29,7 +29,7 @@ const decide = (token: string, decision: string) =>
     body: new URLSearchParams({ decision }).toString(),
   });
 
-const events = (actionId: string) => listAudit(h.db, actionId).map((e) => e.event);
+const events = async (actionId: string) => (await listAudit(h.db, actionId)).map((e) => e.event);
 
 describe("GET /approvals/:token — prefetch safety", () => {
   it("renders the page and changes nothing", async () => {
@@ -40,7 +40,7 @@ describe("GET /approvals/:token — prefetch safety", () => {
     expect(res.status).toBe(200);
     // The property this whole phase exists to protect. Mail scanners, link
     // unfurlers and browser prefetch all issue GETs against emailed links.
-    expect(getAction(h.db, action.id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, action.id))?.status).toBe("pending_approval");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
@@ -49,7 +49,7 @@ describe("GET /approvals/:token — prefetch safety", () => {
 
     for (let i = 0; i < 5; i++) await get(token);
 
-    expect(getAction(h.db, action.id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, action.id))?.status).toBe("pending_approval");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
@@ -89,7 +89,7 @@ describe("GET /approvals/:token — prefetch safety", () => {
 
 describe("GET /approvals/:token — expiry", () => {
   it("finalises an action whose token has died", async () => {
-    const expiring = createHarness({ tokenTtlMs: -1 });
+    const expiring = await createHarness({ tokenTtlMs: -1 });
     const action = await requestAction(expiring.deps, expiring.projectId, paymentRequest(50_000));
     const { token } = expiring.sentEmails.at(-1)!;
 
@@ -98,18 +98,18 @@ describe("GET /approvals/:token — expiry", () => {
     expect(res.status).toBe(410);
     // Without this the action sits in pending_approval forever and the SDK's
     // waitForAction polls until its own timeout.
-    expect(getAction(expiring.db, action.id)?.status).toBe("expired");
+    expect((await getAction(expiring.db, action.id))?.status).toBe("expired");
     expect(expiring.adapter.calls).toHaveLength(0);
   });
 
   it("expiring is idempotent and never executes anything", async () => {
-    const expiring = createHarness({ tokenTtlMs: -1 });
+    const expiring = await createHarness({ tokenTtlMs: -1 });
     const action = await requestAction(expiring.deps, expiring.projectId, paymentRequest(50_000));
     const { token } = expiring.sentEmails.at(-1)!;
 
     for (let i = 0; i < 3; i++) await expiring.app.request(`/approvals/${token}`);
 
-    const expiries = listAudit(expiring.db, action.id).filter((e) => e.event === "approval.expired");
+    const expiries = (await listAudit(expiring.db, action.id)).filter((e) => e.event === "approval.expired");
     expect(expiries).toHaveLength(1);
     expect(expiring.adapter.calls).toHaveLength(0);
   });
@@ -122,7 +122,7 @@ describe("POST /approvals/:token — approve", () => {
     const res = await decide(token, "approve");
 
     expect(res.status).toBe(200);
-    expect(getAction(h.db, action.id)?.status).toBe("executed");
+    expect((await getAction(h.db, action.id))?.status).toBe("executed");
     expect(h.adapter.calls).toHaveLength(1);
   });
 
@@ -130,7 +130,7 @@ describe("POST /approvals/:token — approve", () => {
     const { action, token } = await pending();
     await decide(token, "approve");
 
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -145,7 +145,7 @@ describe("POST /approvals/:token — approve", () => {
     const { action, token } = await pending();
     await decide(token, "approve");
 
-    const granted = listAudit(h.db, action.id).find((e) => e.event === "approval.granted")!;
+    const granted = (await listAudit(h.db, action.id)).find((e) => e.event === "approval.granted")!;
     expect(JSON.parse(granted.data!)).toEqual({ decidedBy: APPROVER_EMAIL });
   });
 });
@@ -157,7 +157,7 @@ describe("POST /approvals/:token — deny", () => {
     const res = await decide(token, "deny");
 
     expect(res.status).toBe(200);
-    expect(getAction(h.db, action.id)?.status).toBe("denied");
+    expect((await getAction(h.db, action.id))?.status).toBe("denied");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
@@ -165,7 +165,7 @@ describe("POST /approvals/:token — deny", () => {
     const { action, token } = await pending();
     await decide(token, "deny");
 
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -192,7 +192,7 @@ describe("POST /approvals/:token — single use", () => {
     await decide(token, "deny");
     expect((await decide(token, "approve")).status).toBe(410);
 
-    expect(getAction(h.db, action.id)?.status).toBe("denied");
+    expect((await getAction(h.db, action.id))?.status).toBe("denied");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
@@ -206,7 +206,7 @@ describe("POST /approvals/:token — single use", () => {
   });
 
   it("returns 410 for an expired token without executing", async () => {
-    const expiring = createHarness({ tokenTtlMs: -1 });
+    const expiring = await createHarness({ tokenTtlMs: -1 });
     const action = await requestAction(expiring.deps, expiring.projectId, paymentRequest(50_000));
     const { token } = expiring.sentEmails.at(-1)!;
 
@@ -217,7 +217,7 @@ describe("POST /approvals/:token — single use", () => {
     });
 
     expect(res.status).toBe(410);
-    expect(getAction(expiring.db, action.id)?.status).toBe("expired");
+    expect((await getAction(expiring.db, action.id))?.status).toBe("expired");
     expect(expiring.adapter.calls).toHaveLength(0);
   });
 
@@ -234,7 +234,7 @@ describe("POST /approvals/:token — bad input", () => {
       const { action, token } = await pending();
 
       expect((await decide(token, decision)).status).toBe(400);
-      expect(getAction(h.db, action.id)?.status).toBe("pending_approval");
+      expect((await getAction(h.db, action.id))?.status).toBe("pending_approval");
 
       // The token must still work afterwards.
       expect((await decide(token, "approve")).status).toBe(200);

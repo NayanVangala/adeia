@@ -13,9 +13,9 @@ interface Signed {
   userId: string;
 }
 
-function signIn(login: string, githubId: string): Signed {
-  const user = upsertUserFromGithub(h.db, { githubId, login });
-  const { token } = mintSession(h.db, user.id);
+async function signIn(login: string, githubId: string): Promise<Signed> {
+  const user = await upsertUserFromGithub(h.db, { githubId, login });
+  const { token } = await mintSession(h.db, user.id);
   return {
     cookie: `adeia_session=${token}`,
     csrf: csrfTokenFor(hashSessionToken(token)),
@@ -40,8 +40,8 @@ async function editHosts(body: Record<string, string>, cookie?: string): Promise
   });
 }
 
-function hosts(): string[] {
-  const row = getPolicy(h.db, h.projectId, "http")!;
+async function hosts(): Promise<string[]> {
+  const row = (await getPolicy(h.db, h.projectId, "http"))!;
   const policy = toPolicy(row);
   return policy.actionType === "http" ? policy.allowedHosts : [];
 }
@@ -69,26 +69,26 @@ describe("normaliseHost", () => {
 });
 
 describe("editing the allowlist", () => {
-  beforeEach(() => {
-    h = createHarness({ httpPolicy: { allowedHosts: [] } });
+  beforeEach(async () => {
+    h = await createHarness({ httpPolicy: { allowedHosts: [] } });
   });
 
   it("starts empty, which denies every call", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
 
     const action = await requestAction(h.deps, h.projectId, httpRequest("GET"));
     expect(action.status).toBe("denied");
   });
 
   it("adds a host, and the engine then allows it", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
-    expect(hosts()).toEqual(["api.github.com"]);
+    expect(await hosts()).toEqual(["api.github.com"]);
 
     // The point of the whole feature: the fence actually moved.
     const action = await requestAction(h.deps, h.projectId, httpRequest("GET"));
@@ -96,34 +96,34 @@ describe("editing the allowlist", () => {
   });
 
   it("removes a host, and the engine then denies it", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
     await editHosts({ csrf: s.csrf, remove: "api.github.com" }, s.cookie);
 
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
     const action = await requestAction(h.deps, h.projectId, httpRequest("GET"));
     expect(action.status).toBe("denied");
   });
 
   it("does not add the same host twice", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
     await editHosts({ csrf: s.csrf, add: "API.GITHUB.COM" }, s.cookie);
 
-    expect(hosts()).toEqual(["api.github.com"]);
+    expect(await hosts()).toEqual(["api.github.com"]);
   });
 
   it("leaves the rest of the policy untouched", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
 
-    const policy = toPolicy(getPolicy(h.db, h.projectId, "http")!);
+    const policy = toPolicy((await getPolicy(h.db, h.projectId, "http"))!);
     expect(policy.actionType).toBe("http");
     if (policy.actionType !== "http") return;
     expect(policy.approvalMethods).toEqual(["DELETE"]);
@@ -133,79 +133,79 @@ describe("editing the allowlist", () => {
 });
 
 describe("what the policy editor refuses", () => {
-  beforeEach(() => {
-    h = createHarness({ httpPolicy: { allowedHosts: [] } });
+  beforeEach(async () => {
+    h = await createHarness({ httpPolicy: { allowedHosts: [] } });
   });
 
   it("refuses a private address, and says why", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     const res = await editHosts({ csrf: s.csrf, add: "169.254.169.254" }, s.cookie);
 
     expect(res.headers.get("location")).toContain("policy=private");
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
   });
 
   it.each(["localhost", "127.0.0.1", "10.0.0.1", "192.168.1.1"])(
     "refuses %s",
     async (host) => {
-      const s = signIn("alice", "1");
+      const s = await signIn("alice", "1");
       own(s);
 
       await editHosts({ csrf: s.csrf, add: host }, s.cookie);
-      expect(hosts()).toEqual([]);
+      expect(await hosts()).toEqual([]);
     },
   );
 
   it("refuses something that is not a hostname", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     const res = await editHosts({ csrf: s.csrf, add: "*.github.com" }, s.cookie);
 
     expect(res.headers.get("location")).toContain("policy=invalid");
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
   });
 
   it("refuses a missing CSRF token", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     const res = await editHosts({ add: "api.github.com" }, s.cookie);
 
     expect(res.status).toBe(403);
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
   });
 
   it("refuses a request with no session", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     await editHosts({ csrf: s.csrf, add: "api.github.com" });
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
   });
 
   it("never edits another user's policy", async () => {
-    const alice = signIn("alice", "1");
-    const bob = signIn("bob", "2");
+    const alice = await signIn("alice", "1");
+    const bob = await signIn("bob", "2");
     own(alice);
 
     // Bob is signed in with a valid token of his own, but owns no project, so
     // there is nothing for this to touch.
     await editHosts({ csrf: bob.csrf, add: "evil.example.com" }, bob.cookie);
 
-    expect(hosts()).toEqual([]);
+    expect(await hosts()).toEqual([]);
   });
 });
 
 describe("the dashboard shows the allowlist", () => {
-  beforeEach(() => {
-    h = createHarness({ httpPolicy: { allowedHosts: [] } });
+  beforeEach(async () => {
+    h = await createHarness({ httpPolicy: { allowedHosts: [] } });
   });
 
   it("warns when nothing is allowed yet", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
 
     const body = await (await h.app.request("/dashboard", { headers: { cookie: s.cookie } })).text();
@@ -215,7 +215,7 @@ describe("the dashboard shows the allowlist", () => {
   });
 
   it("lists the hosts once they exist", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
 

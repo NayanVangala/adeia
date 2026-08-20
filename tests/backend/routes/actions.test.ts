@@ -6,8 +6,8 @@ import { createHarness, paymentRequest, type Harness } from "../../helpers/harne
 
 let h: Harness;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
 });
 
 const post = (body: unknown, key = h.apiKey) =>
@@ -165,13 +165,13 @@ describe("GET /v1/actions/:id", () => {
   });
 
   it("never returns a key or a key hash", async () => {
-    const id = insertAction(h.db, {
+    const id = (await insertAction(h.db, {
       projectId: h.projectId,
       type: "payment",
       params: { amountCents: 2_500, currency: "usd", recipient: "acct_demo" },
       status: "executed",
       idempotencyKey: "manual",
-    }).id;
+    })).id;
 
     const body = await (await get(`/v1/actions/${id}`, h.apiKey)).text();
     expect(body).not.toContain(h.apiKey);

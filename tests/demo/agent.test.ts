@@ -12,8 +12,8 @@ import { createHarness, type Harness } from "../helpers/harness.ts";
 let h: Harness;
 let tool: ReturnType<typeof createPayVendorTool>;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
   tool = createPayVendorTool(
     new AdeiaClient({
       apiKey: h.apiKey,
@@ -34,7 +34,7 @@ async function approveLatest(decision: "approve" | "deny" = "approve") {
 }
 
 describe("the tool the agent is given", () => {
-  it("is named and described for a model, not for a developer", () => {
+  it("is named and described for a model, not for a developer", async () => {
     // BetaRunnableTool is a union over every tool shape; only the custom-tool
     // member carries a description.
     const { name, description } = tool as { name: string; description: string };
@@ -75,7 +75,7 @@ describe("the $25 invoice", () => {
   ])("rounds $%s to %i cents", async (dollars, cents) => {
     // $0.29 * 100 === 28.999999999999996. Without Math.round the payment is a
     // cent short, on screen, in front of an audience.
-    const generous = createHarness({ policy: { maxAmountCents: 1_000_000 } });
+    const generous = await createHarness({ policy: { maxAmountCents: 1_000_000 } });
     const generousTool = createPayVendorTool(
       new AdeiaClient({
         apiKey: generous.apiKey,
@@ -166,7 +166,7 @@ describe("failures come back as tool results, not exceptions", () => {
 });
 
 describe("the invoices the demo is built around", () => {
-  it("still match the seed policy's thresholds", () => {
+  it("still match the seed policy's thresholds", async () => {
     expect(INVOICES).toContain("$25.00");
     expect(INVOICES).toContain("$500.00");
   });

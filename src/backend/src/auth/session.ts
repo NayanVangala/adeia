@@ -39,11 +39,11 @@ export interface MintedSession {
   expiresAt: string;
 }
 
-export function mintSession(db: Db, userId: string, ttlMs = SESSION_TTL_MS): MintedSession {
+export async function mintSession(db: Db, userId: string, ttlMs = SESSION_TTL_MS): Promise<MintedSession> {
   const token = randomBytes(TOKEN_BYTES).toString("base64url");
   const expiresAt = new Date(Date.now() + ttlMs).toISOString();
 
-  const row = insertSession(db, { userId, tokenHash: hashSessionToken(token), expiresAt });
+  const row = await insertSession(db, { userId, tokenHash: hashSessionToken(token), expiresAt });
   return { token, sessionId: row.id, expiresAt };
 }
 
@@ -85,11 +85,11 @@ export function csrfMatches(expected: string, submitted: string | undefined): bo
  * that distinguishes "no such session" from "expired session" is answering
  * questions for whoever is guessing.
  */
-export function resolveSession(db: Db, token: string | undefined): ResolvedSession | null {
+export async function resolveSession(db: Db, token: string | undefined): Promise<ResolvedSession | null> {
   if (!token) return null;
 
   const presented = hashSessionToken(token);
-  const row = getSessionByTokenHash(db, presented);
+  const row = await getSessionByTokenHash(db, presented);
   if (!row) return null;
 
   // The lookup above already matched on the hash, so this is belt and braces
@@ -101,12 +101,12 @@ export function resolveSession(db: Db, token: string | undefined): ResolvedSessi
   if (row.revokedAt !== null) return null;
   if (row.expiresAt <= new Date().toISOString()) return null;
 
-  const user = getUser(db, row.userId);
+  const user = await getUser(db, row.userId);
   if (!user) return null;
 
   return { user, sessionId: row.id, csrf: csrfTokenFor(row.tokenHash) };
 }
 
-export function endSession(db: Db, sessionId: string): void {
-  revokeSession(db, sessionId);
+export async function endSession(db: Db, sessionId: string): Promise<void> {
+  await revokeSession(db, sessionId);
 }

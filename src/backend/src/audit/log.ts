@@ -107,12 +107,12 @@ function serialise(data: unknown): string | null {
  * moved money — losing the record is bad, reversing a real transaction over a
  * logging error is worse. The failure is logged loudly instead.
  */
-export function appendAudit(
+export async function appendAudit(
   db: Db,
   e: { actionId?: string; projectId: string; event: AuditEvent; data?: unknown },
-): void {
+): Promise<void> {
   try {
-    insertAuditEvent(db, {
+    await insertAuditEvent(db, {
       actionId: e.actionId ?? null,
       projectId: e.projectId,
       event: e.event,

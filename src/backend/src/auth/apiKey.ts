@@ -35,7 +35,7 @@ export const apiKeyAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
   if (!token) return c.json({ error: "unauthorized" }, 401);
 
   const presented = hashApiKey(token);
-  const project = getProjectByKeyHash(c.get("deps").db, presented);
+  const project = await getProjectByKeyHash(c.get("deps").db, presented);
   if (!project) return c.json({ error: "unauthorized" }, 401);
 
   const stored = Buffer.from(project.apiKeyHash, "hex");

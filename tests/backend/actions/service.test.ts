@@ -9,11 +9,11 @@ import { createHarness, paymentRequest, type Harness } from "../../helpers/harne
 
 let h: Harness;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
 });
 
-const events = (actionId: string) => listAudit(h.db, actionId).map((e) => e.event);
+const events = async (actionId: string) => (await listAudit(h.db, actionId)).map((e) => e.event);
 
 describe("requestAction — inside the fence", () => {
   it("executes immediately and calls the adapter exactly once", async () => {
@@ -66,7 +66,7 @@ describe("requestAction — refused by policy", () => {
   });
 
   it("denies when the project has no policy at all", async () => {
-    const bare = createHarness({ policy: null });
+    const bare = await createHarness({ policy: null });
     const action = await requestAction(bare.deps, bare.projectId, paymentRequest(100));
 
     expect(action.status).toBe("denied");
@@ -75,7 +75,7 @@ describe("requestAction — refused by policy", () => {
   });
 
   it("counts only executed spend toward the daily cap", async () => {
-    const capped = createHarness({ policy: { dailyCapCents: 6_000 } });
+    const capped = await createHarness({ policy: { dailyCapCents: 6_000 } });
 
     await requestAction(capped.deps, capped.projectId, paymentRequest(2_500));
     const second = await requestAction(capped.deps, capped.projectId, paymentRequest(2_500));
@@ -103,7 +103,7 @@ describe("requestAction — idempotency", () => {
     await requestAction(h.deps, h.projectId, paymentRequest(2_500, { idempotencyKey: "dupe" }));
     const after = await requestAction(h.deps, h.projectId, paymentRequest(2_500, { idempotencyKey: "dupe" }));
 
-    expect(events(after.id)).toEqual([
+    expect(await events(after.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.executing",
@@ -146,7 +146,7 @@ describe("requestAction — adapter failure", () => {
 describe("requestAction — audit trail", () => {
   it("records the auto-executed path in order", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(2_500));
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.executing",
@@ -156,7 +156,7 @@ describe("requestAction — audit trail", () => {
 
   it("records the denied path, with no executing event", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(500_000));
-    expect(events(action.id)).toEqual(["action.requested", "policy.evaluated", "action.denied"]);
+    expect(await events(action.id)).toEqual(["action.requested", "policy.evaluated", "action.denied"]);
   });
 
   it("records the paused path, with no executing event", async () => {
@@ -164,7 +164,7 @@ describe("requestAction — audit trail", () => {
     // `approval.sent` comes from the notifier the harness injects, which since
     // Phase 5 mints a real token. The point of the assertion is unchanged:
     // nothing here executes.
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -175,7 +175,7 @@ describe("requestAction — audit trail", () => {
   it("records the failed path", async () => {
     h.adapter.failWith(new Error("boom"));
     const action = await requestAction(h.deps, h.projectId, paymentRequest(2_500));
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.executing",
@@ -185,7 +185,7 @@ describe("requestAction — audit trail", () => {
 
   it("carries the decision and today's spend on policy.evaluated", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
-    const row = listAudit(h.db, action.id).find((e) => e.event === "policy.evaluated")!;
+    const row = (await listAudit(h.db, action.id)).find((e) => e.event === "policy.evaluated")!;
 
     expect(JSON.parse(row.data!)).toMatchObject({
       decision: "require_approval",
@@ -196,7 +196,7 @@ describe("requestAction — audit trail", () => {
 
   it("names the adapter that ran", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(2_500));
-    const row = listAudit(h.db, action.id).find((e) => e.event === "action.executing")!;
+    const row = (await listAudit(h.db, action.id)).find((e) => e.event === "action.executing")!;
     expect(JSON.parse(row.data!)).toEqual({ adapter: "fake" });
   });
 });
@@ -205,13 +205,13 @@ describe("executeApproved", () => {
   it("refuses an action that is still pending approval", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
 
-    await expect(executeApproved(h.deps, action.id)).rejects.toThrow(NotApprovedError);
+    (await expect(executeApproved(h.deps, action.id))).rejects.toThrow(NotApprovedError);
     expect(h.adapter.calls).toHaveLength(0);
   });
 
   it("runs an approved action exactly once", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
-    updateActionStatus(h.db, action.id, { status: "approved" });
+    await updateActionStatus(h.db, action.id, { status: "approved" });
 
     const executed = await executeApproved(h.deps, action.id);
     expect(executed.status).toBe("executed");
@@ -220,28 +220,28 @@ describe("executeApproved", () => {
 
   it("refuses a second run — the guard behind a double-clicked approve button", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
-    updateActionStatus(h.db, action.id, { status: "approved" });
+    await updateActionStatus(h.db, action.id, { status: "approved" });
 
     await executeApproved(h.deps, action.id);
-    await expect(executeApproved(h.deps, action.id)).rejects.toThrow(/not approved/i);
+    (await expect(executeApproved(h.deps, action.id))).rejects.toThrow(/not approved/i);
     expect(h.adapter.calls).toHaveLength(1);
   });
 
   it("refuses an already-denied action", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(500_000));
-    await expect(executeApproved(h.deps, action.id)).rejects.toThrow(NotApprovedError);
+    (await expect(executeApproved(h.deps, action.id))).rejects.toThrow(NotApprovedError);
     expect(h.adapter.calls).toHaveLength(0);
   });
 
   it("refuses an unknown action", async () => {
-    await expect(executeApproved(h.deps, "act_nope")).rejects.toThrow(NotApprovedError);
+    (await expect(executeApproved(h.deps, "act_nope"))).rejects.toThrow(NotApprovedError);
   });
 
   it("leaves the record readable after execution", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(50_000));
-    updateActionStatus(h.db, action.id, { status: "approved" });
+    await updateActionStatus(h.db, action.id, { status: "approved" });
     await executeApproved(h.deps, action.id);
 
-    expect(getAction(h.db, action.id)?.status).toBe("executed");
+    expect((await getAction(h.db, action.id))?.status).toBe("executed");
   });
 });

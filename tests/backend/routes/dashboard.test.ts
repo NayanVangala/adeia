@@ -13,9 +13,9 @@ import { createHarness, httpRequest, paymentRequest, type Harness } from "../../
 let h: Harness;
 
 /** Signs a user in without going through GitHub. */
-function signIn(login: string, githubId: string): { user: UserRow; cookie: string } {
-  const user = upsertUserFromGithub(h.db, { githubId, login });
-  const { token } = mintSession(h.db, user.id);
+async function signIn(login: string, githubId: string): Promise<{ user: UserRow; cookie: string }> {
+  const user = await upsertUserFromGithub(h.db, { githubId, login });
+  const { token } = await mintSession(h.db, user.id);
   return { user, cookie: `adeia_session=${token}` };
 }
 
@@ -23,8 +23,8 @@ const get = (path: string, cookie?: string) =>
   h.app.request(path, cookie ? { headers: { cookie } } : undefined);
 
 describe("who can see the dashboard", () => {
-  beforeEach(() => {
-    h = createHarness({ oauth: { clientId: "c", clientSecret: "s", redirectUri: "http://x/cb" } });
+  beforeEach(async () => {
+    h = await createHarness({ oauth: { clientId: "c", clientSecret: "s", redirectUri: "http://x/cb" } });
   });
 
   it("shows the sign-in page to a visitor with no cookie", async () => {
@@ -38,7 +38,7 @@ describe("who can see the dashboard", () => {
   });
 
   it("shows the dashboard to a signed-in user", async () => {
-    const { cookie } = signIn("someone", "1");
+    const { cookie } = await signIn("someone", "1");
     const body = await (await get("/dashboard", cookie)).text();
 
     expect(body).toContain("someone");
@@ -47,12 +47,12 @@ describe("who can see the dashboard", () => {
 });
 
 describe("the first sign-in provisions a project", () => {
-  beforeEach(() => {
-    h = createHarness();
+  beforeEach(async () => {
+    h = await createHarness();
   });
 
   it("creates a project, both policies, and shows the key exactly once", async () => {
-    const { user, cookie } = signIn("someone", "1");
+    const { user, cookie } = await signIn("someone", "1");
 
     const first = await (await get("/dashboard", cookie)).text();
     expect(first).toContain("adeia_sk_");
@@ -70,7 +70,7 @@ describe("the first sign-in provisions a project", () => {
   });
 
   it("never shows the key again on a later visit", async () => {
-    const { cookie } = signIn("someone", "1");
+    const { cookie } = await signIn("someone", "1");
 
     await get("/dashboard", cookie);
     const second = await (await get("/dashboard", cookie)).text();
@@ -79,7 +79,7 @@ describe("the first sign-in provisions a project", () => {
   });
 
   it("does not create a second project on every visit", async () => {
-    const { user, cookie } = signIn("someone", "1");
+    const { user, cookie } = await signIn("someone", "1");
 
     await get("/dashboard", cookie);
     await get("/dashboard", cookie);
@@ -91,13 +91,13 @@ describe("the first sign-in provisions a project", () => {
     expect(row!.n).toBe(1);
   });
 
-  it("starts with an empty host allowlist, which denies every outbound call", () => {
+  it("starts with an empty host allowlist, which denies every outbound call", async () => {
     // Guessing which hosts a stranger trusts is not a thing to do for them.
     // Empty denies everything, which is the safe direction to be wrong in.
     expect(STARTER_HTTP_POLICY.config.allowedHosts).toEqual([]);
   });
 
-  it("gives a new user the same limits the documented seed policy uses", () => {
+  it("gives a new user the same limits the documented seed policy uses", async () => {
     // A stranger signing up must not quietly land on looser defaults than the
     // ones written down.
     expect(STARTER_PAYMENT_POLICY.maxAmountCents).toBe(DEMO_POLICY.maxAmountCents);
@@ -113,13 +113,13 @@ describe("the first sign-in provisions a project", () => {
 });
 
 describe("one user never sees another user's actions", () => {
-  beforeEach(() => {
-    h = createHarness();
+  beforeEach(async () => {
+    h = await createHarness();
   });
 
   it("shows each user only their own project", async () => {
-    const a = signIn("alice", "1");
-    const b = signIn("bob", "2");
+    const a = await signIn("alice", "1");
+    const b = await signIn("bob", "2");
 
     // Provision both.
     await get("/dashboard", a.cookie);
@@ -137,7 +137,7 @@ describe("one user never sees another user's actions", () => {
   it("does not show a seeded, ownerless project to anyone", async () => {
     // `npm run seed` still creates projects nobody owns. "Unowned" must never
     // read as "everyone's".
-    const { cookie } = signIn("someone", "1");
+    const { cookie } = await signIn("someone", "1");
     await requestAction(h.deps, h.projectId, paymentRequest(2_500));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -146,13 +146,13 @@ describe("one user never sees another user's actions", () => {
 });
 
 describe("what the dashboard shows", () => {
-  beforeEach(() => {
-    h = createHarness({ httpPolicy: {}, verdict: { risk: "low", reason: "Creates an issue." } });
+  beforeEach(async () => {
+    h = await createHarness({ httpPolicy: {}, verdict: { risk: "low", reason: "Creates an issue." } });
   });
 
   /** Moves the seeded project under a signed-in user so its actions are visible. */
-  function ownProject(login = "someone", githubId = "1") {
-    const session = signIn(login, githubId);
+  async function ownProject(login = "someone", githubId = "1") {
+    const session = await signIn(login, githubId);
     h.db.$client
       .prepare("UPDATE projects SET owner_user_id = ? WHERE id = ?")
       .run(session.user.id, h.projectId);
@@ -160,7 +160,7 @@ describe("what the dashboard shows", () => {
   }
 
   it("lists an executed action", async () => {
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, paymentRequest(2_500));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -171,7 +171,7 @@ describe("what the dashboard shows", () => {
   it("says plainly when a model was what let something run", async () => {
     // The product-integrity assertion. A row that ran because a classifier
     // judged it low risk must never read as one a person approved.
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("POST"));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -180,8 +180,8 @@ describe("what the dashboard shows", () => {
   });
 
   it("marks a flagged action as a model's doing, not a decision already taken", async () => {
-    h = createHarness({ httpPolicy: {}, verdict: { risk: "high", reason: "Rewrites a ref." } });
-    const { cookie } = ownProject();
+    h = await createHarness({ httpPolicy: {}, verdict: { risk: "high", reason: "Rewrites a ref." } });
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("POST"));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -190,7 +190,7 @@ describe("what the dashboard shows", () => {
   });
 
   it("adds no model line to an action no classifier touched", async () => {
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("DELETE"));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -201,11 +201,11 @@ describe("what the dashboard shows", () => {
 
   it("escapes a classifier reason rather than rendering it as markup", async () => {
     // The reason is model-generated text on its way to a browser.
-    h = createHarness({
+    h = await createHarness({
       httpPolicy: {},
       verdict: { risk: "low", reason: "<img src=x onerror=alert(1)>" },
     });
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("POST"));
 
     const body = await (await get("/dashboard", cookie)).text();
@@ -214,7 +214,7 @@ describe("what the dashboard shows", () => {
   });
 
   it("never renders an API key belonging to an existing project", async () => {
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     const body = await (await get("/dashboard", cookie)).text();
 
     // The project already existed, so nothing was provisioned and no key
@@ -223,7 +223,7 @@ describe("what the dashboard shows", () => {
   });
 
   it("counts what is waiting separately from what ran", async () => {
-    const { cookie } = ownProject();
+    const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, paymentRequest(2_500));
     await requestAction(h.deps, h.projectId, paymentRequest(50_000));
 
@@ -234,13 +234,13 @@ describe("what the dashboard shows", () => {
 });
 
 describe("rotating the API key", () => {
-  beforeEach(() => {
-    h = createHarness();
+  beforeEach(async () => {
+    h = await createHarness();
   });
 
   /** Signs in and provisions, returning the cookie and the project id. */
   async function established() {
-    const session = signIn("someone", "1");
+    const session = await signIn("someone", "1");
     await get("/dashboard", session.cookie);
     const [row] = h.db.$client
       .prepare("SELECT id, api_key_hash FROM projects WHERE owner_user_id = ?")
@@ -328,7 +328,7 @@ describe("rotating the API key", () => {
 
   it("refuses a CSRF token belonging to a different session", async () => {
     const mine = await established();
-    const theirs = signIn("someone-else", "2");
+    const theirs = await signIn("someone-else", "2");
     await get("/dashboard", theirs.cookie);
     const theirCsrf = await csrfFrom(theirs.cookie);
 
@@ -355,7 +355,7 @@ describe("rotating the API key", () => {
 
   it("rotates only the caller's own project", async () => {
     const mine = await established();
-    const theirs = signIn("someone-else", "2");
+    const theirs = await signIn("someone-else", "2");
     await get("/dashboard", theirs.cookie);
     const [before] = h.db.$client
       .prepare("SELECT api_key_hash FROM projects WHERE owner_user_id = ?")

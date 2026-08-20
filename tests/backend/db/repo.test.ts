@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createDb, migrate, type Db } from "../../../src/backend/src/db/client.ts";
+import { createDb, migrate, type NodeDb } from "../../../src/backend/src/db/client.node.ts";
 import {
   findActionByIdempotencyKey,
   getAction,
@@ -31,13 +31,13 @@ function asPayment(policy: Policy): PaymentPolicy {
   return policy;
 }
 
-let db: Db;
+let db: NodeDb;
 let projectId: string;
 
-beforeEach(() => {
+beforeEach(async () => {
   db = createDb(":memory:");
   migrate(db);
-  projectId = insertProject(db, { name: "test", apiKeyHash: "hash-a" }).id;
+  projectId = (await insertProject(db, { name: "test", apiKeyHash: "hash-a" })).id;
 });
 
 const payment = (amountCents: number, currency = "usd", recipient = "acct_demo") => ({
@@ -47,8 +47,8 @@ const payment = (amountCents: number, currency = "usd", recipient = "acct_demo")
 });
 
 describe("insertAction / getAction", () => {
-  it("round-trips params through JSON", () => {
-    const created = insertAction(db, {
+  it("round-trips params through JSON", async () => {
+    const created = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -59,16 +59,16 @@ describe("insertAction / getAction", () => {
     expect(created.id).toMatch(/^act_/);
     expect(created.params).toEqual(payment(2500));
 
-    const fetched = getAction(db, created.id);
+    const fetched = await getAction(db, created.id);
     expect(fetched).toEqual(created);
   });
 
-  it("returns null for an unknown id", () => {
-    expect(getAction(db, "act_nope")).toBeNull();
+  it("returns null for an unknown id", async () => {
+    expect(await getAction(db, "act_nope")).toBeNull();
   });
 
-  it("throws on a repeated (project_id, idempotency_key)", () => {
-    insertAction(db, {
+  it("throws on a repeated (project_id, idempotency_key)", async () => {
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -76,7 +76,7 @@ describe("insertAction / getAction", () => {
       idempotencyKey: "dupe",
     });
 
-    expect(() =>
+    await expect(
       insertAction(db, {
         projectId,
         type: "payment",
@@ -84,12 +84,12 @@ describe("insertAction / getAction", () => {
         status: "pending_policy",
         idempotencyKey: "dupe",
       }),
-    ).toThrow(/UNIQUE constraint failed/i);
+    ).rejects.toThrow(/UNIQUE constraint failed/i);
   });
 
-  it("scopes the idempotency key per project", () => {
-    const other = insertProject(db, { name: "other", apiKeyHash: "hash-b" }).id;
-    insertAction(db, {
+  it("scopes the idempotency key per project", async () => {
+    const other = (await insertProject(db, { name: "other", apiKeyHash: "hash-b" })).id;
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -97,7 +97,7 @@ describe("insertAction / getAction", () => {
       idempotencyKey: "shared",
     });
 
-    expect(() =>
+    await expect(
       insertAction(db, {
         projectId: other,
         type: "payment",
@@ -105,13 +105,13 @@ describe("insertAction / getAction", () => {
         status: "pending_policy",
         idempotencyKey: "shared",
       }),
-    ).not.toThrow();
+    ).resolves.toBeDefined();
   });
 });
 
 describe("findActionByIdempotencyKey", () => {
-  it("returns the original row for a repeated key", () => {
-    const original = insertAction(db, {
+  it("returns the original row for a repeated key", async () => {
+    const original = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -119,12 +119,12 @@ describe("findActionByIdempotencyKey", () => {
       idempotencyKey: "k1",
     });
 
-    expect(findActionByIdempotencyKey(db, projectId, "k1")?.id).toBe(original.id);
+    expect((await findActionByIdempotencyKey(db, projectId, "k1"))?.id).toBe(original.id);
   });
 
-  it("does not leak across projects", () => {
-    const other = insertProject(db, { name: "other", apiKeyHash: "hash-b" }).id;
-    insertAction(db, {
+  it("does not leak across projects", async () => {
+    const other = (await insertProject(db, { name: "other", apiKeyHash: "hash-b" })).id;
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -132,13 +132,13 @@ describe("findActionByIdempotencyKey", () => {
       idempotencyKey: "k1",
     });
 
-    expect(findActionByIdempotencyKey(db, other, "k1")).toBeNull();
+    expect(await findActionByIdempotencyKey(db, other, "k1")).toBeNull();
   });
 });
 
 describe("updateActionStatus", () => {
-  it("patches only the fields it is given", () => {
-    const created = insertAction(db, {
+  it("patches only the fields it is given", async () => {
+    const created = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -146,7 +146,7 @@ describe("updateActionStatus", () => {
       idempotencyKey: "k1",
     });
 
-    const decided = updateActionStatus(db, created.id, {
+    const decided = await updateActionStatus(db, created.id, {
       status: "approved",
       decision: "allow",
       decisionReason: "within policy",
@@ -158,7 +158,7 @@ describe("updateActionStatus", () => {
     expect(decided.decisionReason).toBe("within policy");
     expect(decided.result).toBeNull();
 
-    const executed = updateActionStatus(db, created.id, {
+    const executed = await updateActionStatus(db, created.id, {
       status: "executed",
       result: { paymentIntentId: "pi_123", status: "succeeded" },
       executedAt: "2026-08-06T00:00:01.000Z",
@@ -169,28 +169,30 @@ describe("updateActionStatus", () => {
     expect(executed.decisionReason).toBe("within policy");
   });
 
-  it("throws for an unknown action", () => {
-    expect(() => updateActionStatus(db, "act_nope", { status: "denied" })).toThrow(/not found/i);
+  it("throws for an unknown action", async () => {
+    (await expect(updateActionStatus(db, "act_nope", { status: "denied" }))).rejects.toThrow(
+      /not found/i,
+    );
   });
 });
 
 describe("sumSpentTodayCents", () => {
-  it("counts only executed rows in the matching currency", () => {
-    insertAction(db, {
+  it("counts only executed rows in the matching currency", async () => {
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(1000),
       status: "executed",
       idempotencyKey: "a",
     });
-    insertAction(db, {
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(9999),
       status: "denied",
       idempotencyKey: "b",
     });
-    insertAction(db, {
+    await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(500, "eur"),
@@ -198,17 +200,17 @@ describe("sumSpentTodayCents", () => {
       idempotencyKey: "c",
     });
 
-    expect(sumSpentTodayCents(db, projectId, "usd")).toBe(1000);
-    expect(sumSpentTodayCents(db, projectId, "eur")).toBe(500);
+    expect(await sumSpentTodayCents(db, projectId, "usd")).toBe(1000);
+    expect(await sumSpentTodayCents(db, projectId, "eur")).toBe(500);
   });
 
-  it("returns 0 when nothing has been spent", () => {
-    expect(sumSpentTodayCents(db, projectId, "usd")).toBe(0);
+  it("returns 0 when nothing has been spent", async () => {
+    expect(await sumSpentTodayCents(db, projectId, "usd")).toBe(0);
   });
 
-  it("ignores other projects", () => {
-    const other = insertProject(db, { name: "other", apiKeyHash: "hash-b" }).id;
-    insertAction(db, {
+  it("ignores other projects", async () => {
+    const other = (await insertProject(db, { name: "other", apiKeyHash: "hash-b" })).id;
+    await insertAction(db, {
       projectId: other,
       type: "payment",
       params: payment(7000),
@@ -216,11 +218,11 @@ describe("sumSpentTodayCents", () => {
       idempotencyKey: "a",
     });
 
-    expect(sumSpentTodayCents(db, projectId, "usd")).toBe(0);
+    expect(await sumSpentTodayCents(db, projectId, "usd")).toBe(0);
   });
 
-  it("excludes rows created before today's UTC midnight", () => {
-    const created = insertAction(db, {
+  it("excludes rows created before today's UTC midnight", async () => {
+    const created = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(1000),
@@ -232,25 +234,25 @@ describe("sumSpentTodayCents", () => {
       .prepare("UPDATE actions SET created_at = ? WHERE id = ?")
       .run("2026-01-01T12:00:00.000Z", created.id);
 
-    expect(sumSpentTodayCents(db, projectId, "usd")).toBe(0);
+    expect(await sumSpentTodayCents(db, projectId, "usd")).toBe(0);
   });
 });
 
 describe("utcMidnightIso", () => {
-  it("uses UTC, not the local timezone", () => {
+  it("uses UTC, not the local timezone", async () => {
     // 23:30 in New York on 6 Aug is already 03:30 on 7 Aug in UTC.
     expect(utcMidnightIso(new Date("2026-08-07T03:30:00.000Z"))).toBe("2026-08-07T00:00:00.000Z");
   });
 });
 
 describe("projects and policies", () => {
-  it("looks a project up by key hash", () => {
-    expect(getProjectByKeyHash(db, "hash-a")?.id).toBe(projectId);
-    expect(getProjectByKeyHash(db, "hash-missing")).toBeNull();
+  it("looks a project up by key hash", async () => {
+    expect((await getProjectByKeyHash(db, "hash-a"))?.id).toBe(projectId);
+    expect(await getProjectByKeyHash(db, "hash-missing")).toBeNull();
   });
 
-  it("stores allowedRecipients as JSON and requiresApproval as 0/1", () => {
-    insertPolicy(db, {
+  it("stores allowedRecipients as JSON and requiresApproval as 0/1", async () => {
+    await insertPolicy(db, {
       projectId,
       actionType: "payment",
       maxAmountCents: 5000,
@@ -258,27 +260,27 @@ describe("projects and policies", () => {
       requiresApproval: true,
     });
 
-    const row = getPolicy(db, projectId, "payment");
+    const row = await getPolicy(db, projectId, "payment");
     expect(row?.allowedRecipients).toBe('["acct_known"]');
     expect(row?.requiresApproval).toBe(1);
     expect(row?.hardMaxAmountCents).toBeNull();
   });
 
-  it("allows one policy per (project, action type)", () => {
-    insertPolicy(db, { projectId, actionType: "payment" });
-    expect(() => insertPolicy(db, { projectId, actionType: "payment" })).toThrow(
+  it("allows one policy per (project, action type)", async () => {
+    await insertPolicy(db, { projectId, actionType: "payment" });
+    (await expect(insertPolicy(db, { projectId, actionType: "payment" }))).rejects.toThrow(
       /UNIQUE constraint failed/i,
     );
   });
 
-  it("returns null when no policy is configured", () => {
-    expect(getPolicy(db, projectId, "payment")).toBeNull();
+  it("returns null when no policy is configured", async () => {
+    expect(await getPolicy(db, projectId, "payment")).toBeNull();
   });
 });
 
 describe("listAudit ordering", () => {
-  it("returns events in insertion order even when they share a millisecond", () => {
-    const action = insertAction(db, {
+  it("returns events in insertion order even when they share a millisecond", async () => {
+    const action = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -291,14 +293,14 @@ describe("listAudit ordering", () => {
     // insertion order.
     const written = Array.from({ length: 50 }, (_, i) => `evt.${i}`);
     for (const event of written) {
-      insertAuditEvent(db, { actionId: action.id, projectId, event });
+      await insertAuditEvent(db, { actionId: action.id, projectId, event });
     }
 
-    expect(listAudit(db, action.id).map((e) => e.event)).toEqual(written);
+    expect((await listAudit(db, action.id)).map((e) => e.event)).toEqual(written);
   });
 
-  it("is stable across repeated reads", () => {
-    const action = insertAction(db, {
+  it("is stable across repeated reads", async () => {
+    const action = await insertAction(db, {
       projectId,
       type: "payment",
       params: payment(2500),
@@ -306,17 +308,17 @@ describe("listAudit ordering", () => {
       idempotencyKey: "k1",
     });
     for (let i = 0; i < 20; i++) {
-      insertAuditEvent(db, { actionId: action.id, projectId, event: `evt.${i}` });
+      await insertAuditEvent(db, { actionId: action.id, projectId, event: `evt.${i}` });
     }
 
-    const first = listAudit(db, action.id).map((e) => e.id);
-    expect(listAudit(db, action.id).map((e) => e.id)).toEqual(first);
+    const first = (await listAudit(db, action.id)).map((e) => e.id);
+    expect((await listAudit(db, action.id)).map((e) => e.id)).toEqual(first);
   });
 });
 
 describe("toPolicy", () => {
-  it("maps a stored row into the shape evaluate() expects", () => {
-    insertPolicy(db, {
+  it("maps a stored row into the shape evaluate() expects", async () => {
+    await insertPolicy(db, {
       projectId,
       actionType: "payment",
       maxAmountCents: 5000,
@@ -326,7 +328,7 @@ describe("toPolicy", () => {
       requiresApproval: true,
     });
 
-    expect(toPolicy(getPolicy(db, projectId, "payment")!)).toEqual({
+    expect(toPolicy((await getPolicy(db, projectId, "payment"))!)).toEqual({
       actionType: "payment",
       maxAmountCents: 5000,
       hardMaxAmountCents: 100000,
@@ -336,9 +338,9 @@ describe("toPolicy", () => {
     });
   });
 
-  it("keeps an absent limit as null rather than collapsing it to 0", () => {
-    insertPolicy(db, { projectId, actionType: "payment" });
-    const policy = asPayment(toPolicy(getPolicy(db, projectId, "payment")!));
+  it("keeps an absent limit as null rather than collapsing it to 0", async () => {
+    await insertPolicy(db, { projectId, actionType: "payment" });
+    const policy = asPayment(toPolicy((await getPolicy(db, projectId, "payment"))!));
 
     expect(policy.maxAmountCents).toBeNull();
     expect(policy.hardMaxAmountCents).toBeNull();
@@ -347,34 +349,35 @@ describe("toPolicy", () => {
     expect(policy.requiresApproval).toBe(false);
   });
 
-  it("preserves a 0 limit, which means nothing is allowed", () => {
-    insertPolicy(db, {
+  it("preserves a 0 limit, which means nothing is allowed", async () => {
+    await insertPolicy(db, {
       projectId,
       actionType: "payment",
       maxAmountCents: 0,
       hardMaxAmountCents: 0,
       dailyCapCents: 0,
     });
-    const policy = asPayment(toPolicy(getPolicy(db, projectId, "payment")!));
+    const policy = asPayment(toPolicy((await getPolicy(db, projectId, "payment"))!));
 
     expect(policy.maxAmountCents).toBe(0);
     expect(policy.hardMaxAmountCents).toBe(0);
     expect(policy.dailyCapCents).toBe(0);
   });
 
-  it("distinguishes an empty allowlist from no allowlist", () => {
-    insertPolicy(db, { projectId, actionType: "payment", allowedRecipients: [] });
-    expect(asPayment(toPolicy(getPolicy(db, projectId, "payment")!)).allowedRecipients).toEqual([]);
+  it("distinguishes an empty allowlist from no allowlist", async () => {
+    await insertPolicy(db, { projectId, actionType: "payment", allowedRecipients: [] });
+    expect(asPayment(toPolicy((await getPolicy(db, projectId, "payment"))!)).allowedRecipients).toEqual([]);
   });
 
-  it("rejects a corrupted allowed_recipients column", () => {
-    const row = insertPolicy(db, { projectId, actionType: "payment" });
+  it("rejects a corrupted allowed_recipients column", async () => {
+    const row = await insertPolicy(db, { projectId, actionType: "payment" });
     db.$client
       .prepare("UPDATE policies SET allowed_recipients = ? WHERE id = ?")
       .run('{"not":"an array"}', row.id);
 
-    expect(() => toPolicy(getPolicy(db, projectId, "payment")!)).toThrow(
-      /not a JSON array of strings/i,
-    );
+    // Read first: `toPolicy` is still synchronous, and it is the throw under
+    // test — awaiting inside the arrow would move the failure out of it.
+    const stored = (await getPolicy(db, projectId, "payment"))!;
+    expect(() => toPolicy(stored)).toThrow(/not a JSON array of strings/i);
   });
 });

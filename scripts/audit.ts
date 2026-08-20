@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
-import { createDb, migrate } from "../src/backend/src/db/client.ts";
+import { createDb, migrate } from "../src/backend/src/db/client.node.ts";
 import { getAction, listAudit, type AuditRow } from "../src/backend/src/db/repo.ts";
 import { env } from "../src/backend/src/env.ts";
 
@@ -63,7 +63,7 @@ function printEvent(row: AuditRow): void {
   console.log(`${dim(time)}  ${painted}  ${data}`);
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const actionId = process.argv[2];
   if (!actionId) {
     console.error("usage: npm run audit -- <actionId>");
@@ -74,7 +74,7 @@ function main(): void {
   const db = createDb(env.ADEIA_DB_PATH);
   migrate(db);
 
-  const action = getAction(db, actionId);
+  const action = await getAction(db, actionId);
   if (!action) {
     console.error(`no action ${actionId} in ${env.ADEIA_DB_PATH}`);
     process.exitCode = 1;
@@ -93,7 +93,7 @@ function main(): void {
   if (action.error) console.log(`  ${dim("error ")}  ${action.error}`);
   console.log();
 
-  const events = listAudit(db, action.id);
+  const events = await listAudit(db, action.id);
   if (events.length === 0) {
     console.log(dim("  (no audit events — this should never happen)"));
   }
@@ -101,4 +101,11 @@ function main(): void {
   console.log();
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  // The database is remote now, so main() is async. An unhandled rejection
+  // would print a warning and exit 0, which in a seed script reads as success.
+  main().catch((err: unknown) => {
+    console.error(err);
+    process.exitCode = 1;
+  });
+}

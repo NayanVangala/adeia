@@ -21,9 +21,9 @@ interface Signed {
   userId: string;
 }
 
-function signIn(login: string, githubId: string): Signed {
-  const user = upsertUserFromGithub(h.db, { githubId, login });
-  const { token } = mintSession(h.db, user.id);
+async function signIn(login: string, githubId: string): Promise<Signed> {
+  const user = await upsertUserFromGithub(h.db, { githubId, login });
+  const { token } = await mintSession(h.db, user.id);
   return {
     cookie: `adeia_session=${token}`,
     csrf: csrfTokenFor(hashSessionToken(token)),
@@ -60,36 +60,36 @@ async function pending(): Promise<string> {
   return action.id;
 }
 
-beforeEach(() => {
-  h = createHarness({ httpPolicy: {} });
+beforeEach(async () => {
+  h = await createHarness({ httpPolicy: {} });
 });
 
 describe("approving from the dashboard", () => {
   it("runs the action and records who decided", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
     const res = await decide(id, { csrf: s.csrf, decision: "approve" }, s.cookie);
 
     expect(res.status).toBe(302);
-    expect(getAction(h.db, id)?.status).toBe("executed");
+    expect((await getAction(h.db, id))?.status).toBe("executed");
     expect(h.adapter.calls).toHaveLength(1);
   });
 
   it("denies without ever reaching the adapter", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
     await decide(id, { csrf: s.csrf, decision: "deny" }, s.cookie);
 
-    expect(getAction(h.db, id)?.status).toBe("denied");
+    expect((await getAction(h.db, id))?.status).toBe("denied");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
   it("names the GitHub account in the audit trail, not just 'a human'", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
@@ -102,7 +102,7 @@ describe("approving from the dashboard", () => {
   });
 
   it("survives a double-submitted form without running twice", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
@@ -116,30 +116,30 @@ describe("approving from the dashboard", () => {
 
 describe("what the decision route refuses", () => {
   it("refuses a request with no session", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
     const res = await decide(id, { csrf: s.csrf, decision: "approve" });
 
     expect(res.status).toBe(302);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
   it("refuses a missing CSRF token", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
     const res = await decide(id, { decision: "approve" }, s.cookie);
 
     expect(res.status).toBe(403);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
   });
 
   it("refuses a forged CSRF token", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
@@ -150,36 +150,36 @@ describe("what the decision route refuses", () => {
   });
 
   it("refuses another session's CSRF token", async () => {
-    const alice = signIn("alice", "1");
-    const bob = signIn("bob", "2");
+    const alice = await signIn("alice", "1");
+    const bob = await signIn("bob", "2");
     own(alice);
     const id = await pending();
 
     const res = await decide(id, { csrf: bob.csrf, decision: "approve" }, alice.cookie);
 
     expect(res.status).toBe(403);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
   });
 
   it("will not let one user decide another user's action", async () => {
     // The whole reason the ownership check exists. Bob is a real, signed-in
     // user with a valid CSRF token of his own — everything is legitimate
     // except that the action is not his.
-    const alice = signIn("alice", "1");
-    const bob = signIn("bob", "2");
+    const alice = await signIn("alice", "1");
+    const bob = await signIn("bob", "2");
     own(alice);
     const id = await pending();
 
     const res = await decide(id, { csrf: bob.csrf, decision: "approve" }, bob.cookie);
 
     expect(res.status).toBe(404);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
     expect(h.adapter.calls).toHaveLength(0);
   });
 
   it("says 404, not 403, so probing ids reveals nothing", async () => {
-    const bob = signIn("bob", "2");
-    const alice = signIn("alice", "1");
+    const bob = await signIn("bob", "2");
+    const alice = await signIn("alice", "1");
     own(alice);
     const real = await pending();
 
@@ -191,18 +191,18 @@ describe("what the decision route refuses", () => {
   });
 
   it("refuses a decision value it does not recognise", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
     const res = await decide(id, { csrf: s.csrf, decision: "maybe" }, s.cookie);
 
     expect(res.status).toBe(400);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
   });
 
   it("cannot be triggered by a GET", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
@@ -211,13 +211,13 @@ describe("what the decision route refuses", () => {
     });
 
     expect(res.status).toBe(404);
-    expect(getAction(h.db, id)?.status).toBe("pending_approval");
+    expect((await getAction(h.db, id))?.status).toBe("pending_approval");
   });
 });
 
 describe("the dashboard renders the buttons", () => {
   it("puts approve and deny on a waiting action, with a CSRF field", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     const id = await pending();
 
@@ -230,7 +230,7 @@ describe("the dashboard renders the buttons", () => {
   });
 
   it("puts no buttons on an action already settled", async () => {
-    const s = signIn("alice", "1");
+    const s = await signIn("alice", "1");
     own(s);
     await requestAction(h.deps, h.projectId, paymentRequest(2_500));
 
@@ -240,8 +240,8 @@ describe("the dashboard renders the buttons", () => {
   });
 
   it("offers the same buttons for a classifier-flagged call", async () => {
-    h = createHarness({ httpPolicy: {}, verdict: { risk: "high", reason: "Rewrites a ref." } });
-    const s = signIn("alice", "1");
+    h = await createHarness({ httpPolicy: {}, verdict: { risk: "high", reason: "Rewrites a ref." } });
+    const s = await signIn("alice", "1");
     own(s);
     const action = await requestAction(h.deps, h.projectId, httpRequest("POST"));
 

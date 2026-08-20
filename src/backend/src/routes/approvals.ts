@@ -36,9 +36,9 @@ export function createApprovalRoutes(): Hono<AppEnv> {
    * strictly *removes* the ability to act on the request. A link-prefetcher
    * hitting a dead link only finishes killing it.
    */
-  const handleTokenError = (c: Context<AppEnv>, err: ApprovalTokenError) => {
+  const handleTokenError = async (c: Context<AppEnv>, err: ApprovalTokenError) => {
     if (err.reason === "expired" && err.actionId) {
-      expireAction(c.get("deps"), err.actionId);
+      await expireAction(c.get("deps"), err.actionId);
     }
     return c.html(renderExpiredPage(err.message), 410);
   };
@@ -55,10 +55,10 @@ export function createApprovalRoutes(): Hono<AppEnv> {
   routes.get("/:token", async (c) => {
     try {
       const approval = await verifyApprovalToken(c.get("deps").db, c.req.param("token"));
-      const action = getAction(c.get("deps").db, approval.actionId);
+      const action = await getAction(c.get("deps").db, approval.actionId);
       if (!action) return c.html(renderExpiredPage("this request no longer exists"), 410);
 
-      const project = getProject(c.get("deps").db, action.projectId);
+      const project = await getProject(c.get("deps").db, action.projectId);
       return c.html(
         renderApprovalPage(action, c.req.param("token"), {
           ...(project ? { projectName: project.name } : {}),

@@ -12,11 +12,11 @@ import { createHarness, paymentRequest, type Harness } from "../../helpers/harne
 
 let h: Harness;
 
-beforeEach(() => {
-  h = createHarness();
+beforeEach(async () => {
+  h = await createHarness();
 });
 
-const events = (actionId: string) => listAudit(h.db, actionId).map((e) => e.event);
+const events = async (actionId: string) => (await listAudit(h.db, actionId)).map((e) => e.event);
 
 /** Runs an over-limit action through to the human's decision. */
 async function decide(decision: "approve" | "deny") {
@@ -33,7 +33,7 @@ async function decide(decision: "approve" | "deny") {
 describe("completeness — every terminal path has its exact sequence", () => {
   it("auto-executed", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(2_500));
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.executing",
@@ -43,12 +43,12 @@ describe("completeness — every terminal path has its exact sequence", () => {
 
   it("denied by policy", async () => {
     const action = await requestAction(h.deps, h.projectId, paymentRequest(500_000));
-    expect(events(action.id)).toEqual(["action.requested", "policy.evaluated", "action.denied"]);
+    expect(await events(action.id)).toEqual(["action.requested", "policy.evaluated", "action.denied"]);
   });
 
   it("approved by a human", async () => {
     const action = await decide("approve");
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -61,7 +61,7 @@ describe("completeness — every terminal path has its exact sequence", () => {
 
   it("refused by a human", async () => {
     const action = await decide("deny");
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -73,7 +73,7 @@ describe("completeness — every terminal path has its exact sequence", () => {
   it("failed at the adapter", async () => {
     h.adapter.failWith(new Error("card_declined"));
     const action = await requestAction(h.deps, h.projectId, paymentRequest(2_500));
-    expect(events(action.id)).toEqual([
+    expect(await events(action.id)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.executing",
@@ -82,12 +82,12 @@ describe("completeness — every terminal path has its exact sequence", () => {
   });
 
   it("expired without a decision", async () => {
-    const expiring = createHarness({ tokenTtlMs: -1 });
+    const expiring = await createHarness({ tokenTtlMs: -1 });
     const action = await requestAction(expiring.deps, expiring.projectId, paymentRequest(50_000));
     const { token } = expiring.sentEmails.at(-1)!;
     await expiring.app.request(`/approvals/${token}`);
 
-    expect(listAudit(expiring.db, action.id).map((e) => e.event)).toEqual([
+    expect((await listAudit(expiring.db, action.id)).map((e) => e.event)).toEqual([
       "action.requested",
       "policy.evaluated",
       "action.pending_approval",
@@ -121,7 +121,7 @@ describe("no orphan transitions", () => {
     for (const row of rows) {
       if (!terminal.has(row.status)) continue;
 
-      const written = listAudit(h.db, row.id).map((e) => e.event);
+      const written = (await listAudit(h.db, row.id)).map((e) => e.event);
       const hasTerminalEvent = written.some((e) =>
         (TERMINAL_EVENTS as readonly string[]).includes(e),
       );
@@ -137,7 +137,7 @@ describe("no orphan transitions", () => {
 
     const rows = h.db.$client.prepare("SELECT id FROM actions").all() as Array<{ id: string }>;
     for (const row of rows) {
-      expect(listAudit(h.db, row.id)[0]?.event).toBe("action.requested");
+      expect((await listAudit(h.db, row.id))[0]?.event).toBe("action.requested");
     }
   });
 
@@ -157,7 +157,7 @@ describe("no orphan transitions", () => {
 });
 
 describe("redact", () => {
-  it("strips secret-looking keys and keeps everything else", () => {
+  it("strips secret-looking keys and keeps everything else", async () => {
     expect(
       redact({ apiKey: "adeia_sk_secret", processorSecretKey: "psk_live_x", amountCents: 100 }),
     ).toEqual({
@@ -174,19 +174,19 @@ describe("redact", () => {
     },
   );
 
-  it("recurses into nested objects and arrays", () => {
+  it("recurses into nested objects and arrays", async () => {
     expect(redact({ outer: { inner: [{ token: "t" }, { amountCents: 5 }] } })).toEqual({
       outer: { inner: [{ token: "[redacted]" }, { amountCents: 5 }] },
     });
   });
 
-  it("leaves primitives and null alone", () => {
+  it("leaves primitives and null alone", async () => {
     expect(redact(null)).toBeNull();
     expect(redact(42)).toBe(42);
     expect(redact("plain")).toBe("plain");
   });
 
-  it("stops at a depth limit rather than recursing forever", () => {
+  it("stops at a depth limit rather than recursing forever", async () => {
     const cyclic: Record<string, unknown> = { amountCents: 1 };
     cyclic["self"] = cyclic;
 
@@ -196,8 +196,8 @@ describe("redact", () => {
 });
 
 describe("appendAudit", () => {
-  it("redacts at write time, so the secret is not in the database file", () => {
-    appendAudit(h.db, {
+  it("redacts at write time, so the secret is not in the database file", async () => {
+    await appendAudit(h.db, {
       projectId: h.projectId,
       event: "policy.evaluated",
       data: { apiKey: "adeia_sk_secret", processorSecretKey: "psk_live_x", amountCents: 100 },
@@ -213,8 +213,8 @@ describe("appendAudit", () => {
     expect(blob).not.toContain("psk_live_x");
   });
 
-  it("caps oversized data rather than letting an adapter bloat the table", () => {
-    appendAudit(h.db, {
+  it("caps oversized data rather than letting an adapter bloat the table", async () => {
+    await appendAudit(h.db, {
       projectId: h.projectId,
       event: "action.executed",
       data: { blob: "x".repeat(MAX_DATA_BYTES * 2) },
@@ -227,23 +227,27 @@ describe("appendAudit", () => {
     expect(JSON.parse(row!.data)).toMatchObject({ truncated: true });
   });
 
-  it("never throws — a failed audit write must not unwind a completed payment", () => {
+  it("never throws — a failed audit write must not unwind a completed payment", async () => {
     const broken = { ...h.db } as typeof h.db;
     // Force the insert to blow up.
     vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() =>
+    // `resolves` rather than a sync `not.toThrow()`: appendAudit is async now,
+    // so a failure arrives as a rejected promise. A sync assertion here would
+    // pass no matter what the write did, which is the one thing this test
+    // exists to rule out.
+    (await expect(
       appendAudit(broken, {
         projectId: "proj_does_not_exist",
         actionId: "act_does_not_exist",
         event: "action.executed",
         data: { result: {} },
       }),
-    ).not.toThrow();
+    )).resolves.toBeUndefined();
     vi.restoreAllMocks();
   });
 
-  it("writes null data rather than the string 'undefined'", () => {
-    appendAudit(h.db, { projectId: h.projectId, event: "approval.sent" });
+  it("writes null data rather than the string 'undefined'", async () => {
+    await appendAudit(h.db, { projectId: h.projectId, event: "approval.sent" });
 
     const [row] = h.db.$client.prepare("SELECT data FROM audit_events").all() as Array<{
       data: string | null;

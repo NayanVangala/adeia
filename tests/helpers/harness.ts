@@ -10,7 +10,7 @@ import type { AppDeps, AppEnv } from "../../src/backend/src/appEnv.ts";
 import { mintApprovalToken } from "../../src/backend/src/approvals/token.ts";
 import { appendAudit } from "../../src/backend/src/audit/log.ts";
 import { generateApiKey, hashApiKey } from "../../src/backend/src/auth/apiKey.ts";
-import { createDb, migrate, type Db } from "../../src/backend/src/db/client.ts";
+import { createDb, migrate, type NodeDb } from "../../src/backend/src/db/client.node.ts";
 import type { ClassifierInput, Verdict } from "../../src/backend/src/policy/classify.ts";
 import {
   getAction,
@@ -38,7 +38,7 @@ export interface SentApproval {
  * stands in for Phase 5's email sender.
  */
 export interface Harness {
-  db: Db;
+  db: NodeDb;
   app: Hono<AppEnv>;
   deps: AppDeps;
   adapter: FakeAdapter;
@@ -105,20 +105,20 @@ const DEMO_POLICY = {
   requiresApproval: false,
 } satisfies Omit<NewPolicy, "projectId">;
 
-export function createHarness(opts: HarnessOptions = {}): Harness {
+export async function createHarness(opts: HarnessOptions = {}): Promise<Harness> {
   const db = createDb(":memory:");
   migrate(db);
 
   const apiKey = generateApiKey();
-  const project = insertProject(db, { name: "test", apiKeyHash: hashApiKey(apiKey) });
+  const project = await insertProject(db, { name: "test", apiKeyHash: hashApiKey(apiKey) });
 
   const otherKey = generateApiKey();
-  const otherProject = insertProject(db, { name: "other", apiKeyHash: hashApiKey(otherKey) });
+  const otherProject = await insertProject(db, { name: "other", apiKeyHash: hashApiKey(otherKey) });
 
   // `policy: null` seeds no policy at all, which the engine denies outright.
   if (opts.policy !== null) {
-    insertPolicy(db, { ...DEMO_POLICY, ...opts.policy, projectId: project.id });
-    insertPolicy(db, { ...DEMO_POLICY, ...opts.policy, projectId: otherProject.id });
+    await insertPolicy(db, { ...DEMO_POLICY, ...opts.policy, projectId: project.id });
+    await insertPolicy(db, { ...DEMO_POLICY, ...opts.policy, projectId: otherProject.id });
   }
 
   // Opt-in, so the many tests that only care about payments keep a database
@@ -127,7 +127,7 @@ export function createHarness(opts: HarnessOptions = {}): Harness {
   if (opts.httpPolicy !== undefined && opts.httpPolicy !== null) {
     const config = { ...DEMO_HTTP_CONFIG, ...opts.httpPolicy };
     for (const p of [project, otherProject]) {
-      insertPolicy(db, {
+      await insertPolicy(db, {
         projectId: p.id,
         actionType: "http",
         requiresApproval: false,
@@ -165,10 +165,10 @@ export function createHarness(opts: HarnessOptions = {}): Harness {
       if (opts.mintApprovals === false) return;
 
       // Exercises the real token module; only the transport is faked.
-      const action = getAction(db, actionId)!;
+      const action = (await getAction(db, actionId))!;
       const { token, expiresAt } = await mintApprovalToken(db, actionId, opts.tokenTtlMs ?? 60_000);
       sentEmails.push({ actionId, token, expiresAt, action });
-      appendAudit(db, {
+      await appendAudit(db, {
         actionId,
         projectId,
         event: "approval.sent",

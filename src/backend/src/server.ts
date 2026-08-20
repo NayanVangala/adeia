@@ -9,7 +9,7 @@ import { createRegistry } from "./adapters/types.ts";
 import type { AppDeps, AppEnv } from "./appEnv.ts";
 import { mintApprovalToken } from "./approvals/token.ts";
 import { appendAudit } from "./audit/log.ts";
-import { createDb, migrate, type Db } from "./db/client.ts";
+import { createDb, migrate, type Db } from "./db/client.node.ts";
 import { getAction } from "./db/repo.ts";
 import { env, requireApprovalConfig } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
@@ -121,14 +121,14 @@ export function createApprovalNotifier(
   ttlMs: number,
 ): (actionId: string, projectId: string) => Promise<void> {
   return async (actionId, projectId) => {
-    const action = getAction(db, actionId);
+    const action = await getAction(db, actionId);
     if (!action) return;
 
     try {
       const { token, expiresAt } = await mintApprovalToken(db, actionId, ttlMs);
       await send({ to: approverEmail, action, token });
 
-      appendAudit(db, {
+      await appendAudit(db, {
         actionId,
         projectId,
         event: "approval.sent",

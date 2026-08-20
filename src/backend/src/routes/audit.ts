@@ -42,19 +42,19 @@ export function createAuditRoutes(): Hono<AppEnv> {
   routes.use("*", apiKeyAuth);
 
   /** The complete, ordered trail for one action. */
-  routes.get("/actions/:id/audit", (c) => {
+  routes.get("/actions/:id/audit", async (c) => {
     const deps = c.get("deps");
-    const action = getAction(deps.db, c.req.param("id"));
+    const action = await getAction(deps.db, c.req.param("id"));
     if (!action || action.projectId !== c.get("projectId")) {
       return c.json({ error: "not_found" }, 404);
     }
 
-    return c.json({ events: listAudit(deps.db, action.id).map(toBody) }, 200);
+    return c.json({ events: (await listAudit(deps.db, action.id)).map(toBody) }, 200);
   });
 
   /** Everything the project has done, newest first. */
-  routes.get("/audit", (c) => {
-    const { events, nextCursor } = listProjectAudit(c.get("deps").db, c.get("projectId"), {
+  routes.get("/audit", async (c) => {
+    const { events, nextCursor } = await listProjectAudit(c.get("deps").db, c.get("projectId"), {
       limit: parseLimit(c.req.query("limit")),
       cursor: c.req.query("cursor"),
     });

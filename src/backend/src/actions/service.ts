@@ -69,8 +69,8 @@ function requireAdapter(adapters: AdapterRegistry, type: string): Adapter {
 async function execute(deps: RequestDeps, action: ActionRecord): Promise<ActionRecord> {
   const adapter = requireAdapter(deps.adapters, action.type);
 
-  let current = updateActionStatus(deps.db, action.id, { status: "executing" });
-  appendAudit(deps.db, {
+  let current = await updateActionStatus(deps.db, action.id, { status: "executing" });
+  await appendAudit(deps.db, {
     actionId: action.id,
     projectId: action.projectId,
     event: "action.executing",
@@ -83,12 +83,12 @@ async function execute(deps: RequestDeps, action: ActionRecord): Promise<ActionR
       idempotencyKey: action.idempotencyKey,
     });
 
-    current = updateActionStatus(deps.db, action.id, {
+    current = await updateActionStatus(deps.db, action.id, {
       status: "executed",
       result,
       executedAt: now(),
     });
-    appendAudit(deps.db, {
+    await appendAudit(deps.db, {
       actionId: action.id,
       projectId: action.projectId,
       event: "action.executed",
@@ -96,8 +96,8 @@ async function execute(deps: RequestDeps, action: ActionRecord): Promise<ActionR
     });
   } catch (err) {
     const error = errorCode(err);
-    current = updateActionStatus(deps.db, action.id, { status: "failed", error });
-    appendAudit(deps.db, {
+    current = await updateActionStatus(deps.db, action.id, { status: "failed", error });
+    await appendAudit(deps.db, {
       actionId: action.id,
       projectId: action.projectId,
       event: "action.failed",
@@ -148,7 +148,7 @@ async function resolveOutcome(
     body: req.params.body,
   });
 
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId,
     projectId,
     event: "action.classified",
@@ -186,31 +186,31 @@ export async function requestAction(
   // Before every side effect, including the audit write. A retried request that
   // got as far as appending `action.requested` would leave two events behind
   // for one logical action and corrupt the trail.
-  const existing = findActionByIdempotencyKey(deps.db, projectId, req.idempotencyKey);
+  const existing = await findActionByIdempotencyKey(deps.db, projectId, req.idempotencyKey);
   if (existing) return existing;
 
-  let action = insertAction(deps.db, {
+  let action = await insertAction(deps.db, {
     projectId,
     type: req.type,
     params: req.params,
     status: "pending_policy",
     idempotencyKey: req.idempotencyKey,
   });
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId: action.id,
     projectId,
     event: "action.requested",
     data: { type: req.type, params: req.params },
   });
 
-  const policyRow = getPolicy(deps.db, projectId, req.type);
+  const policyRow = await getPolicy(deps.db, projectId, req.type);
   // What "used up today" means depends on the action type: money for a
   // payment, calls made for an http request. Both feed the same field, because
   // both answer the same question — has this policy's daily budget run out.
   const spentTodayCents =
     req.type === "payment"
-      ? sumSpentTodayCents(deps.db, projectId, req.params.currency)
-      : countExecutedTodayByType(deps.db, projectId, req.type);
+      ? await sumSpentTodayCents(deps.db, projectId, req.params.currency)
+      : await countExecutedTodayByType(deps.db, projectId, req.type);
   const outcome = evaluate({
     actionType: req.type,
     params: req.params,
@@ -218,7 +218,7 @@ export async function requestAction(
     spentTodayCents,
   });
 
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId: action.id,
     projectId,
     event: "policy.evaluated",
@@ -235,13 +235,13 @@ export async function requestAction(
   const { decision, reason } = await resolveOutcome(deps, action.id, projectId, req, outcome);
 
   if (decision === "deny") {
-    action = updateActionStatus(deps.db, action.id, {
+    action = await updateActionStatus(deps.db, action.id, {
       status: "denied",
       decision,
       decisionReason: reason,
       decidedAt: now(),
     });
-    appendAudit(deps.db, {
+    await appendAudit(deps.db, {
       actionId: action.id,
       projectId,
       event: "action.denied",
@@ -251,13 +251,13 @@ export async function requestAction(
   }
 
   if (decision === "require_approval") {
-    action = updateActionStatus(deps.db, action.id, {
+    action = await updateActionStatus(deps.db, action.id, {
       status: "pending_approval",
       decision,
       decisionReason: reason,
       decidedAt: now(),
     });
-    appendAudit(deps.db, {
+    await appendAudit(deps.db, {
       actionId: action.id,
       projectId,
       event: "action.pending_approval",
@@ -266,10 +266,10 @@ export async function requestAction(
     await deps.onApprovalNeeded(action.id, projectId);
     // Re-read: the notifier appends its own events and may have transitioned
     // the action (an expired token, a synchronous approval in a test).
-    return getAction(deps.db, action.id) ?? action;
+    return await getAction(deps.db, action.id) ?? action;
   }
 
-  action = updateActionStatus(deps.db, action.id, {
+  action = await updateActionStatus(deps.db, action.id, {
     status: "approved",
     decision,
     decisionReason: reason,
@@ -287,7 +287,7 @@ export async function requestAction(
  * already `executing` or `executed` and refuses.
  */
 export async function executeApproved(deps: RequestDeps, actionId: string): Promise<ActionRecord> {
-  const action = getAction(deps.db, actionId);
+  const action = await getAction(deps.db, actionId);
   if (!action) throw new NotApprovedError(`action ${actionId} not found`);
   if (action.status !== "approved") {
     throw new NotApprovedError(
@@ -305,8 +305,8 @@ export async function executeApproved(deps: RequestDeps, actionId: string): Prom
 
 export class NotPendingApprovalError extends Error {}
 
-function requirePendingApproval(deps: RequestDeps, actionId: string): ActionRecord {
-  const action = getAction(deps.db, actionId);
+async function requirePendingApproval(deps: RequestDeps, actionId: string): Promise<ActionRecord> {
+  const action = await getAction(deps.db, actionId);
   if (!action) throw new NotPendingApprovalError(`action ${actionId} not found`);
   if (action.status !== "pending_approval") {
     throw new NotPendingApprovalError(
@@ -322,13 +322,13 @@ export async function approveAction(
   actionId: string,
   decidedBy: string,
 ): Promise<ActionRecord> {
-  const pending = requirePendingApproval(deps, actionId);
+  const pending = await requirePendingApproval(deps, actionId);
 
-  const approved = updateActionStatus(deps.db, pending.id, {
+  const approved = await updateActionStatus(deps.db, pending.id, {
     status: "approved",
     decidedAt: now(),
   });
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId: pending.id,
     projectId: pending.projectId,
     event: "approval.granted",
@@ -344,15 +344,15 @@ export async function denyAction(
   actionId: string,
   decidedBy: string,
 ): Promise<ActionRecord> {
-  const pending = requirePendingApproval(deps, actionId);
+  const pending = await requirePendingApproval(deps, actionId);
 
-  const denied = updateActionStatus(deps.db, pending.id, {
+  const denied = await updateActionStatus(deps.db, pending.id, {
     status: "denied",
     decision: "deny",
     decisionReason: `denied by ${decidedBy}`,
     decidedAt: now(),
   });
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId: pending.id,
     projectId: pending.projectId,
     event: "approval.denied",
@@ -372,15 +372,15 @@ export async function denyAction(
  * Idempotent: an action already expired is returned unchanged rather than
  * transitioned twice.
  */
-export function expireAction(deps: RequestDeps, actionId: string): ActionRecord | null {
-  const action = getAction(deps.db, actionId);
+export async function expireAction(deps: RequestDeps, actionId: string): Promise<ActionRecord | null> {
+  const action = await getAction(deps.db, actionId);
   if (!action || action.status !== "pending_approval") return action;
 
-  const expired = updateActionStatus(deps.db, action.id, {
+  const expired = await updateActionStatus(deps.db, action.id, {
     status: "expired",
     decidedAt: now(),
   });
-  appendAudit(deps.db, {
+  await appendAudit(deps.db, {
     actionId: action.id,
     projectId: action.projectId,
     event: "approval.expired",

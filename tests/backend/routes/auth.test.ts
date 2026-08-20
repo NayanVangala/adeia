@@ -57,8 +57,8 @@ async function startSignIn(h: Harness): Promise<{ state: string; cookie: string 
 let h: Harness;
 
 describe("when no OAuth app is configured", () => {
-  beforeEach(() => {
-    h = createHarness();
+  beforeEach(async () => {
+    h = await createHarness();
   });
 
   it("explains how to set it up instead of offering a broken button", async () => {
@@ -79,8 +79,8 @@ describe("when no OAuth app is configured", () => {
 });
 
 describe("starting the handshake", () => {
-  beforeEach(() => {
-    h = createHarness({ oauth: OAUTH });
+  beforeEach(async () => {
+    h = await createHarness({ oauth: OAUTH });
   });
 
   it("redirects to GitHub asking only for read:user", async () => {
@@ -111,8 +111,8 @@ describe("starting the handshake", () => {
 });
 
 describe("the callback refuses anything it cannot verify", () => {
-  beforeEach(() => {
-    h = createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
+  beforeEach(async () => {
+    h = await createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
   });
 
   it("refuses a callback with no code", async () => {
@@ -169,8 +169,8 @@ describe("the callback refuses anything it cannot verify", () => {
 });
 
 describe("a successful sign-in", () => {
-  beforeEach(() => {
-    h = createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
+  beforeEach(async () => {
+    h = await createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
   });
 
   it("sets an httpOnly session cookie and lands on the dashboard", async () => {
@@ -200,7 +200,7 @@ describe("a successful sign-in", () => {
   });
 
   it("refuses a profile with no id rather than inventing one", async () => {
-    h = createHarness({
+    h = await createHarness({
       oauth: OAUTH,
       fetch: githubStub({ login: "no-id-here" }).fetchImpl,
     });
@@ -215,8 +215,8 @@ describe("a successful sign-in", () => {
 });
 
 describe("signing out", () => {
-  beforeEach(() => {
-    h = createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
+  beforeEach(async () => {
+    h = await createHarness({ oauth: OAUTH, fetch: githubStub().fetchImpl });
   });
 
   it("is POST only, so a prefetch or an embedded image cannot trigger it", async () => {
