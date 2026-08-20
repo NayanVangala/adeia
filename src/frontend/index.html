@@ -12,22 +12,29 @@
     <link rel="stylesheet" href="/styles/tokens.css?v=1787185293202" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787185676570" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787185293202" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787186169810" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787186564579" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
 
   <body>
+    <!-- Two halves meeting at the rule. At 100 they part and you go
+         through the gap, which is the only thing this product does. -->
     <div class="loader" data-loader aria-hidden="true">
-      <div class="loader__inner" data-loader-inner>
-        <span class="loader__mark">
-          <span>adeia</span>
-          <span>fence</span>
-        </span>
-        <span class="loader__num" data-loader-num>000</span>
+      <div class="loader__half loader__half--top" data-loader-top>
+        <div class="loader__inner" data-loader-inner>
+          <span class="loader__mark">
+            <span>adeia</span>
+            <span>fence</span>
+          </span>
+          <span class="loader__num" data-loader-num>000</span>
+        </div>
       </div>
-      <div class="loader__rule">
+
+      <div class="loader__rule" data-loader-rule>
         <span class="loader__bar" data-loader-bar></span>
       </div>
+
+      <div class="loader__half loader__half--bottom" data-loader-bottom></div>
     </div>
 
     <a class="sr-only" href="#main">Skip to content</a>
@@ -857,7 +864,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
     </footer>
 
     <script src="/vendor/motion.js?v=1787185621655"></script>
-    <script src="/loader.js?v=1787186296329" type="module"></script>
+    <script src="/loader.js?v=1787186675801" type="module"></script>
     <script src="/cursor.js?v=1787185316184" type="module"></script>
     <script src="/typing.js?v=1787186241733" type="module"></script>
     <script src="/reveal.js?v=1787185655333" type="module"></script>

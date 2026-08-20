@@ -1551,10 +1551,18 @@ body::after {
 /* ---------------------------------------------------------------
    The count before the page.
 
-   A panel over the page rather than a screen instead of it: the
-   document beneath is complete and readable the whole time, which is
-   why the overlay is aria-hidden and why leaving is a lift rather than
-   a fade. Nothing is revealed — it was always there.
+   Two halves meeting at a rule. The count runs on the top half; the
+   rule between them fills as it climbs; and at 100 they part and the
+   page is behind the gap.
+
+   That is not a generic wipe picked because it looked nice. It is the
+   only thing this product does — a fence with one gap in it, and you go
+   through the gap. The fence at the foot of the page is the same idea
+   drawn a different way.
+
+   The page beneath is complete and readable the whole time, which is
+   why the overlay is aria-hidden and why leaving is a parting rather
+   than a fade. Nothing is revealed; it was always there.
    --------------------------------------------------------------- */
 
 .loader {
@@ -1563,12 +1571,7 @@ body::after {
   z-index: 9998;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: var(--gutter);
-  background: var(--black);
-  /* Lifts on its own transform, so the spring in loader.js has one
-     property to drive and nothing to fight. */
-  will-change: transform;
+  pointer-events: none;
 }
 
 /* Held until the script decides. Without this the panel flashes on a
@@ -1581,6 +1584,20 @@ html:not(.is-loading) .loader {
 html.is-loading,
 html.is-loading body {
   overflow: hidden;
+}
+
+.loader__half {
+  flex: 1;
+  background: var(--black);
+  display: flex;
+  /* Each half moves on its own transform, so the two springs in
+     loader.js have one property each and nothing to fight. */
+  will-change: transform;
+}
+
+.loader__half--top {
+  align-items: flex-end;
+  padding: var(--gutter);
 }
 
 .loader__inner {
@@ -1617,14 +1634,15 @@ html.is-loading body {
   font-variant-numeric: tabular-nums;
 }
 
-/* The rule fills as it counts. Scaled from the left rather than sized,
-   so it is one composited property and never reflows. */
+/* The seam. It fills as the count climbs, and it is the line the two
+   halves part along. */
 .loader__rule {
-  position: absolute;
-  inset: auto 0 0;
+  position: relative;
+  flex: none;
   height: 2px;
   background: var(--hair);
   overflow: hidden;
+  will-change: opacity;
 }
 
 .loader__bar {
