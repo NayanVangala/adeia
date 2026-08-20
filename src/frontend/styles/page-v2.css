@@ -1355,3 +1355,288 @@ body::after {
 /* The masthead already sits at 50 and the cursor at 9999, both above
    the grain. Nothing else needs raising: the layer takes no pointer
    events, so everything under it is still clickable. */
+
+/* ---------------------------------------------------------------
+   The approval page, playable.
+
+   Sits under the phone, because the phone shows the mail and this is
+   the page its link opens. Pressing either button writes the trail that
+   choice produces — and the point of it is what Deny writes, which is
+   nothing downstream at all.
+   --------------------------------------------------------------- */
+
+.decide {
+  grid-column: 1 / -1;
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: var(--near);
+  overflow: hidden;
+  transition: border-color var(--mid-dur) var(--ease);
+}
+
+.decide[data-decided="approve"] {
+  border-color: color-mix(in srgb, var(--person) 45%, transparent);
+}
+
+.decide[data-decided="deny"] {
+  border-color: var(--hair-lit);
+}
+
+.decide__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6875rem 1rem;
+  border-bottom: 1px solid var(--hair);
+  background: var(--raised);
+}
+
+.decide__body {
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.decide__eyebrow {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* The verb, at the size the decision deserves. It is the one word that
+   decides whether this is safe. */
+.decide__verb {
+  margin-top: 0.375rem;
+  font-family: var(--mono);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--person);
+}
+
+.decide__host {
+  margin-top: 0.375rem;
+  font-family: var(--mono);
+  font-size: var(--t-small);
+  color: var(--paper);
+}
+
+.decide__path {
+  margin-top: 0.25rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  color: var(--faint);
+  word-break: break-all;
+}
+
+.decide__rule {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-left: 2px solid var(--person);
+  background: color-mix(in srgb, var(--person) 7%, transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: var(--t-small);
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+.decide__act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.decide__act[hidden] {
+  display: none;
+}
+
+.decide__yes {
+  background: var(--person);
+  color: var(--black);
+}
+
+.decide__no:hover {
+  border-color: var(--hair-lit);
+  background: color-mix(in srgb, var(--paper) 6%, transparent);
+}
+
+.decide__fine {
+  margin-top: 1rem;
+  font-size: var(--t-micro);
+  color: var(--faint);
+  max-width: 52ch;
+}
+
+/* ---- the trail this choice wrote ---- */
+
+.decide__trail:not(:empty) {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hair);
+}
+
+.decide__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.875rem;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.decide__t {
+  color: var(--faint);
+  flex: none;
+}
+
+.decide__e {
+  min-width: 11rem;
+  flex: none;
+}
+
+.decide__d {
+  color: var(--faint);
+}
+
+.decide__row[data-tone="ok"] .decide__e {
+  color: #b5c9a0;
+}
+
+.decide__row[data-tone="dim"] .decide__d {
+  font-style: italic;
+}
+
+/* The line the whole thing exists to produce, either way. */
+.decide__row[data-tone="mark"] .decide__e {
+  background: color-mix(in srgb, var(--person) 18%, transparent);
+  color: var(--paper);
+  padding: 0.0625rem 0.375rem;
+  border-radius: 3px;
+}
+
+.decide__sum {
+  margin-top: 1rem;
+  font-size: var(--t-small);
+  color: var(--paper);
+  max-width: 52ch;
+}
+
+.decide__again {
+  margin-top: 1.25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  cursor: pointer;
+  border-bottom: 1px solid var(--hair-lit);
+  transition: color var(--quick) var(--ease-cursor);
+}
+
+.decide__again:hover {
+  color: var(--person);
+}
+
+.decide__again[hidden] {
+  display: none;
+}
+
+/* ---------------------------------------------------------------
+   The count before the page.
+
+   A panel over the page rather than a screen instead of it: the
+   document beneath is complete and readable the whole time, which is
+   why the overlay is aria-hidden and why leaving is a lift rather than
+   a fade. Nothing is revealed — it was always there.
+   --------------------------------------------------------------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--gutter);
+  background: var(--black);
+  /* Lifts on its own transform, so the spring in loader.js has one
+     property to drive and nothing to fight. */
+  will-change: transform;
+}
+
+/* Held until the script decides. Without this the panel flashes on a
+   fast connection and on every back-navigation. */
+html:not(.is-loading) .loader {
+  display: none;
+}
+
+/* The page does not scroll under a panel nobody can see past. */
+html.is-loading,
+html.is-loading body {
+  overflow: hidden;
+}
+
+.loader__inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.loader__mark {
+  display: flex;
+  flex-direction: column;
+  line-height: 0.95;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  letter-spacing: -0.03em;
+  color: var(--paper);
+}
+
+.loader__mark span:last-child {
+  color: var(--person);
+}
+
+/* The count, at a size nothing else on the site reaches. Tabular, so
+   the digits do not shuffle as it climbs. */
+.loader__num {
+  font-family: var(--mono);
+  font-size: clamp(4rem, 3rem + 9vw, 11rem);
+  font-weight: 500;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--paper);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The rule fills as it counts. Scaled from the left rather than sized,
+   so it is one composited property and never reflows. */
+.loader__rule {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--hair);
+  overflow: hidden;
+}
+
+.loader__bar {
+  display: block;
+  height: 100%;
+  background: var(--person);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    display: none;
+  }
+}

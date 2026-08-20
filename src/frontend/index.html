@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="is-loading">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,11 +12,24 @@
     <link rel="stylesheet" href="/styles/tokens.css?v=1787185293202" />
     <link rel="stylesheet" href="/styles/v2.css?v=1787185676570" />
     <link rel="stylesheet" href="/styles/hero-v2.css?v=1787185293202" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787162872675" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787186169810" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
 
   <body>
+    <div class="loader" data-loader aria-hidden="true">
+      <div class="loader__inner" data-loader-inner>
+        <span class="loader__mark">
+          <span>adeia</span>
+          <span>fence</span>
+        </span>
+        <span class="loader__num" data-loader-num>000</span>
+      </div>
+      <div class="loader__rule">
+        <span class="loader__bar" data-loader-bar></span>
+      </div>
+    </div>
+
     <a class="sr-only" href="#main">Skip to content</a>
 
     <header class="mast">
@@ -426,6 +439,53 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
             </figure>
           </div>
 
+          <!-- The other half of that moment. The phone shows the mail;
+               this is the page the link in it opens, and it works —
+               press either button and the trail writes itself. The
+               wording is the real approval page's. -->
+          <div class="decide" data-decide>
+            <div class="decide__bar" aria-hidden="true">
+              <span class="pane__dot"></span>
+              <span class="pane__dot"></span>
+              <span class="pane__dot"></span>
+              <span class="pane__name">adeia.xyz/approvals/8f3a…</span>
+            </div>
+
+            <div class="decide__body">
+              <p class="decide__eyebrow">Approval needed</p>
+              <p class="decide__verb">DELETE</p>
+              <p class="decide__host">api.cloudflare.com</p>
+              <p class="decide__path">/client/v4/zones/9f2c…/dns_records/41b8…</p>
+
+              <p class="decide__rule">
+                method DELETE is on the approval list — it stops for a person
+                every time, whatever any model concludes
+              </p>
+
+              <div class="decide__act" data-decide-act>
+                <button class="btn decide__yes" type="button" data-decide-yes>
+                  Approve
+                </button>
+                <button class="btn btn--ghost decide__no" type="button" data-decide-no>
+                  Deny
+                </button>
+              </div>
+
+              <p class="decide__fine" data-decide-fine>
+                The request has not been sent. Nothing downstream has been
+                contacted. This link can be used once.
+              </p>
+
+              <!-- Written by decide.js when you choose. Empty rather than
+                   hidden, so nothing here is announced before it exists. -->
+              <div class="decide__trail" data-decide-trail role="status" aria-live="polite"></div>
+
+              <button class="decide__again" type="button" data-decide-again hidden>
+                Run it again
+              </button>
+            </div>
+          </div>
+
           <!-- The same journey, drawn. -->
           <div class="flow" data-reveal>
             <svg viewBox="0 0 900 174" role="img" aria-label="An action's path: the agent asks, the schema checks, the policy decides, then it either runs, goes to the classifier, or stops for a person.">
@@ -797,9 +857,11 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
     </footer>
 
     <script src="/vendor/motion.js?v=1787185621655"></script>
+    <script src="/loader.js?v=1787186296329" type="module"></script>
     <script src="/cursor.js?v=1787185316184" type="module"></script>
-    <script src="/typing.js?v=1787185511331" type="module"></script>
+    <script src="/typing.js?v=1787186241733" type="module"></script>
     <script src="/reveal.js?v=1787185655333" type="module"></script>
+    <script src="/decide.js?v=1787186079158" type="module"></script>
     <script src="/scenes.js?v=1787121181350" type="module"></script>
     <script src="/motion.js?v=1787119962681" type="module"></script>
     <script src="/fence.js?v=1787185293200" type="module"></script>

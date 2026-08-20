@@ -161,8 +161,17 @@ if (groups.length && !reduced.matches) {
       }
     };
 
+    /* A hero is on screen from the first frame, so on a page with the
+       loader it would type itself out behind the panel and be finished
+       before anyone saw it. Wait for the panel to leave. */
+    const gate = document.querySelector("[data-loader]")
+      ? new Promise((r) =>
+          document.addEventListener("adeia:ready", r, { once: true }),
+        )
+      : Promise.resolve();
+
     if (!("IntersectionObserver" in window)) {
-      play();
+      gate.then(play);
       continue;
     }
 
@@ -170,7 +179,7 @@ if (groups.length && !reduced.matches) {
       ([entry]) => {
         if (!entry.isIntersecting) return;
         observer.disconnect();
-        play();
+        gate.then(play);
       },
       { threshold: 0.25 },
     );
