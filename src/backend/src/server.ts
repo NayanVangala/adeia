@@ -10,8 +10,9 @@ import type { AppDeps, AppEnv } from "./appEnv.ts";
 import { mintApprovalToken } from "./approvals/token.ts";
 import { appendAudit } from "./audit/log.ts";
 import { createDb, migrate, type Db } from "./db/client.node.ts";
+import { createTursoDb } from "./db/client.turso.ts";
 import { getAction } from "./db/repo.ts";
-import { env, requireApprovalConfig } from "./env.ts";
+import { env, requireApprovalConfig, requireDatabaseConfig } from "./env.ts";
 import { createResendClient, createResendSender, type ApprovalSender } from "./notify/email.ts";
 import { createSmtpSender, createSmtpTransport, verifySmtp } from "./notify/smtp.ts";
 import { createClassifier, createStubClassifier, CLASSIFIER_MODEL } from "./policy/classify.ts";
@@ -150,8 +151,19 @@ export async function boot(): Promise<void> {
   // of an audience.
   const approval = requireApprovalConfig();
 
-  const db = createDb(env.ADEIA_DB_PATH);
-  migrate(db);
+  /* Turso when it is configured, the local file otherwise. Migrations only run
+     in-process for the local file: against a hosted database they are applied
+     ahead of the deploy by `npm run db:migrate`, so a cold start never races
+     another cold start to alter the same tables. */
+  const database = requireDatabaseConfig();
+  const db =
+    database.kind === "turso"
+      ? createTursoDb(database.url, database.authToken)
+      : createDb(database.path);
+  if (database.kind === "file") migrate(db);
+
+  const dbLine =
+    database.kind === "turso" ? `turso ${new URL(database.url).host}` : database.path;
 
   const adapters = createRegistry([createLedgerAdapter(), createHttpAdapter()]);
   const emailConfig = { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl };
@@ -220,7 +232,7 @@ export async function boot(): Promise<void> {
   });
 
   serve({ fetch: app.fetch, port: env.PORT }, (info) => {
-    console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${env.ADEIA_DB_PATH})`);
+    console.log(`[adeia] listening on http://localhost:${info.port}  (db: ${dbLine})`);
     console.log(`[adeia] serving the site from ${siteRoot}`);
     // Names and addresses only. No key is ever logged.
     console.log(`[adeia] adapters: ${[...adapters.values()].map((a) => a.name).join(", ")}`);

@@ -25,6 +25,18 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().max(65535).default(3000),
   ADEIA_DB_PATH: z.string().min(1).default("./adeia.db"),
 
+  /**
+   * Turso. Set both and the server talks to libSQL over the network instead of
+   * to `ADEIA_DB_PATH` on the local disk — which is what production has to do,
+   * because nothing free gives a server a persistent volume.
+   *
+   * Unset, the local file is used. `npm run dev` therefore needs no account,
+   * and the test suite is unaffected either way.
+   */
+  TURSO_DATABASE_URL: optional(z.string().url()),
+  /** Not needed for a `file:` URL; required for anything remote. */
+  TURSO_AUTH_TOKEN: optional(z.string().min(1)),
+
   // --- Phase 5: approvals ---
   // Optional here because `scripts/seed.ts` and `scripts/gen-docs.ts` import
   // this module and have nothing to do with approvals; making them required
@@ -210,6 +222,47 @@ function requireApprovalTransport(e: Env): ApprovalTransport {
       "  SMTP_USER + SMTP_PASSWORD   (app password; SMTP_HOST/SMTP_PORT default to Gmail)\n" +
       "  RESEND_API_KEY              (requires a Resend account and a verified sender domain)",
   );
+}
+
+/** Where the rows actually live. */
+export type DatabaseConfig =
+  | { kind: "file"; path: string }
+  | { kind: "turso"; url: string; authToken: string | undefined };
+
+/**
+ * Picks the database, and refuses rather than guessing.
+ *
+ * A remote URL with no token does not quietly fall back to the local file.
+ * Falling back would mean a deployment that believes it is writing to Turso
+ * silently keeping its records on a container filesystem that is discarded on
+ * the next request — which is indistinguishable from working right up until
+ * somebody looks for the audit trail.
+ *
+ * A `file:` URL is the exception: libSQL reads those locally and there is no
+ * credential to present.
+ */
+export function requireDatabaseConfig(e: Env = env): DatabaseConfig {
+  if (!e.TURSO_DATABASE_URL) {
+    if (e.TURSO_AUTH_TOKEN) {
+      throw new Error(
+        "TURSO_AUTH_TOKEN is set but TURSO_DATABASE_URL is not.\n" +
+          "  Set both to use Turso, or neither to use the local file at ADEIA_DB_PATH.\n" +
+          "  Refusing to fall back to the local disk — a server that thinks it is\n" +
+          "  writing to Turso and is not looks identical to one that works.",
+      );
+    }
+    return { kind: "file", path: e.ADEIA_DB_PATH };
+  }
+
+  const local = e.TURSO_DATABASE_URL.startsWith("file:");
+  if (!local && !e.TURSO_AUTH_TOKEN) {
+    throw new Error(
+      `TURSO_DATABASE_URL is remote (${e.TURSO_DATABASE_URL}) but TURSO_AUTH_TOKEN is not set.\n` +
+        "  Get one with: turso db tokens create <database>",
+    );
+  }
+
+  return { kind: "turso", url: e.TURSO_DATABASE_URL, authToken: e.TURSO_AUTH_TOKEN };
 }
 
 export function requireApprovalConfig(e: Env = env): ApprovalConfig {

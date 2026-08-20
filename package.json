@@ -23,6 +23,7 @@
     "site:check": "node scripts/build-site.mjs --check",
     "demo": "npm run -w @adeia/demo-agent start",
     "db:generate": "npm run -w @adeia/server db:generate",
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
     "demo:video": "node --experimental-strip-types scripts/demo.ts"
   },
   "devDependencies": {
