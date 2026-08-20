@@ -1,12 +1,21 @@
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 /**
  * Loads `.env` from the repo root if it is there. Node throws when the file is
- * missing, which is the normal case in CI and in tests, so the miss is ignored.
+ * missing, which is the normal case in CI, in tests and in production, so the
+ * miss is ignored.
+ *
+ * The path is resolved off this module rather than off the working directory.
+ * `npm run dev` and vitest both run from the repo root and would have found it
+ * either way; Next.js does not, and a bare `loadEnvFile()` would quietly look
+ * for `src/web/.env`, find nothing, and leave the server to fail later with a
+ * missing-variable error that points nowhere near the cause.
  */
 function loadDotEnv(): void {
   try {
-    process.loadEnvFile();
+    // src/backend/src/env.ts -> the repo root
+    process.loadEnvFile(fileURLToPath(new URL("../../../.env", import.meta.url)));
   } catch {
     // no .env file — env comes from the real environment
   }

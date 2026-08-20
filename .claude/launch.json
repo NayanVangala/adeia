@@ -2,16 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "adeia",
+      "name": "adeia-web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 3000
-    },
-    {
-      "name": "frontend-only",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "5173", "--directory", "src/frontend"],
-      "port": 5173
+      "runtimeArgs": [
+        "run",
+        "dev:web"
+      ],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }

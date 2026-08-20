@@ -39,8 +39,10 @@ async function main(): Promise<void> {
     database.authToken ? { url: database.url, authToken: database.authToken } : { url: database.url },
   );
   await libsqlMigrate(drizzle(client), { migrationsFolder: MIGRATIONS_FOLDER });
-  // The host, never the token.
-  console.log(`[adeia] migrated turso ${new URL(database.url).host}`);
+  // The host, never the token. A `file:` URL has no host, so it names the file
+  // instead — "migrated turso " with nothing after it says nothing at all.
+  const target = new URL(database.url);
+  console.log(`[adeia] migrated ${target.host || `libsql ${target.pathname}`}`);
 }
 
 main().catch((err: unknown) => {
