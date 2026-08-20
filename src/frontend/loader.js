@@ -9,8 +9,17 @@
  * ahead of the truth, because a counter that stalls reads as broken,
  * but it cannot reach 100 before the page has.
  *
- * It is also capped. If something never resolves, it finishes anyway
- * rather than holding the site hostage to one font file.
+ * It also walks rather than eases. Easing toward a moving target skips
+ * most of the numbers — the first version went 0, 7, 23, 37 — so this
+ * advances by exactly one a frame and never skips one. The cost is a
+ * floor of about 1.7 seconds at 60Hz, because 101 numbers need 101
+ * frames, and there is no way around that.
+ *
+ * It is also capped. If something never resolves the count sprints to
+ * 100 and leaves anyway, rather than holding the site hostage to one
+ * font file — but it still paints every number on the way, because a
+ * count that vanishes at 43 is worse than one that takes another third
+ * of a second.
  *
  * Shown once a session. A loader on every internal navigation is a
  * loader nobody wants by the third page.
@@ -30,6 +39,10 @@ const KEY = "adeia:seen-loader";
    connection that is seconds, and a ceiling started here would promise
    four and deliver nine. */
 const CEILING_MS = 5000;
+
+/* Minimum time a number is on screen. Just under a 60Hz frame, so the
+   walk is limited by the display rather than by this. */
+const STEP_MS = 15;
 
 const sinceNavigation = () => {
   const nav = performance.getEntriesByType("navigation")[0];
@@ -71,17 +84,40 @@ function run(el) {
   const total = signals.length;
   for (const s of signals) s.then(() => (landed += 1)).catch(() => (landed += 1));
 
+  /* The count walks. It advances by exactly one, at most once a frame,
+     and never skips a value or goes backwards — so every number from 0
+     to 100 is painted, whatever the connection did.
+
+     That has a floor: 101 numbers each needing their own frame is about
+     1.7 seconds at 60Hz, and proportionally less on a faster display.
+     There is no way to show all of them in less. */
   let shown = 0;
   let done = false;
   let started = 0;
+  let lastStep = 0;
 
-  const finish = () => {
+  /* The panel never leaves mid-count. Whatever ends it — genuine
+     readiness or the ceiling — the remaining numbers are run out first,
+     just faster. A count that vanishes at 43 is worse than one that
+     takes another third of a second to finish. */
+  let sprinting = false;
+
+  const leave = () => {
     if (done) return;
     done = true;
     out(el, M);
   };
 
-  const ceiling = setTimeout(finish, Math.max(400, CEILING_MS - sinceNavigation()));
+  const sprint = () => {
+    sprinting = true;
+  };
+
+  const ceiling = setTimeout(sprint, Math.max(400, CEILING_MS - sinceNavigation()));
+
+  function paint() {
+    num.textContent = String(shown).padStart(3, "0");
+    bar.style.transform = `scaleX(${(shown / 100).toFixed(4)})`;
+  }
 
   function frame(now) {
     if (!started) started = now;
@@ -90,41 +126,42 @@ function run(el) {
     /* Where the truth is. */
     const real = landed / total;
 
-    /* Where the count is allowed to be. It runs ahead of `real` on a
-       curve that decelerates, so it always feels like it is moving even
-       while a font is still in flight — but it is clamped just under
-       the next real milestone, so it never claims more than has
-       happened. */
+    /* The highest number it is allowed to have reached. Below full
+       readiness it runs ahead on a decelerating curve — a counter that
+       stalls reads as broken — but stays short of 100, which only
+       genuine readiness unlocks. */
     const drift = 1 - Math.exp(-elapsed / 620);
+    const cap =
+      real === 1 || sprinting
+        ? 100
+        : Math.floor(Math.min(drift * 0.96, real + 0.24) * 100);
 
-    /* The 0.96 ceiling is what holds the count back while anything is
-       still in flight — a loader that shows 100 and then sits there is
-       the thing everyone hates. But it has to lift the moment the page
-       is genuinely ready, or the finish condition below can never be
-       true and the four-second fallback becomes the only way out. That
-       is exactly what it was: a fixed timer wearing a progress bar. */
-    const target = real === 1 ? 1 : Math.min(drift * 0.96, real + 0.24);
+    /* One step, one frame. STEP_MS is a floor rather than a pace: a
+       display refreshing faster than 60Hz simply finishes sooner, and
+       one refreshing slower cannot paint two numbers in a frame anyway. */
+    /* Sprinting still paints every number; it just gives each one a
+       single frame instead of a comfortable one. */
+    const step = sprinting ? 0 : STEP_MS;
 
-    shown += (target - shown) * 0.12;
-    /* Exponential easing approaches its target and never lands on it, so
-       the last fraction of a percent would take forever. */
-    if (target - shown < 0.004) shown = target;
+    if (shown < cap && now - lastStep >= step) {
+      shown += 1;
+      lastStep = now;
+      paint();
+    }
 
-    const pct = Math.min(100, Math.round(shown * 100));
-    num.textContent = String(pct).padStart(3, "0");
-    bar.style.transform = `scaleX(${(shown).toFixed(4)})`;
-
-    if (real === 1 && pct >= 100) {
+    if (shown >= 100) {
       clearTimeout(ceiling);
       /* A beat on 100, so it reads as arriving rather than as a number
-         that happened to stop. */
-      setTimeout(finish, 260);
+         that happened to stop. Shorter if it had to sprint, since that
+         path is already the apology. */
+      setTimeout(leave, sprinting ? 140 : 260);
       return;
     }
 
     requestAnimationFrame(frame);
   }
 
+  paint();
   requestAnimationFrame(frame);
 }
 
