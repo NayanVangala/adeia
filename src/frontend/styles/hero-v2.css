@@ -120,8 +120,11 @@
     color-mix(in srgb, var(--cool) 45%, transparent) 62%,
     transparent 74%
   );
-  filter: blur(56px);
-  opacity: 0.5;
+  filter: blur(70px);
+  /* Was a light source on a dark field. On paper there is nothing to
+     light, so it is a faint warm tint in the corner of the page and
+     nothing more. Any stronger and it reads as a printing fault. */
+  opacity: 0.13;
   /* Breathes. Slow enough to notice only if you look. */
   animation: orb-breathe 13s ease-in-out infinite;
 }
@@ -130,11 +133,11 @@
   0%,
   100% {
     transform: scale(1);
-    opacity: 0.5;
+    opacity: 0.13;
   }
   50% {
     transform: scale(1.055);
-    opacity: 0.6;
+    opacity: 0.17;
   }
 }
 
@@ -176,8 +179,7 @@
   left: -8%;
   width: 26rem;
   height: 14rem;
-  border-color: color-mix(in srgb, var(--cold) 40%, transparent);
-  box-shadow: 0 0 60px -20px var(--cold);
+  border-color: color-mix(in srgb, var(--machine) 55%, transparent);
   --depth: 26px;
 }
 
@@ -186,8 +188,7 @@
   right: -6%;
   width: 22rem;
   height: 16rem;
-  border-color: color-mix(in srgb, var(--hot) 42%, transparent);
-  box-shadow: 0 0 60px -20px var(--hot);
+  border-color: color-mix(in srgb, var(--person) 60%, transparent);
   --depth: 18px;
 }
 
@@ -196,8 +197,7 @@
   right: -14%;
   width: 24rem;
   height: 18rem;
-  border-color: color-mix(in srgb, var(--cool) 34%, transparent);
-  box-shadow: 0 0 70px -24px var(--cool);
+  border-color: var(--hair-lit);
   --depth: 34px;
 }
 
@@ -249,9 +249,11 @@
   max-width: 66rem;
   border: 1px solid var(--hair);
   border-radius: var(--radius);
-  background: var(--near);
+  background: var(--raised);
   overflow: hidden;
-  box-shadow: 0 40px 120px -40px color-mix(in srgb, var(--mid) 60%, transparent);
+  box-shadow:
+    0 1px 2px rgb(60 45 25 / 0.05),
+    0 24px 60px -30px rgb(60 45 25 / 0.28);
 }
 
 .shot__bar {

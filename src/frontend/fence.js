@@ -139,7 +139,7 @@ function fence(canvas) {
     }
 
     /* The ground the fence stands on, drawn in before the strokes. */
-    ctx.strokeStyle = `rgba(${stops.hair.join(",")},${0.55 * ease(progress)})`;
+    ctx.strokeStyle = `rgba(${stops.hair.join(",")},${0.9 * ease(progress)})`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, baseY + 0.5);
@@ -191,8 +191,12 @@ function fence(canvas) {
       const tint = 0.05 + 0.12 * s.seq;
       const [r, g, b] = mix(stops.sweep, tint + s.press * (1 - tint));
 
-      ctx.strokeStyle = `rgba(${r},${g},${b},${(0.26 + s.press * 0.68) * grown})`;
-      ctx.lineWidth = 1.4 + s.press * 1.3;
+      /* 0.26 at rest was tuned against near-black, where a faint stroke
+         still separates because it is lighter than its ground. On paper
+         it has to be darker than the ground instead, so the floor comes
+         up and the range narrows. */
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(0.5 + s.press * 0.45) * grown})`;
+      ctx.lineWidth = 1.2 + s.press * 1.4;
 
       /* Glow only where it is being pressed. shadowBlur on every stroke
          is the difference between this costing nothing and costing the

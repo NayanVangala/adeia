@@ -70,7 +70,7 @@ if (!reduced.matches && canHover.matches) {
  * ------------------------------------------------------------------ */
 
 function gradientSweep() {
-  const swept = document.querySelectorAll(".sweep, .entry__num");
+  const swept = document.querySelectorAll(".entry__num");
   if (!swept.length) return;
 
   onCursor((x) => {

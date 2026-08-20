@@ -133,29 +133,22 @@ p {
   font-variant-ligatures: none;
 }
 
-/* ---------- the gradient headline ----------
-   The one piece of the reference that has to be exact. Clipped to the
-   glyphs, sized larger than the text so the sweep is not compressed
-   into a single word, and animated by cursor.js through --sweep-x. */
+/* ---------- the accent phrase ----------
+   This used to be a gradient clipped to the glyphs, tracking the cursor
+   through --sweep-x. It was the single loudest thing on the page saying
+   the page was generated: a gradient headline is the one ornament every
+   template of the last two years shipped with.
+
+   It is one colour now. The phrase it wraps is the phrase that matters
+   in that headline, and it is burnt orange because that is the colour
+   this system uses for a person — which is what every one of those
+   headlines is actually about.
+
+   --person-ink rather than --person: this is text, and the brighter
+   orange is 3.3:1 on paper. */
 
 .sweep {
-  background-image: var(--sweep);
-  /* Wider than the text so the cursor can slide unseen stops across the
-     glyphs, but not so wide that any one reading shows a single hue. */
-  background-size: 165% 100%;
-  background-position: var(--sweep-x, 46%) center;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  transition: background-position var(--mid-dur) var(--ease-cursor);
-}
-
-/* Safari repaints clipped text badly during transform; this pins it. */
-@supports (-webkit-touch-callout: none) {
-  .sweep {
-    -webkit-transform: translateZ(0);
-  }
+  color: var(--person-ink);
 }
 
 /* ---------- buttons ---------- */

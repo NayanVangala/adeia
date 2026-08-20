@@ -129,7 +129,7 @@ const SCENES = {
 
         const r = (1.7 + d.lift * 2.8) * grown;
         const tone = mix(s.stops.sweep, 0.04 + d.lift * 0.85);
-        s.ctx.fillStyle = rgba(tone, (0.42 + d.lift * 0.55) * grown);
+        s.ctx.fillStyle = rgba(tone, (0.55 + d.lift * 0.42) * grown);
         s.ctx.beginPath();
         s.ctx.arc(d.x, d.y - d.lift * 7, r, 0, Math.PI * 2);
         s.ctx.fill();
@@ -171,7 +171,7 @@ const SCENES = {
           /* Faster movement writes warmer and thicker — a burst of
              activity is louder in the record, as it is in a real one. */
           const heat = clamp(travelled / 40, 0, 1);
-          s.ctx.strokeStyle = rgba(mix(s.stops.sweep, 0.1 + heat * 0.8), 0.22);
+          s.ctx.strokeStyle = rgba(mix(s.stops.sweep, 0.1 + heat * 0.8), 0.34);
           s.ctx.lineWidth = 1 + heat * 2;
           s.ctx.lineCap = "round";
           s.ctx.beginPath();
@@ -182,7 +182,7 @@ const SCENES = {
           /* A tick at each entry, so the trail reads as a sequence of
              records rather than as a brush stroke. */
           if (travelled > 6) {
-            s.ctx.fillStyle = rgba(s.stops.paper, 0.28);
+            s.ctx.fillStyle = rgba(s.stops.paper, 0.4);
             s.ctx.fillRect(s.px - 1, s.py - 1, 2, 2);
           }
         }
@@ -195,7 +195,7 @@ const SCENES = {
     /* With no pointer to record, draw a plausible trail so the canvas is
        not blank. */
     still(s) {
-      s.ctx.strokeStyle = rgba(s.stops.hair, 0.5);
+      s.ctx.strokeStyle = rgba(s.stops.hair, 0.85);
       s.ctx.lineWidth = 1;
       s.ctx.beginPath();
       for (let i = 0; i <= 60; i += 1) {
@@ -247,7 +247,7 @@ const SCENES = {
            follows you. */
         const len = s.w * (0.18 + lit * 0.74);
 
-        s.ctx.strokeStyle = rgba(tone, (0.1 + lit * 0.55) * grown);
+        s.ctx.strokeStyle = rgba(tone, (0.22 + lit * 0.5) * grown);
         s.ctx.lineWidth = 1 + lit * 1.2;
         s.ctx.beginPath();
         s.ctx.moveTo(0, y + 0.5);
@@ -261,7 +261,7 @@ const SCENES = {
         [s.ceilY, s.stops.faint],
         [s.limitY, s.stops.warm],
       ]) {
-        s.ctx.strokeStyle = rgba(tone, 0.5 * ease(s.progress));
+        s.ctx.strokeStyle = rgba(tone, 0.75 * ease(s.progress));
         s.ctx.lineWidth = 1;
         s.ctx.setLineDash([3, 5]);
         s.ctx.beginPath();
@@ -313,10 +313,10 @@ const SCENES = {
         const tone = mix(s.stops.sweep, 0.06 + c.shut * 0.5);
 
         if (c.shut > 0.06) {
-          s.ctx.fillStyle = rgba(tone, c.shut * 0.5 * grown);
+          s.ctx.fillStyle = rgba(tone, c.shut * 0.72 * grown);
           s.ctx.fillRect(c.x - size, c.y - size, size * 2, size * 2);
         } else {
-          s.ctx.strokeStyle = rgba(tone, 0.24 * grown);
+          s.ctx.strokeStyle = rgba(tone, 0.4 * grown);
           s.ctx.lineWidth = 1;
           s.ctx.strokeRect(c.x - size, c.y - size, size * 2, size * 2);
         }
@@ -361,7 +361,7 @@ const SCENES = {
         const tone = i < 0 ? s.stops.cold : s.stops.warm;
         /* The graduations under the loaded end come up. */
         const near = clamp(1 - Math.abs((s.hot ? s.px : s.pivotX) - gx) / 220, 0, 1);
-        s.ctx.strokeStyle = rgba(tone, (0.08 + near * 0.3) * shown);
+        s.ctx.strokeStyle = rgba(tone, (0.18 + near * 0.35) * shown);
         s.ctx.lineWidth = major ? 1.2 : 1;
         s.ctx.beginPath();
         s.ctx.moveTo(gx, s.pivotY - (major ? 26 : 14) - near * 12);
@@ -386,7 +386,7 @@ const SCENES = {
         s.pivotY + dy,
       );
       grad.addColorStop(0, rgba(s.stops.cold, 0.55));
-      grad.addColorStop(0.5, rgba(s.stops.hair, 0.45));
+      grad.addColorStop(0.5, rgba(s.stops.hair, 0.7));
       grad.addColorStop(1, rgba(s.stops.warm, 0.55));
 
       s.ctx.strokeStyle = grad;
@@ -404,7 +404,7 @@ const SCENES = {
         const drop = 34 + side * s.tilt * 90;
         const tone = side < 0 ? s.stops.cold : s.stops.warm;
 
-        s.ctx.strokeStyle = rgba(tone, 0.4 * ease(s.progress));
+        s.ctx.strokeStyle = rgba(tone, 0.6 * ease(s.progress));
         s.ctx.lineWidth = 1;
         s.ctx.beginPath();
         s.ctx.moveTo(hx, hy);
@@ -444,7 +444,7 @@ const SCENES = {
       const grown = ease(s.progress);
 
       /* The track, drawn through every stop. */
-      s.ctx.strokeStyle = rgba(s.stops.hair, 0.55 * grown);
+      s.ctx.strokeStyle = rgba(s.stops.hair, 0.85 * grown);
       s.ctx.lineWidth = 1;
       s.ctx.beginPath();
       s.stops8.forEach((p, i) => (i ? s.ctx.lineTo(p.x, p.y) : s.ctx.moveTo(p.x, p.y)));
@@ -467,7 +467,7 @@ const SCENES = {
         p.on += (target - p.on) * 0.12;
 
         const tone = mix(s.stops.sweep, 0.05 + p.on * 0.8);
-        s.ctx.strokeStyle = rgba(tone, (0.3 + p.on * 0.6) * grown);
+        s.ctx.strokeStyle = rgba(tone, (0.45 + p.on * 0.5) * grown);
         s.ctx.fillStyle = rgba(tone, p.on * 0.25 * grown);
         s.ctx.lineWidth = 1 + p.on;
         s.ctx.beginPath();
@@ -496,7 +496,7 @@ const SCENES = {
       const grown = ease(s.progress);
 
       /* The fence the calls are asking through. */
-      s.ctx.strokeStyle = rgba(s.stops.hair, 0.6 * grown);
+      s.ctx.strokeStyle = rgba(s.stops.hair, 0.85 * grown);
       s.ctx.lineWidth = 1;
       s.ctx.setLineDash([2, 6]);
       s.ctx.beginPath();
@@ -544,7 +544,7 @@ const SCENES = {
         s.ctx.fill();
 
         /* A tail, so the direction of travel is legible. */
-        s.ctx.strokeStyle = rgba(tone, 0.2 * grown);
+        s.ctx.strokeStyle = rgba(tone, 0.35 * grown);
         s.ctx.lineWidth = 1;
         s.ctx.beginPath();
         s.ctx.moveTo(x, y);
@@ -617,13 +617,13 @@ const SCENES = {
         if (p.missing) {
           /* Where a post would be: a mark on the ground and nothing
              standing on it. */
-          s.ctx.fillStyle = rgba(s.stops.faint, 0.35 * grown);
+          s.ctx.fillStyle = rgba(s.stops.faint, 0.55 * grown);
           s.ctx.fillRect(p.x - 1, s.h - 3, 2, 2);
           continue;
         }
 
         const tone = mix(s.stops.sweep, 0.06 + p.press * 0.7);
-        s.ctx.strokeStyle = rgba(tone, (0.28 + p.press * 0.6) * up);
+        s.ctx.strokeStyle = rgba(tone, (0.48 + p.press * 0.45) * up);
         s.ctx.lineWidth = 1.3 + p.press;
         s.ctx.lineCap = "round";
         s.ctx.beginPath();

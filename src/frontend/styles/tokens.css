@@ -1,21 +1,26 @@
 /* ---------------------------------------------------------------
    Adeia — design tokens
 
-   Warm ink, bone, and one lamp.
+   Warm paper, dark ink, one burnt orange, and no gradient.
 
-   The field is a warm near-black rather than a blue one, the ink is
-   bone rather than white, and there is no violet or magenta anywhere.
-   That is deliberate: near-black plus a cyan-to-magenta gradient is the
-   house style of every generated landing page of the last two years,
-   and a product about money and records has no business wearing it.
+   This palette exists because the last two did not survive the same
+   question: does it look like every generated landing page of the last
+   two years? Near-black with a cyan-to-magenta sweep did. Near-black
+   with a warm sweep still did, because the tell was never the hue — it
+   was the dark slab and the gradient-filled headline.
 
-   The gradient still runs cold to warm, because that axis is the
-   product: cold is what a machine decided, warm is what a person
-   decided. It just runs steel to amber to rust now — one family, five
-   stops, no rainbow.
+   So the ground is paper. Almost nothing generated goes light, and a
+   product about ledgers, limits and written-down rules belongs on paper
+   anyway. Code panes and the terminal stay dark, because they are the
+   machine's voice and should look like it — and because a dark block on
+   a light page is a real editorial device rather than a default.
 
-   Every pairing below states its measured contrast. Nothing is chosen
-   for looking right on one monitor.
+   The cold-warm axis survives, because that axis is the product: cold
+   is what a machine decided, warm is what a person decided. It is now
+   two flat colours instead of a five-stop ramp.
+
+   Every pairing states its measured contrast. Nothing here was chosen
+   by eye.
    --------------------------------------------------------------- */
 
 @font-face {
@@ -36,73 +41,63 @@
 
 :root {
   /* ---- the field ----
-     Warm blacks. Every one of these has more red than blue in it, which
-     is what stops the page reading as the usual blue-black slab. */
-  --black: #0b0a09;
-  --near: #121110;
-  --raised: #1a1815;
-  --lifted: #232019;
-  --hair: #2c2823;
-  --hair-lit: #3f3931;
+     Card stock — darker than bone, lighter than khaki. A near-white
+     ground reads as a screenshot of a white app; this reads as paper,
+     and it is the whole reason the ink set below runs as dark as it
+     does. --sunk is for things pressed into the page; --raised and
+     --lifted for things sitting on it. */
+  --ground: #e6ddc9;
+  --sunk: #ddd3bc;
+  --raised: #f2ecdc;
+  --lifted: #f8f3e6;
+  --hair: #d2c7ae;
+  --hair-lit: #b9ab8e;
 
-  /* ---- the gradient, as stops ----
-     Named by temperature rather than hue, so the meaning survives a
-     future palette change — which is exactly what happened to the last
-     one. Steel, sand, amber, copper, rust: one family, and the coldest
-     stop is still recognisably not a warm one. */
-  --cold: #8fa9bb;
-  --cool: #b9ae90;
-  --mid: #e5a44b;
-  --warm: #d97742;
-  --hot: #d15f3f;
-
-  /* The gradient itself, reused everywhere so it cannot drift. */
-  --sweep: linear-gradient(
-    100deg,
-    var(--cold) 0%,
-    var(--cool) 26%,
-    var(--mid) 58%,
-    var(--warm) 84%,
-    var(--hot) 100%
-  );
-
-  /* ---- the two marks ----
-     Warm is a person: approvals, your decisions, the primary path. An
-     amber lamp, because the thing it marks is somebody being woken at
-     2am. --person on --black is 9.2:1, and --black on --person is the
-     same, so it works as ink or as ground.
-     Cold is a model: classifier verdicts, anything judged rather than
-     decided. --machine on --black is 8.1:1. */
-  --person: #e5a44b;
-  --machine: #8fa9bb;
-
-  /* ---- outcomes ----
-     Fixed pairs, warmed to the new field. A pill paints its own ground,
-     so it states its own ink rather than inheriting one that flips. */
-  --ran: #d8e3c8;
-  --ran-ink: #263118;
-  --held: #f2e0bd;
-  --held-ink: #4a3308;
-  --refused: #ecd6cd;
-  --refused-ink: #4f2418;
-  --idle: #ded8cf;
-  --idle-ink: #2b2721;
+  /* ---- the dark the machine keeps ----
+     Code panes, the terminal, the flow diagram. Not a leftover from the
+     old palette — a deliberate second register, so the page has real
+     contrast without a single gradient in it. */
+  --dark: #141109;
+  --dark-ink: #f3eee4;
+  --dark-hair: #322c22;
 
   /* ---- inks ----
-     Bone rather than white: on a warm ground, a true white reads as a
-     hole punched in the page. --paper on --black is 17.4:1, --muted is
-     7.8:1, --faint is 5.1:1 — which is a full step better than the
-     --faint this palette replaced, and it is used at 11px. */
-  --paper: #f5f0e8;
-  --muted: #aaa196;
-  --faint: #8a8078;
+     Measured against --ground: --ink 13.6:1, --muted 6.3:1, --faint
+     4.9:1 — which matters, because --faint is used at 11px. */
+  --ink: #17140f;
+  --muted: #544c40;
+  --faint: #665c4e;
+
+  /* ---- the two marks ----
+     Warm is a person: approvals, your decisions, the primary path.
+     Cold is a model: classifier verdicts, anything judged rather than
+     decided.
+
+     The orange comes in two weights on purpose. A burnt orange bright
+     enough to be worth looking at does not clear 4.5:1 on a ground this
+     warm — it is fine for a rule, a fill, a marker or any large
+     graphic, and not enough for text. So --person is the one you see
+     and --person-ink is the one that carries words, at 5.0:1 on
+     --ground. Reaching for the wrong one is the single easiest way to
+     make this palette inaccessible. --machine carries text at 5.7:1. */
+  --person: #b85f2c;
+  --person-ink: #93441b;
+  --machine: #375866;
+
+  /* ---- outcomes ----
+     Fixed pairs. A pill paints its own ground, so it states its own ink
+     rather than inheriting one that flips. */
+  --ran: #dfe8d3;
+  --ran-ink: #2b3a1c;
+  --held: #f6e6c8;
+  --held-ink: #533909;
+  --refused: #f1dbd1;
+  --refused-ink: #5a2a1a;
+  --idle: #e6e0d6;
+  --idle-ink: #322c25;
 
   /* ---- type ----
-     Geist, not Inter. Both are geometric grotesks, but Geist has a
-     single-storey 'a' at display weights and tighter apertures, which
-     gives a headline some spine instead of the system-font neutrality
-     the brief specifically ruled out. Mono is the same family, so the
-     two never look borrowed from different places.
+     Geist, unchanged. The font was never the problem.
 
      Monospace carries meaning here: it marks a value the machine used —
      a verb, a hostname, an amount, an id. */
@@ -110,8 +105,7 @@
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Linear in viewport width rather than stepped, so nothing jumps at a
-     breakpoint. The display size tracks the reference's 80px at 1440
-     and keeps its -0.04em. */
+     breakpoint. */
   --t-display: clamp(2.5rem, 1rem + 6.2vw, 5.5rem);
   --t-h1: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
   --t-h2: clamp(1.625rem, 1.2rem + 1.8vw, 2.5rem);
@@ -136,6 +130,36 @@
   --slow: 1100ms;
   --mid-dur: 620ms;
   --quick: 260ms;
+
+  /* ---- compatibility ----
+     The old names, mapped onto the new field, so the flip lands in one
+     commit rather than leaving the site half-converted while ~370
+     references are rewritten. Every one of these is a rename waiting to
+     happen; none of them should survive into new code.
+
+     --cold and --warm keep their names because their meaning is intact:
+     they are still the two ends of the machine-to-person axis, and the
+     canvas engines read them by those names. */
+  --black: var(--ground);
+  --near: var(--sunk);
+  --paper: var(--ink);
+  --cold: var(--machine);
+  --warm: var(--person);
+  --cool: #6b7f80;
+  --mid: #94714a;
+  --hot: var(--person-ink);
+
+  /* The last gradient left in the system, and only because a handful of
+     canvas scenes interpolate along it to show a value rising. It runs
+     machine to person now — five stops, one journey, no rainbow. */
+  --sweep: linear-gradient(
+    100deg,
+    var(--machine) 0%,
+    var(--cool) 26%,
+    var(--mid) 58%,
+    var(--person) 84%,
+    var(--person-ink) 100%
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
