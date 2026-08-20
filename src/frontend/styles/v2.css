@@ -134,21 +134,20 @@ p {
 }
 
 /* ---------- the accent phrase ----------
-   This used to be a gradient clipped to the glyphs, tracking the cursor
-   through --sweep-x. It was the single loudest thing on the page saying
-   the page was generated: a gradient headline is the one ornament every
-   template of the last two years shipped with.
+   This used to be the gradient clipped to the glyphs, tracking the
+   cursor through --sweep-x. It was the single loudest thing on the page
+   saying the page was generated: a gradient headline is the one ornament
+   every template of the last two years shipped with, and the dark ground
+   was never the problem — this was.
 
    It is one colour now. The phrase it wraps is the phrase that matters
-   in that headline, and it is burnt orange because that is the colour
-   this system uses for a person — which is what every one of those
-   headlines is actually about.
-
-   --person-ink rather than --person: this is text, and the brighter
-   orange is 3.3:1 on paper. */
+   in that headline, and it is amber because that is the colour this
+   system uses for a person, which is what every one of those headlines
+   is actually about. --person on --black is 9.2:1.
+   --------------------------------------------------------------- */
 
 .sweep {
-  color: var(--person-ink);
+  color: var(--person);
 }
 
 /* ---------- buttons ---------- */
@@ -314,22 +313,43 @@ p {
 
 /* ---------- reveal ---------- */
 
-[data-reveal] {
+/* Hidden only under .has-motion, which reveal.js adds after it has
+   confirmed Motion loaded and motion is wanted. A missing script, a
+   blocked bundle or prefers-reduced-motion all leave this selector
+   unmatched and the page simply finished — which is the one property
+   worth more than the entrance itself.
+
+   .is-in is kept because scenes.js and the canvas engines still set it
+   on their own schedule. */
+.has-motion [data-reveal]:not(.is-in) {
   opacity: 0;
-  transform: translateY(1.5rem);
-  transition:
-    opacity var(--slow) var(--ease),
-    transform var(--slow) var(--ease);
 }
 
-[data-reveal].is-in {
-  opacity: 1;
-  transform: none;
+/* ---------- the caret ----------
+   Sits after the last character typed. On the element rather than a
+   node in the flow, so it cannot end up inside the accent span or
+   disturb the line it is on. */
+
+[data-typing]::after {
+  content: "";
+  display: inline-block;
+  width: 0.06em;
+  height: 0.78em;
+  margin-left: 0.06em;
+  vertical-align: baseline;
+  background: var(--person);
+  animation: caret-blink 1s steps(2) infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
-    opacity: 1;
-    transform: none;
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
   }
+}
+
+/* A heading being typed must not reflow the page under the reader, so
+   typing.js pins its finished height first. This stops the pin from
+   fighting a heading that wraps differently at a new width. */
+[data-typing] {
+  min-height: 0;
 }

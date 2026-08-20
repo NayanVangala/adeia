@@ -9,9 +9,9 @@
       content="A permission layer for AI agents. Spend limits, host allowlists, human approval, and an append-only audit trail — so an agent can act without being trusted."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles/tokens.css?v=1787184928825" />
-    <link rel="stylesheet" href="/styles/v2.css?v=1787184735048" />
-    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787184814094" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787185293202" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787185676570" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787185293202" />
     <link rel="stylesheet" href="/styles/page-v2.css?v=1787162872675" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
@@ -49,13 +49,13 @@
         <div class="frame frame--b" aria-hidden="true"></div>
         <div class="frame frame--c" aria-hidden="true"></div>
 
-        <div class="hero__inner">
-          <h1 class="display hero__title">
+        <div class="hero__inner" data-type-group>
+          <h1 class="display hero__title" data-type>
             Agents that act<br />
             <span class="sweep">inside a fence</span>
           </h1>
 
-          <p class="hero__sub" data-reveal>
+          <p class="hero__sub" data-type data-reveal>
             An agent asks Adeia before it spends money or calls an API. Rules
             you wrote decide: run it, refuse it, or stop and ask you. Every
             outcome is recorded — including which ones a model decided.
@@ -796,10 +796,13 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       </div>
     </footer>
 
-    <script src="/cursor.js?v=1787184735086" type="module"></script>
+    <script src="/vendor/motion.js?v=1787185621655"></script>
+    <script src="/cursor.js?v=1787185316184" type="module"></script>
+    <script src="/typing.js?v=1787185511331" type="module"></script>
+    <script src="/reveal.js?v=1787185655333" type="module"></script>
     <script src="/scenes.js?v=1787121181350" type="module"></script>
     <script src="/motion.js?v=1787119962681" type="module"></script>
-    <script src="/fence.js?v=1787185040684" type="module"></script>
+    <script src="/fence.js?v=1787185293200" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
   </body>
 </html>
