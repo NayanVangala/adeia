@@ -589,10 +589,11 @@ const STYLE = `
     padding-block: var(--section-y);
     position: relative;
   }
-  .section--raised {
-    background: var(--near);
-    border-block: 1px solid var(--hair);
-  }
+  /* No alternating fills. Two grounds stacked down a page is four slabs, and
+     the section rhythm is already carried by --section-y and the numbered
+     rule above each head. */
+  .section--raised { background: none; border-block: 0; }
+  .section + .section { border-top: 1px solid var(--hair); }
 
   /* Section heads carry a numbered eyebrow. The order is real — a key, then
      the first call, then what is waiting, then what happened — so numbering
@@ -646,28 +647,26 @@ const STYLE = `
   /* The announcement pill. One line, the count in a chip, an arrow that moves
      on hover — the same grammar as their "FALL '26 / Applications open". Here
      it carries the only thing on this page that is still open. */
+  /* A line, not a capsule. The count is set in mono and in the colour that
+     means a person decides — the emphasis is the type, and the border a pill
+     would have added was carrying nothing the words were not already saying. */
   .announce {
-    display: inline-flex; align-items: center; gap: .85rem;
-    margin: 0 auto 3rem;
-    padding: .5rem .5rem .5rem .55rem;
-    border: 1px solid var(--hair);
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--raised) 70%, transparent);
-    color: var(--muted); font-size: var(--t-small);
+    display: flex; align-items: baseline; justify-content: center; gap: .7rem;
+    margin: 0 auto 2.25rem;
+    color: var(--faint); font-size: var(--t-small);
     text-decoration: none;
-    transition: border-color var(--quick) var(--ease), color var(--quick) var(--ease);
+    transition: color var(--quick) var(--ease);
   }
-  .announce:hover { border-color: var(--person); color: var(--paper); }
+  .announce:hover { color: var(--muted); }
   .announce b {
     font-family: var(--mono); font-weight: 500;
-    font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase;
-    padding: .3rem .6rem; border-radius: 999px;
-    background: var(--person); color: var(--black);
+    font-size: var(--t-small); letter-spacing: .02em;
+    color: var(--person);
   }
   .announce svg { transition: transform var(--quick) var(--ease); }
   .announce:hover svg { transform: translateX(3px); }
   /* Nothing waiting is a different sentence, not a dimmer version of this one. */
-  .announce--calm b { background: var(--hair-lit); color: var(--paper); }
+  .announce--calm b { color: var(--muted); }
 
   /* Display line. The weight change carries the emphasis rather than a colour
      change, which is what makes theirs read as typography instead of markup. */
@@ -701,18 +700,18 @@ const STYLE = `
 
   /* Floating pill nav, for the project switcher. */
   .pillnav {
-    display: inline-flex; align-items: center; gap: .25rem;
-    padding: .3rem; margin: 0 auto 2.75rem;
-    border: 1px solid var(--hair); border-radius: 999px;
-    background: color-mix(in srgb, var(--raised) 60%, transparent);
+    display: flex; align-items: center; justify-content: center; gap: 1.75rem;
+    margin: 0 auto 3rem;
   }
   .pillnav a {
-    padding: .42rem .95rem; border-radius: 999px;
-    font-size: var(--t-small); color: var(--faint); text-decoration: none;
-    transition: background var(--quick) var(--ease), color var(--quick) var(--ease);
+    padding: 0 0 .35rem;
+    font-family: var(--mono); font-size: var(--t-small);
+    color: var(--faint); text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color var(--quick) var(--ease), border-color var(--quick) var(--ease);
   }
-  .pillnav a:hover { color: var(--paper); }
-  .pillnav a.is-on { background: var(--person); color: var(--black); font-weight: 500; }
+  .pillnav a:hover { color: var(--muted); }
+  .pillnav a.is-on { color: var(--paper); border-bottom-color: var(--person); }
   .pillnav a.is-archived { opacity: .6; }
 
   /* Primary control beside a quiet one, their CTA row. */
@@ -720,14 +719,16 @@ const STYLE = `
     display: flex; align-items: center; justify-content: center;
     gap: 1.75rem; flex-wrap: wrap; margin: clamp(2.5rem, 6vh, 4rem) 0 0;
   }
+  /* Primary by colour and weight, not by a filled capsule. Nothing else on
+     this page is a solid block of colour and this had no reason to be. */
   .btn--pill {
-    border: 0; border-radius: 999px;
-    background: var(--person); color: var(--black);
-    padding: .7rem 1.4rem; min-height: 44px;
+    border: 0; border-bottom: 1px solid var(--person);
+    background: none; color: var(--person);
+    padding: .5rem 0; min-height: 44px;
     font-weight: 600; font-size: var(--t-small);
-    transition: background var(--quick) var(--ease), transform 90ms var(--ease);
+    transition: color var(--quick) var(--ease), border-color var(--quick) var(--ease);
   }
-  .btn--pill:hover { background: var(--mid); }
+  .btn--pill:hover { color: var(--mid); border-bottom-color: var(--mid); }
   .btn--quiet {
     border: 0; border-bottom: 1px solid var(--hair);
     color: var(--muted); background: none; padding: .5rem 0;
@@ -830,10 +831,10 @@ const STYLE = `
      fails when it is pasted, and this one exists to be pasted. */
   .snippet {
     margin: 0 0 1rem;
-    padding: 1rem 1.1rem;
-    background: var(--near);
-    border: 1px solid var(--hair);
-    border-radius: var(--radius-sm);
+    padding: 0 0 0 1.1rem;
+    background: none;
+    border: 0; border-left: 1px solid var(--hair);
+    border-radius: 0;
     overflow-x: auto;
     font-family: var(--mono);
     font-size: .8125rem;
