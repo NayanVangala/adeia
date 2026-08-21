@@ -215,6 +215,109 @@ const STYLE = `
     font-size: 0.8125rem; color: var(--warm);
   }
   .steps { padding-left: 1.25rem; line-height: 1.8; }
+
+  /* ---------- the decision mark ----------
+     The one rule this file opens with, made visible. A row that ran because
+     a model judged it low risk must not look like a row a person approved,
+     and until now that distinction lived only in a sentence of body copy.
+
+     Steel is a model, amber is a person, and a bare hairline is the policy
+     deciding on its own with nobody consulted — the three things that can
+     actually put a row on this page. The colours are --machine and --person
+     from tokens.css, which exist for exactly this and are used nowhere else
+     in the dashboard, so the mark cannot be confused with decoration. */
+  td.what-cell {
+    border-left: 2px solid var(--rule);
+    padding-left: 0.85rem;
+  }
+  tr[data-decided="machine"] td.what-cell { border-left-color: var(--machine); }
+  tr[data-decided="person"]  td.what-cell { border-left-color: var(--person); }
+
+  /* Stated once, above the first table, because a colour that means
+     something has to say so somewhere. */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1.25rem;
+    margin: 0 0 0.85rem; padding: 0;
+    list-style: none;
+    font-size: var(--t-micro, 0.6875rem);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--quiet);
+  }
+  .legend li { display: flex; align-items: center; gap: 0.5rem; }
+  .legend i { width: 2px; height: 0.85em; border-radius: 1px; background: var(--rule); }
+  .legend .is-machine i { background: var(--machine); }
+  .legend .is-person i { background: var(--person); }
+
+  /* ---------- pointer-reactive surfaces ----------
+     cursor.js writes --mx/--my (a position on the card) and --tx/--ty (a
+     direction from its middle) and leaves the page to decide what they mean.
+     Here they mean a lamp held near the surface and a lean of well under a
+     degree — at dashboard scale anything larger reads as a toy, and this is
+     a page people check at 2am to find out what their agent did.
+
+     Both default to the resting value, so a card is correct before the
+     pointer has ever touched it and stays correct if the script never
+     loads. */
+  .card {
+    position: relative;
+    transform: perspective(900px)
+      rotateX(calc(var(--ty, 0) * -0.5deg))
+      rotateY(calc(var(--tx, 0) * 0.5deg));
+    transition: transform var(--quick, 260ms) var(--ease, ease);
+  }
+  .card::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--quick, 260ms) var(--ease, ease);
+    background: radial-gradient(
+      20rem circle at var(--mx, 50%) var(--my, 50%),
+      rgba(229, 164, 75, 0.06),
+      transparent 68%
+    );
+  }
+  .card:hover::after { opacity: 1; }
+
+  /* The masthead rule carries the gradient the rest of Adeia is built on —
+     cold at the left, warm at the right, the same axis the marks below use. */
+  header.bar { border-bottom: 0; position: relative; }
+  header.bar::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: var(--sweep);
+    opacity: 0.55;
+  }
+
+  /* Revealed rows start displaced. Without the script they never move, so
+     the resting state has to be the readable one. */
+  [data-reveal] { opacity: 1; }
+
+  /* ---------- the fence, on the signed-out page only ----------
+     The same canvas that closes the marketing site: strokes that stand
+     aside for a pointer and close behind it. It is the one picture of what
+     Adeia does, so it belongs on the page where somebody is deciding
+     whether to find out — and nowhere near the signed-in dashboard, where
+     the content is real and an ambient animation behind live figures is
+     just something moving while you are trying to read.
+
+     Fixed to the bottom of the viewport rather than to the document, so it
+     stays the floor of the page instead of scrolling away from it. */
+  .field {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 0;
+    width: 100%;
+    height: min(46vh, 22rem);
+    pointer-events: none;
+  }
+  body:has(.field) main { position: relative; z-index: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transform: none; }
+    .card::after { display: none; }
+  }
 `;
 
 function shell(title: string, body: string): string {
@@ -226,9 +329,19 @@ function shell(title: string, body: string): string {
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>${escapeHtml(title)}</title>
+<link rel="stylesheet" href="/styles/cursor.css">
 <style>${STYLE}</style>
 </head>
-<body><main>${body}</main></body>
+<body><main>${body}</main>
+<!-- Enhancement, loaded after the document and never depended on. Every
+     effect these add is absent under prefers-reduced-motion and on a device
+     without a hovering pointer, which is the same judgement the marketing
+     site makes. The dashboard is complete without any of them. -->
+<script src="/vendor/motion.js" defer></script>
+<script src="/cursor.js" type="module"></script>
+<script src="/reveal.js" type="module"></script>
+<script src="/fence.js" type="module"></script>
+</body>
 </html>`;
 }
 
@@ -383,8 +496,26 @@ function actionRow(entry: DashboardAction, csrf: string): string {
       ? decideButtons(action.id, csrf)
       : pill(action.status);
 
-  return `<tr>
-    <td>
+  /* Who put this row on the page. A person outranks a model: once something
+     is waiting on you or you have approved it, the model's opinion is no
+     longer what decided it. Everything else got here because the policy
+     answered on its own, with nobody asked — which is the common case and
+     should look like the quiet one. */
+  const decided =
+    action.status === "pending_approval" || action.status === "approved"
+      ? "person"
+      : entry.classifier !== null
+        ? "machine"
+        : "policy";
+
+  const decidedLabel = {
+    person: "Decided by you",
+    machine: "Judged by a model",
+    policy: "Decided by your policy",
+  }[decided];
+
+  return `<tr data-decided="${decided}" data-reveal>
+    <td class="what-cell" title="${decidedLabel}">
       <div class="what${mono ? " mono" : ""}">${escapeHtml(headline)}</div>
       <div class="sub">${escapeHtml(detail)}</div>
       ${byModel}
@@ -470,6 +601,12 @@ export function renderDashboard(view: DashboardView): string {
     <div><div class="stat-n">${view.counts.refusedToday}</div><div class="stat-l">refused today</div></div>
   </div>
 
+  <ul class="legend">
+    <li class="is-person"><i></i> you decided</li>
+    <li class="is-machine"><i></i> a model judged</li>
+    <li><i></i> your policy decided</li>
+  </ul>
+
   <h2>Waiting on you</h2>
   ${table(waiting, "Nothing is waiting. Adeia will email you when something needs a decision.")}
 
@@ -494,10 +631,17 @@ export function renderSignIn(configured: boolean): string {
       configured
         ? `<p style="margin:0 0 1.25rem">Adeia uses your GitHub account to sign you in. It asks for
            <code>read:user</code> and nothing else — it never requests access to your repositories.</p>
-           <p style="margin:0"><a class="btn" href="/auth/github">Continue with GitHub</a></p>`
+           <p style="margin:0 0 1.5rem"><a class="btn" data-magnet href="/auth/github">Continue with GitHub</a></p>
+           <p class="eyebrow" style="margin:0 0 .6rem">What happens when you do</p>
+           <ol class="steps" style="margin:0">
+             <li>Adeia creates a project for you and shows you an API key, once.</li>
+             <li>Your agent calls Adeia instead of calling the thing that costs money.</li>
+             <li>Anything over your limit stops here and waits for you to say yes.</li>
+           </ol>`
         : `<p style="margin:0">Sign-in is not configured on this deployment.</p>`
     }
-  </div>`;
+  </div>
+  <canvas class="field" data-fence aria-hidden="true"></canvas>`;
   return shell("Sign in — Adeia", body);
 }
 

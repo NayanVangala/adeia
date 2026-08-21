@@ -30,6 +30,19 @@ const ASSETS = [
   ["src/frontend/styles/tokens.css", "src/web/public/styles/tokens.css"],
   ["src/frontend/fonts/geist-var.woff2", "src/web/public/fonts/geist-var.woff2"],
   ["src/frontend/fonts/geistmono-var.woff2", "src/web/public/fonts/geistmono-var.woff2"],
+
+  /* The pointer choreography, shared with the marketing site rather than
+     rewritten for the dashboard. cursor.js subscribes every effect to one
+     rAF loop and does nothing at all under `prefers-reduced-motion` or on a
+     device without hover, so the dashboard inherits that judgement instead
+     of making its own. reveal.js needs the Motion library; cursor.js has no
+     dependencies. Both are enhancement — the page is complete without them. */
+  ["src/frontend/styles/cursor.css", "src/web/public/styles/cursor.css"],
+  ["src/frontend/cursor.js", "src/web/public/cursor.js"],
+  ["src/frontend/reveal.js", "src/web/public/reveal.js"],
+  ["src/frontend/vendor/motion.js", "src/web/public/vendor/motion.js"],
+  ["src/frontend/fence.js", "src/web/public/fence.js"],
+  ["src/frontend/favicon.svg", "src/web/public/favicon.svg"],
 ];
 
 for (const [source, target] of ASSETS) {
