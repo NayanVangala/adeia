@@ -239,6 +239,6 @@ describe("signing out", () => {
     // The same cookie, replayed after sign-out. Revocation is server-side, so
     // holding the cookie is no longer enough.
     const after = await h.app.request("/dashboard", { headers: { cookie: session } });
-    expect(await after.text()).toContain("Continue with GitHub");
+    expect(await after.text()).toContain('href="/auth/github"');
   });
 });

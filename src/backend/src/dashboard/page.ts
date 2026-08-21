@@ -324,32 +324,118 @@ const STYLE = `
     z-index: 1;
   }
 
-  /* ---------- what it actually does ----------
-     The page asked a stranger to sign in without showing them anything. This
-     is the product in three rows: the same call at three amounts, and the
-     three different things Adeia does about it. True, checkable, and the
-     reason to sign in rather than a description of one. */
-  .outcomes { margin: 2rem 0 0; }
-  .outcomes-label {
-    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase;
-    color: var(--faint); margin: 0 0 .85rem;
+  /* ---------- the signed-out page ----------
+     A ledger, not a form. The product's output is a record of what an agent
+     asked and what happened, so the page that introduces it is set as one:
+     rules instead of boxes, amounts in a column you read down, and the
+     display face in mono because mono here marks a value a machine used.
+
+     Laid out as two columns on anything wide enough. The argument sits left
+     and the evidence sits right, which stops the page being a single stack of
+     blocks with the fold's worth of black underneath it. */
+  body:has(.field) {
+    display: block;
+    padding: 0 var(--gutter) 0;
   }
-  .outcome {
-    display: flex; align-items: baseline; gap: .9rem;
-    padding: .7rem 0; border-top: 1px solid var(--hair);
+  body:has(.field) main {
+    max-width: 68rem;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    align-content: start;
+    gap: 0;
+    padding-bottom: min(40vh, 18rem);
   }
-  .outcome:last-child { border-bottom: 1px solid var(--hair); }
-  .outcome b {
-    font-family: var(--mono); font-weight: 500; font-size: .9375rem;
-    min-width: 6.5rem; letter-spacing: -.01em;
+
+  .signin-h1 {
+    /* Stated, because the base h1 in this sheet is an accent colour and would
+       make the whole headline amber — which loses the one distinction the
+       line is built on. Bone for what the product is, amber for what it
+       promises, matching what amber means everywhere else here. */
+    color: var(--paper);
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: clamp(1.9rem, 1rem + 3.4vw, 3.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    margin: clamp(2rem, 8vh, 5rem) 0 0;
+    max-width: 18ch;
   }
-  .outcome span { font-size: var(--t-small); color: var(--muted); }
-  /* The verdict word carries the outcome colour the dashboard uses for the
-     same state, so the vocabulary is learned here and never re-learned. */
-  .outcome i { font-style: normal; font-weight: 600; }
-  .outcome .ran { color: var(--ran); }
-  .outcome .held { color: var(--person); }
-  .outcome .no { color: var(--hot); }
+  /* The second line is the promise, and it is the warm end of the gradient —
+     the same colour the dashboard uses for a decision a person made. */
+  .signin-h1 em { font-style: normal; color: var(--person); }
+
+  .signin-lede {
+    margin: 1.25rem 0 0;
+    max-width: 34ch;
+    color: var(--muted);
+    font-size: var(--t-body);
+  }
+
+  .ledger { margin: clamp(2.5rem, 7vh, 4rem) 0 0; }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, auto) minmax(4.5rem, auto) 1fr;
+    align-items: baseline;
+    gap: 1.25rem;
+    padding: .95rem 0;
+    border-top: 1px solid var(--hair);
+  }
+  .ledger-row:last-child { border-bottom: 1px solid var(--hair); }
+  .ledger-row b {
+    font-family: var(--mono); font-weight: 500;
+    font-size: 1.0625rem; letter-spacing: -.01em;
+  }
+  .ledger-row i {
+    font-style: normal; font-weight: 600;
+    font-size: var(--t-small); letter-spacing: .02em;
+  }
+  .ledger-row span { color: var(--faint); font-size: var(--t-small); }
+  .ledger-row .ran { color: var(--ran); }
+  .ledger-row .held { color: var(--person); }
+  .ledger-row .no { color: var(--hot); }
+
+  /* The way in. A rule under a line of type rather than a filled pill: the
+     pill is the part that read as generated, and nothing else on this page
+     is a solid block of colour. */
+  .enter {
+    display: inline-flex; align-items: center; gap: .6rem;
+    margin: clamp(2rem, 6vh, 3.25rem) 0 0;
+    padding: .55rem 0;
+    min-height: 44px;
+    font-size: 1.0625rem; font-weight: 500;
+    color: var(--paper); text-decoration: none;
+    border-bottom: 1px solid var(--hair-lit);
+    transition: color var(--quick) var(--ease), border-color var(--quick) var(--ease);
+  }
+  .enter svg { transition: transform var(--quick) var(--ease); }
+  .enter:hover { color: var(--person); border-bottom-color: var(--person); }
+  .enter:hover svg { transform: translateX(4px); }
+  .enter:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
+
+  .enter-note {
+    margin: .9rem 0 0; max-width: 42ch;
+    color: var(--faint); font-size: var(--t-small);
+  }
+  .enter-note code { font-family: var(--mono); color: var(--muted); }
+
+  @media (min-width: 56rem) {
+    body:has(.field) main {
+      grid-template-columns: 1.05fr 1fr;
+      grid-template-rows: auto auto;
+      column-gap: clamp(3rem, 7vw, 6rem);
+      align-content: center;
+      padding-bottom: min(34vh, 16rem);
+    }
+    header.bar { grid-column: 1 / -1; }
+    .signin-h1 { grid-column: 1; margin-top: 0; }
+    .signin-lede { grid-column: 1; }
+    .enter, .enter-note { grid-column: 1; }
+    /* The evidence column, aligned to the headline's optical top. */
+    .ledger { grid-column: 2; grid-row: 2 / span 4; margin-top: .35rem; align-self: start; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .card { transform: none; }
@@ -401,11 +487,13 @@ const M = window.Motion;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 if (M && !reduced) {
+  /* Both pages run this shell, so the list covers both and empty groups drop
+     out. Order is reading order, not document order. */
   const groups = [
     document.querySelectorAll("header.bar"),
-    document.querySelectorAll("main > h1, main > .lede"),
-    document.querySelectorAll("main > .card"),
-    document.querySelectorAll(".outcome"),
+    document.querySelectorAll(".signin-h1, main > h1, main > .lede, .signin-lede"),
+    document.querySelectorAll(".ledger-row, main > .card"),
+    document.querySelectorAll(".enter, .enter-note"),
   ].filter((g) => g.length);
 
   const settle = (g) => {
@@ -731,32 +819,49 @@ export function renderDashboard(view: DashboardView): string {
 
 /** Shown to a signed-out visitor. */
 export function renderSignIn(configured: boolean): string {
+  /* No card.
+
+     A centred panel on a near-black page with a filled accent button is the
+     house style of every generated landing page of the last two years, which
+     tokens.css opens by refusing. Boxing the only content on a page also says
+     nothing: a border groups things, and there is one thing here.
+
+     What replaced it is the shape the product actually makes — a ledger. Rules
+     rather than boxes, the display face in mono because mono here marks a
+     value a machine used, and the amounts in a column you can read down. */
   const body = `
   <header class="bar"><p class="wordmark">Adeia</p></header>
-  <h1>Sign in</h1>
-  <p class="lede">See what your agents asked to do, what ran, and what is waiting on you.</p>
-  <div class="card">
-    ${
-      configured
-        ? `<p style="margin:0 0 1.25rem">Adeia uses your GitHub account to sign you in. It asks for
-           <code>read:user</code> and nothing else — it never requests access to your repositories.</p>
-           <p style="margin:0 0 1.5rem"><a class="btn" data-magnet href="/auth/github">Continue with GitHub</a></p>
-           <p class="eyebrow" style="margin:0 0 .6rem">What happens when you do</p>
-           <ol class="steps" style="margin:0">
-             <li>Adeia creates a project for you and shows you an API key, once.</li>
-             <li>Your agent calls Adeia instead of calling the thing that costs money.</li>
-             <li>Anything over your limit stops here and waits for you to say yes.</li>
-           </ol>`
-        : `<p style="margin:0">Sign-in is not configured on this deployment.</p>`
-    }
-  </div>
 
-  <section class="outcomes">
-    <p class="outcomes-label">The same call, three amounts</p>
-    <div class="outcome"><b>$25</b><span><i class="ran">runs</i> — inside the limit you set</span></div>
-    <div class="outcome"><b>$500</b><span><i class="held">waits</i> — emails you, and the agent stops until you answer</span></div>
-    <div class="outcome"><b>$9,999,999</b><span><i class="no">refused</i> — over your hard maximum, and it says so</span></div>
+  <h1 class="signin-h1">Agents that act,<br><em>inside a fence you set.</em></h1>
+
+  <p class="signin-lede">Your agent asks before it spends. Small things run.
+  Anything over your limit stops and waits for you.</p>
+
+  <section class="ledger" aria-label="What happens at three amounts">
+    <div class="ledger-row">
+      <b>$25</b><i class="ran">runs</i><span>inside the limit you set</span>
+    </div>
+    <div class="ledger-row">
+      <b>$500</b><i class="held">waits</i><span>emails you, and the agent stops until you answer</span>
+    </div>
+    <div class="ledger-row">
+      <b>$9,999,999</b><i class="no">refused</i><span>over your hard maximum, and it says so</span>
+    </div>
   </section>
+
+  ${
+    configured
+      ? `<a class="enter" data-magnet href="/auth/github">
+           <span>Sign in with GitHub</span>
+           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
+                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M5 12h13M12 5l7 7-7 7"/>
+           </svg>
+         </a>
+         <p class="enter-note">Asks for <code>read:user</code>. Never your repositories.
+         You get a project and an API key on the way in.</p>`
+      : `<p class="enter-note">Sign-in is not configured on this deployment.</p>`
+  }
 
   <canvas class="field" data-fence aria-hidden="true"></canvas>`;
   return shell("Sign in — Adeia", body);

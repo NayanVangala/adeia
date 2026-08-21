@@ -29,12 +29,12 @@ describe("who can see the dashboard", () => {
 
   it("shows the sign-in page to a visitor with no cookie", async () => {
     const res = await get("/dashboard");
-    expect(await res.text()).toContain("Continue with GitHub");
+    expect(await res.text()).toContain('href="/auth/github"');
   });
 
   it("shows the sign-in page for a forged cookie", async () => {
     const res = await get("/dashboard", "adeia_session=made-up");
-    expect(await res.text()).toContain("Continue with GitHub");
+    expect(await res.text()).toContain('href="/auth/github"');
   });
 
   it("shows the dashboard to a signed-in user", async () => {
