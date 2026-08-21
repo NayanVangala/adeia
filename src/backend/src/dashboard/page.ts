@@ -417,6 +417,7 @@ if (M && !reduced) {
 
   for (const g of groups) for (const el of g) el.style.opacity = "0";
 
+  const running = [];
   let at = 0;
   for (const g of groups) {
     const anim = M.animate(
@@ -425,11 +426,28 @@ if (M && !reduced) {
       { type: "spring", stiffness: 180, damping: 24, mass: 0.9,
         delay: M.stagger(0.05, { startDelay: at }) },
     );
+    running.push([anim, g]);
     Promise.resolve(anim && anim.finished).then(() => settle(g)).catch(() => settle(g));
     at += 0.09;
   }
 
-  setTimeout(() => { for (const g of groups) settle(g); }, 2000);
+  /* The floor has to cancel before it sets, not merely set. A running
+     animation wins over an inline style in the cascade, so writing
+     opacity:1 underneath one that is stuck near zero changes the attribute
+     and nothing a visitor can see — which is precisely the state this was
+     written to rescue.
+
+     Stuck happens: a tab opened in the background throttles rAF, and the
+     spring sits unfinished until the tab is looked at. That case does
+     resolve on its own, but "opened in a new tab" is how a fair number of
+     people will arrive here from a link, and the page is not allowed to be
+     blank for any of them. */
+  setTimeout(() => {
+    for (const [anim, g] of running) {
+      try { if (anim && anim.cancel) anim.cancel(); } catch (e) {}
+      settle(g);
+    }
+  }, 2000);
 }
 </script>
 </body>
