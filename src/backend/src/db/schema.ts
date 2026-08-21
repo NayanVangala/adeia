@@ -24,6 +24,19 @@ export const projects = sqliteTable("projects", {
    * an explicit user id, so an ownerless project is visible to nobody.
    */
   ownerUserId: text("owner_user_id"),
+  /**
+   * When this project was archived, or null while it is live.
+   *
+   * Archiving is what this product has instead of deleting. Deleting a project
+   * would delete its audit trail, and an append-only record of what an agent
+   * did is the thing being sold — a dashboard that can erase the evidence
+   * argues against itself.
+   *
+   * It is not a display flag. An archived project's key stops authenticating,
+   * which is the point: archiving is how you stop an agent you no longer trust
+   * without destroying the record of what it already did.
+   */
+  archivedAt: text("archived_at"),
   createdAt: text("created_at").notNull(),
 });
 

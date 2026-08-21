@@ -533,3 +533,117 @@ describe("more than one project", () => {
     expect(after.api_key_hash).toBe(before.api_key_hash);
   });
 });
+
+describe("archiving a project", () => {
+  beforeEach(async () => {
+    h = await createHarness();
+  });
+
+  async function established(login: string, ghId: string) {
+    const session = await signIn(login, ghId);
+    const page = await (await get("/dashboard", session.cookie)).text();
+    const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
+    const rows = h.db.$client
+      .prepare("SELECT id FROM projects WHERE owner_user_id = ?")
+      .all(session.user.id) as { id: string }[];
+    return { ...session, csrf, projectId: rows[0]!.id };
+  }
+
+  const post = (path: string, cookie: string, body: Record<string, string>) =>
+    h.app.request(path, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(body).toString(),
+    });
+
+  /** Creates a second project and returns its id and freshly shown key. */
+  async function second(cookie: string, csrf: string) {
+    const body = await (await post("/dashboard/project/new", cookie, { csrf, name: "second" })).text();
+    const key = /adeia_sk_[A-Za-z0-9_-]+/.exec(body)?.[0] ?? "";
+    const row = h.db.$client
+      .prepare("SELECT id FROM projects WHERE name = ?")
+      .get("second") as { id: string };
+    return { id: row.id, key };
+  }
+
+  const callApi = (key: string) =>
+    h.app.request("/v1/audit", { headers: { authorization: `Bearer ${key}` } });
+
+  it("stops the key authenticating, which is the point of it", async () => {
+    const me = await established("me", "1");
+    const proj = await second(me.cookie, me.csrf);
+
+    expect((await callApi(proj.key)).status).toBe(200);
+
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: proj.id });
+
+    expect((await callApi(proj.key)).status).toBe(401);
+  });
+
+  it("restores the key when the project is restored", async () => {
+    const me = await established("me", "1");
+    const proj = await second(me.cookie, me.csrf);
+
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: proj.id });
+    expect((await callApi(proj.key)).status).toBe(401);
+
+    await post("/dashboard/project/archive", me.cookie, {
+      csrf: me.csrf,
+      projectId: proj.id,
+      restore: "1",
+    });
+    expect((await callApi(proj.key)).status).toBe(200);
+  });
+
+  it("keeps every action the archived project already took", async () => {
+    const me = await established("me", "1");
+    const proj = await second(me.cookie, me.csrf);
+    await requestAction(h.deps, proj.id, paymentRequest(1000));
+
+    const before = h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM actions WHERE project_id = ?")
+      .get(proj.id) as { n: number };
+
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: proj.id });
+
+    const after = h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM actions WHERE project_id = ?")
+      .get(proj.id) as { n: number };
+    expect(after.n).toBe(before.n);
+    expect(after.n).toBeGreaterThan(0);
+  });
+
+  it("refuses to archive the last live project, so nobody locks themselves out", async () => {
+    const me = await established("me", "1");
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: me.projectId });
+
+    const row = h.db.$client
+      .prepare("SELECT archived_at FROM projects WHERE id = ?")
+      .get(me.projectId) as { archived_at: string | null };
+    expect(row.archived_at).toBeNull();
+  });
+
+  it("cannot archive somebody else's project", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    // Give the other account a second project so the last-live guard is not
+    // what stops this — the ownership boundary has to be what stops it.
+    const theirs = await second(you.cookie, you.csrf);
+
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: theirs.id });
+
+    const row = h.db.$client
+      .prepare("SELECT archived_at FROM projects WHERE id = ?")
+      .get(theirs.id) as { archived_at: string | null };
+    expect(row.archived_at).toBeNull();
+    expect((await callApi(theirs.key)).status).toBe(200);
+  });
+
+  it("refuses without a CSRF token", async () => {
+    const me = await established("me", "1");
+    const proj = await second(me.cookie, me.csrf);
+    const res = await post("/dashboard/project/archive", me.cookie, { projectId: proj.id });
+    expect(res.status).toBe(403);
+    expect((await callApi(proj.key)).status).toBe(200);
+  });
+});

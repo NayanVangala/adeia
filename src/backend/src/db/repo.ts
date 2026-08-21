@@ -110,6 +110,27 @@ export async function renameProject(
   return row ?? null;
 }
 
+/**
+ * Archives or restores a project. Owner-scoped in the statement itself.
+ *
+ * `archivedAt` is a timestamp rather than a boolean so the record says when,
+ * which is the question anybody asks about a key that stopped working.
+ */
+export async function setProjectArchived(
+  db: Db,
+  projectId: string,
+  ownerUserId: string,
+  archived: boolean,
+): Promise<Project | null> {
+  const [row] = await db
+    .update(projects)
+    .set({ archivedAt: archived ? new Date().toISOString() : null })
+    .where(and(eq(projects.id, projectId), eq(projects.ownerUserId, ownerUserId)))
+    .returning()
+    .all();
+  return row ?? null;
+}
+
 export async function getProjectByKeyHash(db: Db, hash: string): Promise<Project | null> {
   return await db.select().from(projects).where(eq(projects.apiKeyHash, hash)).get() ?? null;
 }

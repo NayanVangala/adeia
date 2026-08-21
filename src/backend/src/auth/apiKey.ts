@@ -44,6 +44,15 @@ export const apiKeyAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
     return c.json({ error: "unauthorized" }, 401);
   }
 
+  /* An archived project's key does not authenticate. This is what archiving
+     is for: stopping an agent you no longer trust without destroying the
+     record of what it already did. Checked after the hash comparison rather
+     than before, so an archived project and a wrong key take the same path
+     and the response cannot be used to tell a real key from a retired one. */
+  if (project.archivedAt !== null) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
   c.set("projectId", project.id);
   await next();
 };

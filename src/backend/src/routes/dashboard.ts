@@ -29,6 +29,7 @@ import {
   getProject,
   listProjectsByOwner,
   renameProject,
+  setProjectArchived,
   toPolicy,
   updatePolicyConfig,
   updateProjectKeyHash,
@@ -120,8 +121,12 @@ export function normaliseHost(raw: string): string | null {
  * somewhere sane instead of on a failure.
  */
 function selectProject(owned: Project[], requestedId: string | undefined): Project | undefined {
-  if (!requestedId) return owned[0];
-  return owned.find((p) => p.id === requestedId) ?? owned[0];
+  /* A live project is the default landing, so signing in does not open an
+     archived one just because it happens to be first. An explicit id still
+     opens what it names — you archived it, you can look at it. */
+  const fallback = owned.find((p) => p.archivedAt === null) ?? owned[0];
+  if (!requestedId) return fallback;
+  return owned.find((p) => p.id === requestedId) ?? fallback;
 }
 
 /** Creates the project, both policies and the first key. Returns the key once. */
@@ -182,7 +187,8 @@ async function renderDashboardFor(
     user: { login: session.user.login, avatarUrl: session.user.avatarUrl },
     projectName: project.name,
     projectId: project.id,
-    projects: owned.map((p) => ({ id: p.id, name: p.name })),
+    projectArchivedAt: project.archivedAt,
+    projects: owned.map((p) => ({ id: p.id, name: p.name, archived: p.archivedAt !== null })),
     actions: records.map((action) => ({
       action,
       classifier: verdicts.get(action.id) ?? null,
@@ -413,6 +419,47 @@ export function createDashboardRoutes(): Hono<AppEnv> {
        rendered into a heading. */
     if (raw) await renameProject(deps.db, project.id, session.user.id, raw.slice(0, 60));
 
+    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
+  });
+
+  /**
+   * Archive, and restore.
+   *
+   * There is no delete. Deleting a project deletes its audit trail, and an
+   * append-only record of what an agent did is the product — a dashboard that
+   * can erase the evidence argues against the thing it is showing you.
+   *
+   * Archiving is the useful half of it: the key stops authenticating
+   * immediately, so whatever was using it stops acting, and every action it
+   * already took stays exactly where it is.
+   */
+  routes.post("/dashboard/project/archive", async (c) => {
+    const deps = c.get("deps");
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const owned = await listProjectsByOwner(deps.db, session.user.id);
+    const project = selectProject(owned, typeof form["projectId"] === "string" ? form["projectId"] : undefined);
+    if (!project) return c.redirect("/dashboard", 302);
+
+    const restoring = form["restore"] === "1";
+
+    /* Refused rather than allowed, because a person with no live project has
+       no way back in: the dashboard provisions one only when the list is
+       empty, and an archived project is still in the list. */
+    if (!restoring) {
+      const liveOthers = owned.filter((p) => p.id !== project.id && p.archivedAt === null);
+      if (liveOthers.length === 0) {
+        return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&archive=last`, 302);
+      }
+    }
+
+    await setProjectArchived(deps.db, project.id, session.user.id, !restoring);
     return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
   });
 

@@ -523,6 +523,17 @@ const STYLE = `
   .newproj-input::placeholder { color: var(--faint); }
   .newproj-input:focus { outline: none; border-bottom-color: var(--person); }
 
+  .switch-item.is-archived { opacity: .55; }
+  .switch-item.is-archived::after { content: " (archived)"; font-size: var(--t-micro); }
+
+  .archived-note {
+    margin: 1rem 0 0; padding: 0 0 0 .9rem;
+    border-left: 2px solid var(--machine);
+    color: var(--muted); font-size: var(--t-small); max-width: 58ch;
+  }
+  .rowform { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.25rem 0 0; }
+  .rowform-note { color: var(--faint); font-size: var(--t-small); }
+
   /* ---------- the first call ---------- */
   /* --faint, not --hair-lit. hair-lit is a border token and using it as an
      ink puts text at roughly 1.5:1 on this ground — the same defect this
@@ -881,8 +892,10 @@ export interface DashboardView {
   projectName: string;
   /** Which project this page is about. Carried on every form that changes it. */
   projectId: string;
+  /** Set while this project is archived: its key no longer authenticates. */
+  projectArchivedAt: string | null;
   /** Everything this user owns, for the switcher. */
-  projects: { id: string; name: string }[];
+  projects: { id: string; name: string; archived: boolean }[];
   actions: DashboardAction[];
   counts: { waiting: number; ranToday: number; refusedToday: number };
   /** Shown exactly once, immediately after a project is created. */
@@ -1120,7 +1133,7 @@ export function renderDashboard(view: DashboardView): string {
       ? `<nav class="switch" aria-label="Projects">${view.projects
           .map(
             (p) =>
-              `<a class="switch-item${p.id === view.projectId ? " is-on" : ""}"
+              `<a class="switch-item${p.id === view.projectId ? " is-on" : ""}${p.archived ? " is-archived" : ""}"
                   href="/dashboard?p=${encodeURIComponent(p.id)}"
                   ${p.id === view.projectId ? 'aria-current="page"' : ""}
                >${escapeHtml(p.name)}</a>`,
@@ -1145,6 +1158,28 @@ export function renderDashboard(view: DashboardView): string {
   </form>
 
   <p class="lede">Everything your agents asked to do, and what Adeia did about it.</p>
+
+  ${
+    view.projectArchivedAt
+      ? `<p class="archived-note">Archived ${escapeHtml(when(view.projectArchivedAt))}.
+         Its key no longer authenticates, so nothing can act as this project.
+         Everything below is still here.</p>`
+      : ""
+  }
+
+  <form class="rowform" method="POST" action="/dashboard/project/archive">
+    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+    <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+    ${view.projectArchivedAt ? `<input type="hidden" name="restore" value="1">` : ""}
+    <button class="btn btn--sm" type="submit">${
+      view.projectArchivedAt ? "Restore project" : "Archive project"
+    }</button>
+    ${
+      view.projectArchivedAt
+        ? ""
+        : `<span class="rowform-note">Stops its key working. Keeps every record.</span>`
+    }
+  </form>
 
   <form class="newproj" method="POST" action="/dashboard/project/new">
     <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
