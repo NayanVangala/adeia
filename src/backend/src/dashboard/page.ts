@@ -309,10 +309,47 @@ const STYLE = `
     inset: auto 0 0;
     z-index: 0;
     width: 100%;
-    height: min(46vh, 22rem);
+    height: min(42vh, 20rem);
     pointer-events: none;
   }
-  body:has(.field) main { position: relative; z-index: 1; }
+  /* Every content block states its layer explicitly.
+
+     .card is position:relative for its sheen, and the canvas is positioned
+     too and comes later in the document, so with both on auto the paint order
+     is document order: the fence drew straight through the card and across
+     the sign-in button. Stacking is not something to leave implicit on a page
+     carrying a full-width canvas. */
+  header.bar, main > h1, main > .lede, main > .card, .outcomes {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- what it actually does ----------
+     The page asked a stranger to sign in without showing them anything. This
+     is the product in three rows: the same call at three amounts, and the
+     three different things Adeia does about it. True, checkable, and the
+     reason to sign in rather than a description of one. */
+  .outcomes { margin: 2rem 0 0; }
+  .outcomes-label {
+    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 .85rem;
+  }
+  .outcome {
+    display: flex; align-items: baseline; gap: .9rem;
+    padding: .7rem 0; border-top: 1px solid var(--hair);
+  }
+  .outcome:last-child { border-bottom: 1px solid var(--hair); }
+  .outcome b {
+    font-family: var(--mono); font-weight: 500; font-size: .9375rem;
+    min-width: 6.5rem; letter-spacing: -.01em;
+  }
+  .outcome span { font-size: var(--t-small); color: var(--muted); }
+  /* The verdict word carries the outcome colour the dashboard uses for the
+     same state, so the vocabulary is learned here and never re-learned. */
+  .outcome i { font-style: normal; font-weight: 600; }
+  .outcome .ran { color: var(--ran); }
+  .outcome .held { color: var(--person); }
+  .outcome .no { color: var(--hot); }
 
   @media (prefers-reduced-motion: reduce) {
     .card { transform: none; }
@@ -341,6 +378,60 @@ function shell(title: string, body: string): string {
 <script src="/cursor.js" type="module"></script>
 <script src="/reveal.js" type="module"></script>
 <script src="/fence.js" type="module"></script>
+<script type="module">
+/* The entrance, on Motion.
+
+   Everything here is above the fold, so an inView reveal would fire all of it
+   at once and be indistinguishable from no animation. This is a load sequence
+   instead: masthead, then heading, then the card, then the three outcomes in
+   a computed stagger. Springs rather than curves, matching reveal.js on the
+   marketing site.
+
+   The resting state is committed explicitly when each animation finishes.
+   An element is hidden here by an inline style, and a finished animation
+   without a forwards fill reverts to exactly that — so the sequence ran and
+   then put everything back to invisible. Committing on the finished promise makes the
+   end state a fact rather than a side effect of fill mode.
+
+   The timeout underneath is the floor, not the mechanism: this page is the
+   only way into the product, and it does not get to depend on an animation
+   library resolving. A visitor who sees no entrance is fine. A visitor who
+   sees nothing is not. */
+const M = window.Motion;
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (M && !reduced) {
+  const groups = [
+    document.querySelectorAll("header.bar"),
+    document.querySelectorAll("main > h1, main > .lede"),
+    document.querySelectorAll("main > .card"),
+    document.querySelectorAll(".outcome"),
+  ].filter((g) => g.length);
+
+  const settle = (g) => {
+    for (const el of g) {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+    }
+  };
+
+  for (const g of groups) for (const el of g) el.style.opacity = "0";
+
+  let at = 0;
+  for (const g of groups) {
+    const anim = M.animate(
+      g,
+      { opacity: [0, 1], transform: ["translateY(14px)", "translateY(0px)"] },
+      { type: "spring", stiffness: 180, damping: 24, mass: 0.9,
+        delay: M.stagger(0.05, { startDelay: at }) },
+    );
+    Promise.resolve(anim && anim.finished).then(() => settle(g)).catch(() => settle(g));
+    at += 0.09;
+  }
+
+  setTimeout(() => { for (const g of groups) settle(g); }, 2000);
+}
+</script>
 </body>
 </html>`;
 }
@@ -641,6 +732,14 @@ export function renderSignIn(configured: boolean): string {
         : `<p style="margin:0">Sign-in is not configured on this deployment.</p>`
     }
   </div>
+
+  <section class="outcomes">
+    <p class="outcomes-label">The same call, three amounts</p>
+    <div class="outcome"><b>$25</b><span><i class="ran">runs</i> — inside the limit you set</span></div>
+    <div class="outcome"><b>$500</b><span><i class="held">waits</i> — emails you, and the agent stops until you answer</span></div>
+    <div class="outcome"><b>$9,999,999</b><span><i class="no">refused</i> — over your hard maximum, and it says so</span></div>
+  </section>
+
   <canvas class="field" data-fence aria-hidden="true"></canvas>`;
   return shell("Sign in — Adeia", body);
 }

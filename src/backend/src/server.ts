@@ -43,6 +43,13 @@ export function createApp(deps: AppDeps): Hono<AppEnv> {
     await next();
   });
 
+  /* A person who types the app's hostname, and the redirect a sign-out lands
+     on, both arrive here. Answering them with `{"error":"not_found"}` is
+     correct for an API root and useless for the human in front of it — and
+     both routes are ones this deployment actually sends people down. Every
+     other unmatched path still 404s as JSON. */
+  app.get("/", (c) => c.redirect("/dashboard", 302));
+
   app.route("/v1/site", createSiteRoutes());
   app.route("/v1/actions", createActionRoutes());
   // Mounted after the action routes; `/actions/:id/audit` is two segments and
