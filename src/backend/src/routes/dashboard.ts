@@ -1,3 +1,4 @@
+import { env } from "../env.ts";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
 import { isBlockedHost } from "@adeia/shared";
@@ -171,6 +172,7 @@ async function renderDashboardFor(
     csrf: session.csrf,
     flash,
     allowedHosts,
+    baseUrl: env.PUBLIC_BASE_URL ?? `http://localhost:${env.PORT}`,
   });
 }
 

@@ -421,6 +421,38 @@ const STYLE = `
     margin: 2.75rem 0 .9rem;
   }
 
+  /* ---------- the first call ---------- */
+  /* --faint, not --hair-lit. hair-lit is a border token and using it as an
+     ink puts text at roughly 1.5:1 on this ground — the same defect this
+     session already found on the approval page. Every ink in tokens.css
+     states its measured contrast; the border values do not, because they
+     were never meant to be read. */
+  .panel-dim { color: var(--faint); }
+  .panel-lede { margin: 0 0 1rem; color: var(--muted); font-size: var(--t-small); max-width: 58ch; }
+  .panel-note { margin: .9rem 0 0; color: var(--faint); font-size: var(--t-small); max-width: 58ch; }
+  .panel-note code { font-family: var(--mono); color: var(--muted); }
+
+  /* Scrolls rather than wraps. A wrapped shell command is a command that
+     fails when it is pasted, and this one exists to be pasted. */
+  .snippet {
+    margin: 0 0 1rem;
+    padding: 1rem 1.1rem;
+    background: var(--near);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .8125rem;
+    line-height: 1.7;
+    color: var(--muted);
+    white-space: pre;
+  }
+  .snippet code { font-family: inherit; font-size: inherit; color: inherit; }
+
+  /* Confirms in place. A copy control that says nothing after a click leaves
+     you clicking it again to find out whether the first one worked. */
+  .btn[data-copied] { color: var(--ran); border-bottom-color: var(--ran); }
+
   /* ---------- the signed-out page ----------
      A ledger, not a form. The product's output is a record of what an agent
      asked and what happened, so the page that introduces it is set as one:
@@ -561,6 +593,32 @@ function shell(title: string, body: string): string {
 <script src="/cursor.js" type="module"></script>
 <script src="/reveal.js" type="module"></script>
 <script src="/fence.js" type="module"></script>
+<script>
+/* Copy, with a spoken result.
+
+   Enhancement: without it the command is still selectable text, which is how
+   anyone copied anything before this existed. The label says what happened
+   and puts itself back, so the control never sits in a state that lies. */
+(function () {
+  for (const b of document.querySelectorAll("[data-copy]")) {
+    b.addEventListener("click", function () {
+      const src = document.getElementById(b.dataset.copy);
+      if (!src || !navigator.clipboard) return;
+      navigator.clipboard.writeText(src.textContent).then(
+        function () {
+          b.textContent = "Copied";
+          b.setAttribute("data-copied", "");
+          setTimeout(function () {
+            b.textContent = "Copy";
+            b.removeAttribute("data-copied");
+          }, 1600);
+        },
+        function () { b.textContent = "Press Cmd-C"; },
+      );
+    });
+  }
+})();
+</script>
 <script type="module">
 /* The entrance, on Motion.
 
@@ -704,6 +762,12 @@ export interface DashboardView {
   flash?: { text: string; kind: "approved" | "denied" };
   /** Hosts this project's agents may call. Empty means none, which denies all. */
   allowedHosts: string[];
+  /**
+   * Where this deployment answers. Printed into the first-call snippet so the
+   * command a new project copies is one that runs, rather than one with a
+   * placeholder host they have to know to replace.
+   */
+  baseUrl: string;
 }
 
 /**
@@ -856,6 +920,42 @@ export function renderDashboard(view: DashboardView): string {
       the old one stops working until you paste in the new one.</p>
     </section>`;
 
+  /**
+   * The first call, printed ready to run.
+   *
+   * A new project used to arrive at "point an agent at Adeia with your API
+   * key and they will show up here" — which says what to do and nothing about
+   * how, to somebody holding a key and no idea where it goes. This is the
+   * whole gap between signing up and using the thing.
+   *
+   * curl rather than the SDK, because the SDK is not on npm yet and a
+   * language-specific snippet is wrong for most of the people reading it.
+   * $25 rather than $500, because it is under the per-action limit and
+   * therefore executes: the point is to see something land in the trail
+   * below, not to send yourself an approval email on your first minute.
+   *
+   * The key is only in the command when it is the one moment it can be —
+   * `freshApiKey` is set once, right after provisioning. Afterwards the
+   * snippet carries a placeholder, because Adeia stores a hash and genuinely
+   * cannot print the key again.
+   */
+  const firstCall = view.actions.length > 0 ? "" : `
+    <section class="panel">
+      <p class="eyebrow">Your first call</p>
+      <p class="panel-lede">Run this and it lands in the trail below. It is $25, which is
+      under your $50 limit, so Adeia executes it rather than asking you about it.</p>
+      <pre class="snippet"><code id="first-call">curl -X POST ${escapeHtml(view.baseUrl)}/v1/actions \\
+  -H "authorization: Bearer ${escapeHtml(view.freshApiKey ?? "YOUR_API_KEY")}" \\
+  -H "content-type: application/json" \\
+  -d '{"type":"payment","idempotencyKey":"'$(uuidgen)'","params":{"amountCents":2500,"currency":"usd","recipient":"acct_example"}}'</code></pre>
+      <button class="btn" type="button" data-copy="first-call">Copy</button>
+      <p class="panel-note">Then reload this page. Try it again with
+      <code>"amountCents":50000</code> and it stops and emails you instead.
+      <br><span class="panel-dim">The idempotency key is what stops a retry becoming
+      a second payment — send the same one twice and you get the same action back,
+      which is why the command generates a fresh one each run.</span></p>
+    </section>`;
+
   const table = (rows: DashboardAction[], emptyText: string): string =>
     rows.length === 0
       ? `<p class="empty">${escapeHtml(emptyText)}</p>`
@@ -888,6 +988,7 @@ export function renderDashboard(view: DashboardView): string {
 
   ${flash}
   ${keyBlock}
+  ${firstCall}
 
   <div class="stats">
     <div><div class="stat-n">${view.counts.waiting}</div><div class="stat-l">waiting on you</div></div>
