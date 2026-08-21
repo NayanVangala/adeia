@@ -131,6 +131,49 @@ export async function setProjectArchived(
   return row ?? null;
 }
 
+/**
+ * Deletes a project and everything belonging to it, permanently.
+ *
+ * Archiving is still the right answer almost always: it stops the key and
+ * keeps the record. This exists for the case archiving does not serve — a
+ * project made by mistake, or one whose history you genuinely do not want
+ * kept — and it is honest about what it does rather than hiding rows behind
+ * a flag and calling them gone.
+ *
+ * Dependents go first and in order. Nothing in this schema declares ON DELETE
+ * CASCADE, so removing the project first would either orphan its rows or fail
+ * on a foreign key, depending on whether the driver has them enforced. Doing
+ * it explicitly means the same outcome either way.
+ *
+ * Owner-scoped at the top: a project that is not the caller's is never found,
+ * so nothing below it runs.
+ */
+export async function deleteProject(
+  db: Db,
+  projectId: string,
+  ownerUserId: string,
+): Promise<boolean> {
+  const owned = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(and(eq(projects.id, projectId), eq(projects.ownerUserId, ownerUserId)))
+    .get();
+  if (!owned) return false;
+
+  const actionIds = (
+    await db.select({ id: actions.id }).from(actions).where(eq(actions.projectId, projectId)).all()
+  ).map((r) => r.id);
+
+  if (actionIds.length > 0) {
+    await db.delete(approvals).where(inArray(approvals.actionId, actionIds)).run();
+  }
+  await db.delete(auditEvents).where(eq(auditEvents.projectId, projectId)).run();
+  await db.delete(actions).where(eq(actions.projectId, projectId)).run();
+  await db.delete(policies).where(eq(policies.projectId, projectId)).run();
+  await db.delete(projects).where(eq(projects.id, projectId)).run();
+  return true;
+}
+
 export async function getProjectByKeyHash(db: Db, hash: string): Promise<Project | null> {
   return await db.select().from(projects).where(eq(projects.apiKeyHash, hash)).get() ?? null;
 }

@@ -29,6 +29,7 @@ import {
   getProject,
   listProjectsByOwner,
   renameProject,
+  deleteProject,
   setProjectArchived,
   toPolicy,
   updatePolicyConfig,
@@ -470,6 +471,60 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
   });
 
+  /**
+   * Deleting a project, permanently.
+   *
+   * Archiving remains the recommendation and the default: it stops the key and
+   * keeps the record, which is what this product is about. This is for the
+   * case archiving does not serve — a project made by accident, or one whose
+   * history genuinely should not be kept — and it says plainly that it is
+   * permanent rather than hiding rows behind a flag.
+   *
+   * The name has to be typed to match. A checkbox or a second button is too
+   * easy to click through for something with no undo, and typing the name is
+   * the one confirmation that cannot be satisfied by muscle memory.
+   *
+   * The last project cannot be deleted, for the same reason the last live one
+   * cannot be archived: the dashboard only provisions when the list is empty,
+   * and an account with no project and no way to make one is a locked door.
+   */
+  routes.post("/dashboard/project/delete", async (c) => {
+    const deps = c.get("deps");
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const owned = await listProjectsByOwner(deps.db, session.user.id);
+    const project = selectProject(owned, typeof form["projectId"] === "string" ? form["projectId"] : undefined);
+    if (!project) return c.redirect("/dashboard", 302);
+
+    if (owned.length <= 1) {
+      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&del=last`, 302);
+    }
+
+    const typed = typeof form["confirm"] === "string" ? form["confirm"].trim() : "";
+    if (typed !== project.name) {
+      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&del=name`, 302);
+    }
+
+    await deleteProject(deps.db, project.id, session.user.id);
+
+    /* The cookie may still name what was just deleted, which would send the
+       next request looking for a project that is gone. selectProject would
+       fall back safely, but pointing it somewhere real is cheaper than
+       relying on that. */
+    const remaining = owned.find((p) => p.id !== project.id)!;
+    setCookie(c, PROJECT_COOKIE, remaining.id, {
+      httpOnly: true, sameSite: "Lax", path: "/", maxAge: 60 * 60 * 24 * 90,
+      ...cookieSecurityFor(c),
+    });
+    return c.redirect(`/dashboard?p=${encodeURIComponent(remaining.id)}&del=ok`, 302);
+  });
+
   routes.get("/dashboard", async (c) => {
     const deps = c.get("deps");
     const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
@@ -512,10 +567,17 @@ export function createDashboardRoutes(): Hono<AppEnv> {
 
     // Set by the redirect after a decision, so the page confirms what happened
     // rather than looking identical to a reload.
+    const del = c.req.query("del");
     const decided = c.req.query("decided");
     const policyResult = c.req.query("policy");
     const flash =
-      decided === "approve"
+      del === "ok"
+        ? { text: "Project deleted. Its key, actions and history are gone.", kind: "denied" as const }
+        : del === "name"
+          ? { text: "That did not match the project name, so nothing was deleted.", kind: "denied" as const }
+          : del === "last"
+            ? { text: "This is your only project. Deleting it would leave you with none.", kind: "denied" as const }
+            : decided === "approve"
         ? { text: "Approved. The action is running now.", kind: "approved" as const }
         : decided === "deny"
           ? { text: "Denied. It was never sent.", kind: "denied" as const }

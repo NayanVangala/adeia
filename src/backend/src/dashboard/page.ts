@@ -448,12 +448,12 @@ const STYLE = `
     color: var(--faint); padding: 0 0 .6rem;
     border-bottom: 1px solid var(--hair);
   }
-  table.feed td { padding: .95rem 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  table.feed td { padding: 1.25rem 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
   table.feed tr:last-child td { border-bottom: 0; }
   .empty { color: var(--faint); font-size: var(--t-small); margin: .25rem 0 0; }
 
   /* Numbers read as numbers: mono, large, and the label small under it. */
-  .stats { display: flex; flex-wrap: wrap; gap: clamp(1.75rem, 5vw, 3.5rem); margin: 2rem 0 0; }
+  .stats { display: flex; flex-wrap: wrap; gap: clamp(2.25rem, 6vw, 4.5rem); margin: clamp(2.5rem, 6vh, 4rem) 0 0; }
   .stat-n {
     font-family: var(--mono); font-weight: 500;
     font-size: clamp(1.5rem, 1rem + 1.4vw, 2rem);
@@ -579,10 +579,14 @@ const STYLE = `
     background: color-mix(in srgb, var(--black) 78%, transparent);
   }
   /* Clears the fixed masthead. */
-  .dash-top { padding-top: 5.5rem; }
+  .dash-top { padding-top: clamp(7rem, 14vh, 10rem); padding-bottom: clamp(3rem, 9vh, 6rem); }
 
+  /* The marketing site's own rhythm. The dashboard was using roughly half of
+     it, which is what made the page feel packed: --section-y is the value
+     every section on adeia.xyz breathes on, and there is no reason a section
+     here should be tighter than one there. */
   .section {
-    padding-block: clamp(2.5rem, 6vh, 4.5rem);
+    padding-block: var(--section-y);
     position: relative;
   }
   .section--raised {
@@ -594,8 +598,8 @@ const STYLE = `
      the first call, then what is waiting, then what happened — so numbering
      it is describing the page rather than decorating it. */
   .section-eyebrow {
-    display: flex; align-items: baseline; gap: .8rem;
-    margin: 0 0 1.4rem;
+    display: flex; align-items: baseline; gap: .9rem;
+    margin: 0 0 2.25rem;
   }
   .section-eyebrow b {
     font-family: var(--mono); font-weight: 500;
@@ -644,8 +648,8 @@ const STYLE = `
      it carries the only thing on this page that is still open. */
   .announce {
     display: inline-flex; align-items: center; gap: .85rem;
-    margin: 0 auto 2.5rem;
-    padding: .45rem .45rem .45rem .5rem;
+    margin: 0 auto 3rem;
+    padding: .5rem .5rem .5rem .55rem;
     border: 1px solid var(--hair);
     border-radius: 999px;
     background: color-mix(in srgb, var(--raised) 70%, transparent);
@@ -691,14 +695,14 @@ const STYLE = `
   @keyframes rule-in { to { transform: scaleX(1); } }
 
   .display-sub {
-    margin: 1.1rem auto 0; max-width: 46ch;
+    margin: 1.6rem auto 0; max-width: 46ch;
     color: var(--muted); font-size: var(--t-body);
   }
 
   /* Floating pill nav, for the project switcher. */
   .pillnav {
     display: inline-flex; align-items: center; gap: .25rem;
-    padding: .3rem; margin: 0 auto 2rem;
+    padding: .3rem; margin: 0 auto 2.75rem;
     border: 1px solid var(--hair); border-radius: 999px;
     background: color-mix(in srgb, var(--raised) 60%, transparent);
   }
@@ -714,7 +718,7 @@ const STYLE = `
   /* Primary control beside a quiet one, their CTA row. */
   .cta-row {
     display: flex; align-items: center; justify-content: center;
-    gap: 1.5rem; flex-wrap: wrap; margin: 2rem 0 0;
+    gap: 1.75rem; flex-wrap: wrap; margin: clamp(2.5rem, 6vh, 4rem) 0 0;
   }
   .btn--pill {
     border: 0; border-radius: 999px;
@@ -738,6 +742,28 @@ const STYLE = `
   .dash-top .rename .rename-open { order: 3; }
   .dash-top .rename .display { order: 1; }
   .dash-top .rename .rename-input { order: 2; text-align: center; }
+
+  .archived-list { margin: 1rem 0 0; font-size: var(--t-small); color: var(--faint); }
+  .archived-list a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair); }
+  .archived-list a:hover { color: var(--person); border-bottom-color: var(--person); }
+
+  /* Deleting sits on its own, last, and looks unlike everything above it. */
+  .danger { margin: 0; max-width: 58ch; }
+  .danger-lede { margin: 0 0 1.5rem; color: var(--muted); font-size: var(--t-small); }
+  .danger-lede strong { color: var(--paper); font-weight: 600; }
+  .danger-label { display: block; margin: 0 0 .6rem; font-size: var(--t-small); color: var(--faint); }
+  .danger-label code { font-family: var(--mono); color: var(--paper); }
+  .danger-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+  .danger-input {
+    background: none; color: var(--paper);
+    border: 0; border-bottom: 1px solid var(--hair);
+    padding: .5rem 0; min-width: 18ch;
+    font-family: var(--mono); font-size: var(--t-small);
+  }
+  .danger-input::placeholder { color: var(--hair-lit); }
+  .danger-input:focus { outline: none; border-bottom-color: var(--hot); }
+  .btn--danger { color: var(--hot); border-bottom-color: color-mix(in srgb, var(--hot) 45%, transparent); }
+  .btn--danger:hover { color: var(--paper); border-bottom-color: var(--hot); }
 
   .stats--center { justify-content: center; }
   .dash-top .legend { justify-content: center; }
@@ -1449,18 +1475,40 @@ export function renderDashboard(view: DashboardView): string {
       }
 
       ${
-        view.projects.length > 1
-          ? `<nav class="pillnav" aria-label="Projects">${view.projects
-              .map(
-                (p) =>
-                  `<a class="${p.id === view.projectId ? "is-on" : ""}${p.archived ? " is-archived" : ""}"
-                      href="/dashboard?p=${encodeURIComponent(p.id)}"
-                      ${p.id === view.projectId ? 'aria-current="page"' : ""}
-                   >${escapeHtml(p.name)}</a>`,
-              )
-              .join("")}</nav>`
-          : ""
+        /* Archived projects are kept out of the switcher. That is the whole
+           complaint archiving used to earn: a project you retired is not one
+           you want to keep stepping past. The one you are actually looking at
+           still appears, archived or not, so the switcher never lies about
+           where you are. */
+        (() => {
+          const shown = view.projects.filter((p) => !p.archived || p.id === view.projectId);
+          const hidden = view.projects.filter((p) => p.archived && p.id !== view.projectId);
+          const nav =
+            shown.length > 1
+              ? `<nav class="pillnav" aria-label="Projects">${shown
+                  .map(
+                    (p) =>
+                      `<a class="${p.id === view.projectId ? "is-on" : ""}${p.archived ? " is-archived" : ""}"
+                          href="/dashboard?p=${encodeURIComponent(p.id)}"
+                          ${p.id === view.projectId ? 'aria-current="page"' : ""}
+                       >${escapeHtml(p.name)}</a>`,
+                  )
+                  .join("")}</nav>`
+              : "";
+          const rest =
+            hidden.length > 0
+              ? `<p class="archived-list">${hidden.length} archived —
+                 ${hidden
+                   .map(
+                     (p) =>
+                       `<a href="/dashboard?p=${encodeURIComponent(p.id)}">${escapeHtml(p.name)}</a>`,
+                   )
+                   .join(", ")}</p>`
+              : "";
+          return nav + rest;
+        })()
       }
+
 
       <form class="rename" method="POST" action="/dashboard/project/rename">
         <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
@@ -1527,6 +1575,30 @@ export function renderDashboard(view: DashboardView): string {
 
   ${section("04", "recent activity", table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here."))}
   ${section("05", "policy", hostsCard(view.allowedHosts, view.csrf, view.projectId), true)}
+
+  ${
+    view.projects.length > 1
+      ? `<section class="section">
+           <div class="wrap">
+             <p class="section-eyebrow"><b>06</b><span>danger</span><i></i></p>
+             <form class="danger" method="POST" action="/dashboard/project/delete">
+               <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+               <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+               <p class="danger-lede">Deleting <strong>${escapeHtml(view.projectName)}</strong> removes its
+               key, every action it took and the whole audit trail. There is no undo.
+               Archiving stops the key and keeps the record — prefer it unless you
+               genuinely want the history gone.</p>
+               <label class="danger-label" for="confirm-name">Type <code>${escapeHtml(view.projectName)}</code> to confirm</label>
+               <div class="danger-row">
+                 <input id="confirm-name" class="danger-input" name="confirm" autocomplete="off"
+                        placeholder="${escapeHtml(view.projectName)}" aria-label="Type the project name to confirm">
+                 <button class="btn btn--danger btn--sm" type="submit">Delete permanently</button>
+               </div>
+             </form>
+           </div>
+         </section>`
+      : ""
+  }
 
   <footer class="dash-foot">
     <div class="wrap dash-foot__inner">

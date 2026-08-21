@@ -704,3 +704,120 @@ describe("archiving a project", () => {
     expect((await callApi(proj.key)).status).toBe(200);
   });
 });
+
+describe("deleting a project", () => {
+  beforeEach(async () => {
+    h = await createHarness();
+  });
+
+  async function established(login: string, ghId: string) {
+    const session = await signIn(login, ghId);
+    const page = await (await get("/dashboard", session.cookie)).text();
+    const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
+    const rows = h.db.$client
+      .prepare("SELECT id, name FROM projects WHERE owner_user_id = ?")
+      .all(session.user.id) as { id: string; name: string }[];
+    return { ...session, csrf, projectId: rows[0]!.id, projectName: rows[0]!.name };
+  }
+
+  const post = (path: string, cookie: string, body: Record<string, string>) =>
+    h.app.request(path, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(body).toString(),
+    });
+
+  const countProjects = (userId: string) =>
+    (h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM projects WHERE owner_user_id = ?")
+      .get(userId) as { n: number }).n;
+
+  async function second(cookie: string, csrf: string) {
+    await post("/dashboard/project/new", cookie, { csrf, name: "throwaway" });
+    return (h.db.$client.prepare("SELECT id FROM projects WHERE name = ?").get("throwaway") as { id: string }).id;
+  }
+
+  it("deletes the project and everything belonging to it", async () => {
+    const me = await established("me", "1");
+    const id = await second(me.cookie, me.csrf);
+    await requestAction(h.deps, id, paymentRequest(1000));
+
+    expect(countProjects(me.user.id)).toBe(2);
+    await post("/dashboard/project/delete", me.cookie, {
+      csrf: me.csrf,
+      projectId: id,
+      confirm: "throwaway",
+    });
+
+    expect(countProjects(me.user.id)).toBe(1);
+    for (const t of ["actions", "audit_events", "policies"]) {
+      const row = h.db.$client
+        .prepare(`SELECT COUNT(*) AS n FROM ${t} WHERE project_id = ?`)
+        .get(id) as { n: number };
+      expect(row.n).toBe(0);
+    }
+  });
+
+  it("refuses when the typed name does not match", async () => {
+    const me = await established("me", "1");
+    const id = await second(me.cookie, me.csrf);
+
+    await post("/dashboard/project/delete", me.cookie, {
+      csrf: me.csrf,
+      projectId: id,
+      confirm: "throwway",
+    });
+    expect(countProjects(me.user.id)).toBe(2);
+  });
+
+  it("refuses to delete the only project", async () => {
+    const me = await established("me", "1");
+    await post("/dashboard/project/delete", me.cookie, {
+      csrf: me.csrf,
+      projectId: me.projectId,
+      confirm: me.projectName,
+    });
+    expect(countProjects(me.user.id)).toBe(1);
+  });
+
+  it("refuses without a CSRF token", async () => {
+    const me = await established("me", "1");
+    const id = await second(me.cookie, me.csrf);
+    const res = await post("/dashboard/project/delete", me.cookie, {
+      projectId: id,
+      confirm: "throwaway",
+    });
+    expect(res.status).toBe(403);
+    expect(countProjects(me.user.id)).toBe(2);
+  });
+
+  it("cannot delete somebody else's project", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    const theirs = await second(you.cookie, you.csrf);
+    await post("/dashboard/project/new", me.cookie, { csrf: me.csrf, name: "mine-too" });
+
+    await post("/dashboard/project/delete", me.cookie, {
+      csrf: me.csrf,
+      projectId: theirs,
+      confirm: "throwaway",
+    });
+
+    // Theirs survives. The selector never finds it, so the name typed cannot
+    // match whatever it fell back to, and nothing is deleted at all.
+    expect(countProjects(you.user.id)).toBe(2);
+    expect(countProjects(me.user.id)).toBe(2);
+  });
+
+  it("keeps archived projects out of the switcher", async () => {
+    const me = await established("me", "1");
+    const id = await second(me.cookie, me.csrf);
+    await post("/dashboard/project/archive", me.cookie, { csrf: me.csrf, projectId: id });
+
+    // Viewing the other project: the archived one is named in the archived
+    // line, not offered as a tab in the switcher.
+    const page = await (await get(`/dashboard?p=${me.projectId}`, me.cookie)).text();
+    expect(page).toContain("1 archived");
+    expect(page).not.toMatch(/<nav class="pillnav"[\s\S]*?throwaway[\s\S]*?<\/nav>/);
+  });
+});
