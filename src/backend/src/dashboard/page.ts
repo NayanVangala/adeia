@@ -534,6 +534,51 @@ const STYLE = `
   .rowform { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.25rem 0 0; }
   .rowform-note { color: var(--faint); font-size: var(--t-small); }
 
+  /* ---------- press feedback ----------
+     A form here posts, waits on a database on the other side of the country,
+     and comes back as a whole new page. That is a second or two where the only
+     honest thing the interface can say is "I heard you" — and it was saying
+     nothing, which reads as a button that does not work and gets pressed
+     again.
+
+     Two layers. :active is instant and needs no script at all: the control
+     moves under the finger on mousedown, before any request exists. The busy
+     state then holds until the new page replaces this one. */
+  .btn:active, .enter:active, .decide button:active, .newproj button:active {
+    transform: translateY(1px);
+  }
+  .btn, .enter, .decide button, .newproj button {
+    transition:
+      transform 90ms var(--ease),
+      color var(--quick) var(--ease),
+      border-color var(--quick) var(--ease),
+      opacity var(--quick) var(--ease);
+  }
+
+  /* Held from submit until navigation. The label is replaced rather than
+     decorated, because a spinner beside unchanged text still reads as the
+     same button sitting there. */
+  [data-busy] {
+    opacity: .62;
+    cursor: progress;
+    pointer-events: none;
+  }
+  [data-busy]::after {
+    content: "";
+    display: inline-block;
+    width: .55em; height: .55em;
+    margin-left: .55em;
+    border-radius: 50%;
+    background: currentColor;
+    animation: busy-pulse 900ms ease-in-out infinite;
+  }
+  @keyframes busy-pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn:active, .enter:active, .decide button:active, .newproj button:active { transform: none; }
+    [data-busy]::after { animation: none; opacity: .7; }
+  }
+
   /* ---------- the first call ---------- */
   /* --faint, not --hair-lit. hair-lit is a border token and using it as an
      ink puts text at roughly 1.5:1 on this ground — the same defect this
@@ -736,6 +781,32 @@ function shell(title: string, body: string): string {
      with JavaScript off never hides anything and renaming stays an ordinary
      form with a visible input and a Save button. */
   document.documentElement.classList.add("js");
+
+  /* Every form that posts says so the moment it is submitted.
+
+     The button is NOT disabled — a disabled control is dropped from the
+     submitted payload, and these buttons carry names the routes read. It is
+     made inert with pointer-events instead, which stops a second press
+     without changing what gets sent. That matters most on Approve, where a
+     double press is a second attempt at something irreversible.
+
+     Bound on submit rather than click so it fires for Enter in a text field
+     too, and so a form that fails validation never gets stuck saying busy. */
+  for (const form of document.querySelectorAll("form[method='POST' i]")) {
+    form.addEventListener("submit", function () {
+      const b = form.querySelector("button[type='submit'], button:not([type])");
+      if (!b || b.hasAttribute("data-busy")) return;
+      b.setAttribute("data-busy", "");
+      const verb = (b.textContent || "").trim();
+      b.textContent =
+        verb === "Approve" || verb.startsWith("Confirm") ? "Approving" :
+        verb === "Deny" ? "Denying" :
+        verb === "Allow" ? "Allowing" :
+        verb === "Save" ? "Saving" :
+        verb === "Create project" ? "Creating" :
+        verb === "Generate a new key" ? "Generating" : "Working";
+    });
+  }
 
   const form = document.querySelector(".rename");
   if (form) {
