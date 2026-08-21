@@ -14,6 +14,16 @@ export interface AppDeps extends RequestDeps {
   fetch?: typeof fetch;
 
   /**
+   * Actions one project may create per minute. Falls back to
+   * ADEIA_ACTIONS_PER_MINUTE, and 0 disables the limit.
+   *
+   * Injected for the same reason `fetch` is: a limit read from module-scope
+   * environment cannot be varied by a test, so it would only ever be exercised
+   * at its default — which is the one value a test has no reason to assert.
+   */
+  actionsPerMinute?: number;
+
+  /**
    * Recorded as `decided_by`. The token is the only authentication on the
    * approval page, so this is the address the link was *sent* to, not a
    * verified identity of whoever clicked.

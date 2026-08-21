@@ -769,6 +769,26 @@ export async function listActionsByProject(db: Db, projectId: string, limit = 50
   return rows.map(toActionRecord);
 }
 
+/**
+ * How many actions this project has created since a moment.
+ *
+ * Counts rows rather than requests, which is the honest bound: a denied action
+ * is still a row, so a loop that trips the policy every time is still counted.
+ * What it does not see is a request rejected before it got here — a bad key
+ * never reaches this, which is correct, because it never touched the project.
+ *
+ * Leads on project_id, which is the first column of
+ * actions_project_status_created_idx, so the scan is bounded to one project.
+ */
+export async function countActionsSince(db: Db, projectId: string, sinceIso: string): Promise<number> {
+  const row = await db
+    .select({ n: sql<number>`count(*)` })
+    .from(actions)
+    .where(and(eq(actions.projectId, projectId), gte(actions.createdAt, sinceIso)))
+    .get();
+  return row?.n ?? 0;
+}
+
 export async function countActionsByStatus(db: Db, projectId: string, status: ActionStatus): Promise<number> {
   const [row] = await db
     .select({ n: sql<number>`count(*)` })

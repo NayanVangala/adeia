@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { requestAction } from "../actions/service.ts";
 import type { AppEnv } from "../appEnv.ts";
 import { apiKeyAuth } from "../auth/apiKey.ts";
+import { countActionsSince } from "../db/repo.ts";
+import { env } from "../env.ts";
 import { getAction } from "../db/repo.ts";
 
 /**
@@ -38,6 +40,39 @@ export function createActionRoutes(): Hono<AppEnv> {
     const parsed = ActionRequestSchema.safeParse(body);
     if (!parsed.success) {
       return c.json({ error: "invalid_request", issues: parsed.error.issues }, 400);
+    }
+
+    /* A ceiling on damage per unit time.
+   
+       The policy engine already bounds what an agent may spend in a day. This
+       bounds how fast it can get there — an agent in a hot loop reaches a
+       daily cap in seconds, and every attempt on the way is a row in the audit
+       trail that every later query has to read past.
+   
+       Counted from the actions table rather than from a counter, because a
+       serverless deployment has no memory between invocations: a module-level
+       tally would be per-instance, would reset on every cold start, and would
+       be worth roughly nothing. Rows are the only shared state there is.
+   
+       A fixed window, not a sliding one. It admits up to twice the limit
+       across a boundary, which is the standard trade and is fine here: this
+       exists to stop a runaway loop, not to meter billing to the request. */
+    const limit = c.get("deps").actionsPerMinute ?? env.ADEIA_ACTIONS_PER_MINUTE;
+    if (limit > 0) {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const recent = await countActionsSince(c.get("deps").db, c.get("projectId"), since);
+      if (recent >= limit) {
+        /* 429 with Retry-After, because a client that cannot tell "slow down"
+           from "you are broken" retries immediately and makes it worse. */
+        c.header("retry-after", "60");
+        return c.json(
+          {
+            error: "rate_limited",
+            message: `This project has created ${recent} actions in the last minute, and the limit is ${limit}. Nothing was recorded for this request.`,
+          },
+          429,
+        );
+      }
     }
 
     const action = await requestAction(c.get("deps"), c.get("projectId"), parsed.data);

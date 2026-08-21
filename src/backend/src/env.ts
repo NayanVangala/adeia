@@ -138,6 +138,19 @@ export const EnvSchema = z.object({
    */
   GITHUB_REDIRECT_URI: optional(z.string().url()),
 
+  /**
+   * How many actions one project may create in a minute. Zero disables it.
+   *
+   * A ceiling on damage per unit time, not a pricing tier. The policy engine
+   * already bounds what an agent may spend in a day; this bounds how fast a
+   * loop can get there, and how quickly one project can fill the audit trail
+   * everybody else's queries have to read past.
+   *
+   * The default is high enough that no honest agent notices. An agent making
+   * two requests a second, sustained, is not working.
+   */
+  ADEIA_ACTIONS_PER_MINUTE: z.coerce.number().int().min(0).default(120),
+
   // --- landing page visit counter ---
 
   /**

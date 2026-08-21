@@ -73,6 +73,8 @@ export interface HarnessOptions {
    * policy exists, which the engine denies — the same as production.
    */
   httpPolicy?: Partial<HttpPolicyConfig> | null;
+  /** Actions one project may create per minute. 0 disables the limit. */
+  actionsPerMinute?: number;
   /** Configures dashboard sign-in. Absent means the deployment has no OAuth app. */
   oauth?: { clientId: string; clientSecret: string; redirectUri: string };
   /** Stands in for GitHub during the OAuth handshake. */
@@ -147,6 +149,7 @@ export async function createHarness(opts: HarnessOptions = {}): Promise<Harness>
     adapters: createRegistry([adapter, httpAdapter]),
     approverEmail: APPROVER_EMAIL,
     oauth: opts.oauth,
+    actionsPerMinute: opts.actionsPerMinute,
     fetch: opts.fetch,
     classifier: async (input) => {
       classifierCalls.push(input);

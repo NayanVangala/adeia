@@ -178,3 +178,70 @@ describe("GET /v1/actions/:id", () => {
     expect(body).not.toContain(hashApiKey(h.apiKey));
   });
 });
+
+describe("rate limiting", () => {
+  const post = (h: Harness, key: string, cents: number, idem: string) =>
+    h.app.request("/v1/actions", {
+      method: "POST",
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        type: "payment",
+        idempotencyKey: idem,
+        params: { amountCents: cents, currency: "usd", recipient: "acct_x" },
+      }),
+    });
+
+  it("refuses once a project has created its minute's worth", async () => {
+    const h = await createHarness({ actionsPerMinute: 3 });
+
+    for (let i = 0; i < 3; i++) {
+      expect((await post(h, h.apiKey, 100, `k${i}`)).status).toBeLessThan(400);
+    }
+
+    const blocked = await post(h, h.apiKey, 100, "k-over");
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get("retry-after")).toBe("60");
+    expect((await blocked.json()).error).toBe("rate_limited");
+  });
+
+  it("records nothing for the refused request", async () => {
+    const h = await createHarness({ actionsPerMinute: 2 });
+    await post(h, h.apiKey, 100, "a");
+    await post(h, h.apiKey, 100, "b");
+
+    const before = h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM actions WHERE project_id = ?")
+      .get(h.projectId) as { n: number };
+    await post(h, h.apiKey, 100, "c");
+    const after = h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM actions WHERE project_id = ?")
+      .get(h.projectId) as { n: number };
+
+    expect(after.n).toBe(before.n);
+  });
+
+  it("counts a denied action too, so a loop that always trips the policy is still bounded", async () => {
+    const h = await createHarness({ actionsPerMinute: 2 });
+    // Over the hard maximum: denied, but still a row, still an attempt.
+    expect((await post(h, h.apiKey, 9_999_999, "d1")).status).toBeLessThan(500);
+    expect((await post(h, h.apiKey, 9_999_999, "d2")).status).toBeLessThan(500);
+    expect((await post(h, h.apiKey, 100, "d3")).status).toBe(429);
+  });
+
+  it("is per project, so one project cannot rate-limit another", async () => {
+    const h = await createHarness({ actionsPerMinute: 2 });
+    await post(h, h.apiKey, 100, "a");
+    await post(h, h.apiKey, 100, "b");
+    expect((await post(h, h.apiKey, 100, "c")).status).toBe(429);
+
+    // The harness's second project is untouched by the first one's traffic.
+    expect((await post(h, h.other.apiKey, 100, "x")).status).toBeLessThan(400);
+  });
+
+  it("is disabled by zero", async () => {
+    const h = await createHarness({ actionsPerMinute: 0 });
+    for (let i = 0; i < 6; i++) {
+      expect((await post(h, h.apiKey, 100, `z${i}`)).status).toBeLessThan(400);
+    }
+  });
+});
