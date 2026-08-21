@@ -324,6 +324,103 @@ const STYLE = `
     z-index: 1;
   }
 
+  /* ---------- the signed-in page ----------
+     Same language as the way in: rules, not boxes. Every section here used to
+     be a bordered panel on a dark ground, which is four boxes stacked down a
+     page and the reason it read as generated. A border groups things; these
+     sections are already grouped by the heading above them.
+
+     What carries structure instead is the hairline and the eyebrow, and the
+     one thing set in colour is the thing that decided. */
+  .proj {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--paper);
+    font-size: clamp(1.6rem, 1rem + 2.2vw, 2.4rem);
+    letter-spacing: -0.03em;
+    margin: 0 0 .35rem;
+  }
+
+  .panel {
+    display: block;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--hair);
+    border-radius: 0;
+    padding: 1.35rem 0 0;
+    margin: 2.5rem 0 0;
+  }
+  /* No exception after all. A filled slab with a pill inside it was the most
+     generated-looking thing left on the page, and it dominated a section that
+     is one sentence and one control. The key gets emphasis from the mono
+     block it is printed in, not from a box around the paragraph. */
+  .panel--key { border-top: 1px solid var(--hair); }
+
+  /* Buttons on this page follow the way in: type over a hairline, an arrow
+     that moves, no filled ground. */
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    min-height: 44px; padding: .5rem 0;
+    background: none; border: 0; border-bottom: 1px solid var(--hair-lit);
+    border-radius: 0; color: var(--paper);
+    font-family: inherit; font-size: 1rem; font-weight: 500;
+    letter-spacing: 0; text-transform: none; cursor: pointer;
+    transition: color var(--quick) var(--ease), border-color var(--quick) var(--ease);
+  }
+  .btn:hover { color: var(--person); border-bottom-color: var(--person); }
+  .btn:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
+
+  /* A caution, not an alert. The cream slab was a light box punched into a
+     dark page and read as a browser dialog rather than as this product. */
+  .warn {
+    margin: 1rem 0 0; padding: 0 0 0 .9rem;
+    background: none; border: 0; border-left: 2px solid var(--person);
+    color: var(--muted); font-size: var(--t-small);
+  }
+
+  /* Clear of the stats above it, which it had collided into. */
+  .legend { margin: 2.25rem 0 0; }
+
+  /* Rows are not animated at all, so nothing can leave one blank. reveal.js
+     hides a [data-reveal] element by inline style and animates it back, and a
+     finished animation without a forwards fill reverts to that inline zero —
+     which is a row of the audit trail going invisible after it arrived. It is
+     also the wrong instinct: a table of what your agent just did should be
+     readable the instant it is on screen, not staggered in while you are
+     trying to read it. */
+
+  /* Sections are separated by their heading and a rule, so the tables carry
+     no chrome of their own. */
+  table.feed { width: 100%; border-collapse: collapse; }
+  table.feed thead th {
+    text-align: left; font-weight: 500;
+    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--faint); padding: 0 0 .6rem;
+    border-bottom: 1px solid var(--hair);
+  }
+  table.feed td { padding: .95rem 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  table.feed tr:last-child td { border-bottom: 0; }
+  .empty { color: var(--faint); font-size: var(--t-small); margin: .25rem 0 0; }
+
+  /* Numbers read as numbers: mono, large, and the label small under it. */
+  .stats { display: flex; flex-wrap: wrap; gap: clamp(1.75rem, 5vw, 3.5rem); margin: 2rem 0 0; }
+  .stat-n {
+    font-family: var(--mono); font-weight: 500;
+    font-size: clamp(1.5rem, 1rem + 1.4vw, 2rem);
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  .stat-l {
+    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--faint); margin-top: .3rem;
+  }
+
+  h2 {
+    font-family: var(--mono); font-weight: 500;
+    font-size: var(--t-small); letter-spacing: .04em;
+    color: var(--muted);
+    margin: 2.75rem 0 .9rem;
+  }
+
   /* ---------- the signed-out page ----------
      A ledger, not a form. The product's output is a record of what an agent
      asked and what happened, so the page that introduces it is set as one:
@@ -635,7 +732,7 @@ function hostsCard(hosts: string[], csrf: string): string {
   const empty = `<p class="warn">No hosts allowed yet, so every outbound call is refused.
     Add the API your agent needs to reach.</p>`;
 
-  return `<div class="card">
+  return `<section class="panel">
     <p class="eyebrow">Hosts your agents may call</p>
     <p style="margin:0;color:var(--faint);font-size:.875rem">
       Exact hostnames only, no paths and no wildcards. Anything not on this list is denied
@@ -647,7 +744,7 @@ function hostsCard(hosts: string[], csrf: string): string {
       <input type="text" name="add" placeholder="api.github.com" aria-label="Hostname to allow" required>
       <button type="submit">Allow</button>
     </form>
-  </div>`;
+  </section>`;
 }
 
 /**
@@ -711,7 +808,7 @@ function actionRow(entry: DashboardAction, csrf: string): string {
     policy: "Decided by your policy",
   }[decided];
 
-  return `<tr data-decided="${decided}" data-reveal>
+  return `<tr data-decided="${decided}">
     <td class="what-cell" title="${decidedLabel}">
       <div class="what${mono ? " mono" : ""}">${escapeHtml(headline)}</div>
       <div class="sub">${escapeHtml(detail)}</div>
@@ -738,15 +835,15 @@ export function renderDashboard(view: DashboardView): string {
    * pressed rather than after.
    */
   const keyBlock = view.freshApiKey
-    ? `<div class="card">
+    ? `<section class="panel panel--key">
       <p class="eyebrow">Your API key</p>
       <p style="margin:0">This is the only time it is shown. Adeia stores a hash, not the key,
       so it cannot be shown again — but you can generate a new one whenever you want.</p>
       <div class="key">${escapeHtml(view.freshApiKey)}</div>
       <p class="warn">Anyone holding this key can ask Adeia to act inside your policy.
       Keep it out of screenshots and out of git.</p>
-    </div>`
-    : `<div class="card">
+    </section>`
+    : `<section class="panel panel--key">
       <p class="eyebrow">API key</p>
       <p style="margin:0 0 .75rem">Your agents authenticate with a key. Adeia only stores a
       hash of it, so an existing key can never be shown again — generating a new one is the
@@ -757,15 +854,15 @@ export function renderDashboard(view: DashboardView): string {
       </form>
       <p class="warn">This replaces the current key immediately. Anything already using
       the old one stops working until you paste in the new one.</p>
-    </div>`;
+    </section>`;
 
   const table = (rows: DashboardAction[], emptyText: string): string =>
     rows.length === 0
-      ? `<div class="card"><p class="empty">${escapeHtml(emptyText)}</p></div>`
-      : `<div class="card"><table>
+      ? `<p class="empty">${escapeHtml(emptyText)}</p>`
+      : `<table class="feed">
           <thead><tr><th>What</th><th>State</th><th>When</th></tr></thead>
           <tbody>${rows.map((r) => actionRow(r, view.csrf)).join("")}</tbody>
-        </table></div>`;
+        </table>`;
 
   const flash = view.flash
     ? `<p class="flash${view.flash.kind === "denied" ? " flash-deny" : ""}">${escapeHtml(
@@ -786,7 +883,7 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </header>
 
-  <h1>${escapeHtml(view.projectName)}</h1>
+  <h1 class="proj">${escapeHtml(view.projectName)}</h1>
   <p class="lede">Everything your agents asked to do, and what Adeia did about it.</p>
 
   ${flash}
