@@ -226,12 +226,62 @@ const STYLE = `
      actually put a row on this page. The colours are --machine and --person
      from tokens.css, which exist for exactly this and are used nowhere else
      in the dashboard, so the mark cannot be confused with decoration. */
-  td.what-cell {
-    border-left: 2px solid var(--rule);
-    padding-left: 0.85rem;
+  /* Drawn as a pseudo-element rather than a border, because a border cannot be
+     animated and this mark has two things to say: who decided, and whether it
+     is still your turn. */
+  td.what-cell { position: relative; padding-left: 0.85rem; }
+  td.what-cell::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; border-radius: 1px;
+    background: var(--rule);
+    transform-origin: top;
+    animation: mark-in 420ms var(--ease) both;
   }
-  tr[data-decided="machine"] td.what-cell { border-left-color: var(--machine); }
-  tr[data-decided="person"]  td.what-cell { border-left-color: var(--person); }
+  tr[data-decided="machine"] td.what-cell::before { background: var(--machine); }
+  tr[data-decided="person"]  td.what-cell::before { background: var(--person); }
+
+  /* Drawn down, in the order the rows are read. The stagger is capped by the
+     nth-child list rather than computed, because a table this long is paged
+     anyway and a typed delay here is one number, not a system. */
+  @keyframes mark-in { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  tbody tr:nth-child(1) td.what-cell::before { animation-delay: 40ms; }
+  tbody tr:nth-child(2) td.what-cell::before { animation-delay: 90ms; }
+  tbody tr:nth-child(3) td.what-cell::before { animation-delay: 140ms; }
+  tbody tr:nth-child(4) td.what-cell::before { animation-delay: 190ms; }
+  tbody tr:nth-child(n+5) td.what-cell::before { animation-delay: 240ms; }
+
+  /* The one row that is still your turn.
+
+     Motion here is information, not decoration: an action waiting on a person
+     is the only thing on this page that is still open, and it is the reason
+     somebody opened the dashboard at all. It breathes slowly — 2.4s, a shift
+     in opacity and nothing that moves — so it reads as alive in peripheral
+     vision without pulling the eye off whatever is being read.
+
+     Only pending_approval. An approved or denied row is finished and a mark
+     that kept moving on it would be saying something untrue. */
+  @keyframes mark-waiting {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.38; }
+  }
+  tr[data-decided="person"]:has(.decide) td.what-cell::before {
+    animation: mark-in 420ms var(--ease) both, mark-waiting 2.4s ease-in-out 620ms infinite;
+  }
+
+  /* Affordance on the rows, so a dense feed responds to the pointer. Both are
+     paint-only, which keeps a long table off the layout path. */
+  tbody tr { transition: background var(--quick) var(--ease); }
+  tbody tr:hover { background: color-mix(in srgb, var(--paper) 3%, transparent); }
+  tbody tr:hover td.what-cell::before { filter: brightness(1.35); }
+
+  @media (prefers-reduced-motion: reduce) {
+    td.what-cell::before,
+    tr[data-decided="person"]:has(.decide) td.what-cell::before {
+      animation: none;
+      transform: none;
+    }
+  }
 
   /* Stated once, above the first table, because a colour that means
      something has to say so somewhere. */
