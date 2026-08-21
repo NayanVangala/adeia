@@ -421,6 +421,58 @@ const STYLE = `
     margin: 2.75rem 0 .9rem;
   }
 
+  /* ---------- projects ---------- */
+  .switch { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 0 0 1.5rem; }
+  .switch-item {
+    font-family: var(--mono); font-size: var(--t-small);
+    color: var(--faint); text-decoration: none;
+    padding-bottom: .35rem; border-bottom: 1px solid transparent;
+    transition: color var(--quick) var(--ease), border-color var(--quick) var(--ease);
+  }
+  .switch-item:hover { color: var(--muted); }
+  .switch-item.is-on { color: var(--paper); border-bottom-color: var(--person); }
+
+  .rename { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin: 0; }
+  .rename .proj { margin: 0; }
+  .rename-input {
+    /* Visible by default, hidden only under .js. The other way round leaves a
+       browser without JavaScript showing a Save button above a field it cannot
+       see — and this file's premise is that the dashboard works without
+       scripts at all. */
+    display: inline-block;
+    font-family: var(--mono); font-weight: 500;
+    font-size: clamp(1.6rem, 1rem + 2.2vw, 2.4rem);
+    letter-spacing: -0.03em;
+    color: var(--paper); background: none;
+    border: 0; border-bottom: 1px solid var(--hair-lit);
+    padding: 0 0 .1rem; min-width: 12ch; max-width: 100%;
+  }
+  .rename-input:focus { outline: none; border-bottom-color: var(--person); }
+  .btn--sm { min-height: 32px; font-size: var(--t-small); }
+  /* Save and Cancel are only meaningful once the field is open. Hidden by a
+     class the script adds, so with JavaScript off the field and Save are both
+     visible and renaming works as an ordinary form post. */
+  .js .rename-input { display: none; }
+  .js .rename [type="submit"], .js .rename-cancel { display: none; }
+  .js .rename.is-open .rename-input { display: inline-block; }
+  .js .rename.is-open [type="submit"], .js .rename.is-open .rename-cancel { display: inline-flex; }
+  .js .rename.is-open [data-rename-label], .js .rename.is-open .rename-open { display: none; }
+  .rename-open { display: none; }
+  .js .rename-open { display: inline-flex; }
+  /* Without scripts the field is the name, so the static heading beside it
+     would be the same text twice. */
+  html:not(.js) .rename [data-rename-label] { display: none; }
+
+  .newproj { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.25rem 0 0; }
+  .newproj-input {
+    background: none; color: var(--paper);
+    border: 0; border-bottom: 1px solid var(--hair);
+    padding: .45rem 0; min-width: 16ch;
+    font-family: inherit; font-size: var(--t-small);
+  }
+  .newproj-input::placeholder { color: var(--faint); }
+  .newproj-input:focus { outline: none; border-bottom-color: var(--person); }
+
   /* ---------- the first call ---------- */
   /* --faint, not --hair-lit. hair-lit is a border token and using it as an
      ink puts text at roughly 1.5:1 on this ground — the same defect this
@@ -617,6 +669,31 @@ function shell(title: string, body: string): string {
       );
     });
   }
+
+  /* Marks the document so CSS can hide the controls that only make sense once
+     the field is open. Set from script rather than in the markup, so a browser
+     with JavaScript off never hides anything and renaming stays an ordinary
+     form with a visible input and a Save button. */
+  document.documentElement.classList.add("js");
+
+  const form = document.querySelector(".rename");
+  if (form) {
+    const open = form.querySelector("[data-rename-open]");
+    const cancel = form.querySelector("[data-rename-cancel]");
+    const input = form.querySelector(".rename-input");
+    const original = input ? input.value : "";
+    if (open) open.addEventListener("click", function () {
+      form.classList.add("is-open");
+      if (input) { input.focus(); input.select(); }
+    });
+    if (cancel) cancel.addEventListener("click", function () {
+      form.classList.remove("is-open");
+      if (input) input.value = original;
+    });
+    form.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && cancel) cancel.click();
+    });
+  }
 })();
 </script>
 <script type="module">
@@ -752,6 +829,10 @@ export interface DashboardAction {
 export interface DashboardView {
   user: { login: string; avatarUrl: string | null };
   projectName: string;
+  /** Which project this page is about. Carried on every form that changes it. */
+  projectId: string;
+  /** Everything this user owns, for the switcher. */
+  projects: { id: string; name: string }[];
   actions: DashboardAction[];
   counts: { waiting: number; ranToday: number; refusedToday: number };
   /** Shown exactly once, immediately after a project is created. */
@@ -914,6 +995,7 @@ export function renderDashboard(view: DashboardView): string {
       way to get a key you can read.</p>
       <form method="POST" action="/dashboard/key" style="margin:0">
         <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+        <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
         <button class="btn" type="submit">Generate a new key</button>
       </form>
       <p class="warn">This replaces the current key immediately. Anything already using
@@ -983,8 +1065,43 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </header>
 
-  <h1 class="proj">${escapeHtml(view.projectName)}</h1>
+  ${
+    view.projects.length > 1
+      ? `<nav class="switch" aria-label="Projects">${view.projects
+          .map(
+            (p) =>
+              `<a class="switch-item${p.id === view.projectId ? " is-on" : ""}"
+                  href="/dashboard?p=${encodeURIComponent(p.id)}"
+                  ${p.id === view.projectId ? 'aria-current="page"' : ""}
+               >${escapeHtml(p.name)}</a>`,
+          )
+          .join("")}</nav>`
+      : ""
+  }
+
+  <!-- The heading is the name, and editing it happens in place: a separate
+       settings page for one text field is a page nobody would find. Without
+       JavaScript this is a visible text input and a Save button, which is the
+       whole feature; with it, the input only appears once you ask. -->
+  <form class="rename" method="POST" action="/dashboard/project/rename">
+    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+    <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+    <h1 class="proj" data-rename-label>${escapeHtml(view.projectName)}</h1>
+    <input class="rename-input" name="name" value="${escapeHtml(view.projectName)}"
+           maxlength="60" aria-label="Project name">
+    <button class="btn btn--sm" type="submit">Save</button>
+    <button class="btn btn--sm rename-cancel" type="button" data-rename-cancel>Cancel</button>
+    <button class="btn btn--sm rename-open" type="button" data-rename-open>Rename</button>
+  </form>
+
   <p class="lede">Everything your agents asked to do, and what Adeia did about it.</p>
+
+  <form class="newproj" method="POST" action="/dashboard/project/new">
+    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+    <input class="newproj-input" name="name" placeholder="New project name" maxlength="60"
+           aria-label="New project name">
+    <button class="btn btn--sm" type="submit">Create project</button>
+  </form>
 
   ${flash}
   ${keyBlock}

@@ -382,3 +382,154 @@ describe("rotating the API key", () => {
     expect(ok.status).toBe(200);
   });
 });
+
+describe("more than one project", () => {
+  beforeEach(async () => {
+    h = await createHarness();
+  });
+
+  /** Signs in, provisioning the first project, and reads back its CSRF token. */
+  async function established(login: string, ghId: string) {
+    const session = await signIn(login, ghId);
+    const page = await (await get("/dashboard", session.cookie)).text();
+    const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
+    const rows = h.db.$client
+      .prepare("SELECT id FROM projects WHERE owner_user_id = ?")
+      .all(session.user.id) as { id: string }[];
+    return { ...session, csrf, projectId: rows[0]!.id };
+  }
+
+  const post = (path: string, cookie: string, body: Record<string, string>) =>
+    h.app.request(path, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(body).toString(),
+    });
+
+  const projectsOf = (userId: string) =>
+    h.db.$client
+      .prepare("SELECT id, name FROM projects WHERE owner_user_id = ? ORDER BY rowid")
+      .all(userId) as { id: string; name: string }[];
+
+  it("creates a second project with its own key and both starter policies", async () => {
+    const me = await established("me", "1");
+    const res = await post("/dashboard/project/new", me.cookie, {
+      csrf: me.csrf,
+      name: "billing",
+    });
+
+    expect(res.status).toBe(200);
+    const owned = projectsOf(me.user.id);
+    expect(owned).toHaveLength(2);
+    expect(owned[1]!.name).toBe("billing");
+
+    // Its own key, not a copy of the first one.
+    const hashes = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE owner_user_id = ?")
+      .all(me.user.id) as { api_key_hash: string }[];
+    expect(new Set(hashes.map((r) => r.api_key_hash)).size).toBe(2);
+
+    // Both starter policies, so a second project is not a lesser one.
+    const policies = h.db.$client
+      .prepare("SELECT action_type FROM policies WHERE project_id = ?")
+      .all(owned[1]!.id) as { action_type: string }[];
+    expect(policies.map((p) => p.action_type).sort()).toEqual(["http", "payment"]);
+  });
+
+  it("shows the new key exactly once, on the page that created it", async () => {
+    const me = await established("me", "1");
+    const body = await (
+      await post("/dashboard/project/new", me.cookie, { csrf: me.csrf, name: "billing" })
+    ).text();
+    expect(body).toMatch(/adeia_sk_[A-Za-z0-9_-]+/);
+
+    // And never again on a later visit.
+    const later = await (await get("/dashboard", me.cookie)).text();
+    expect(later).not.toMatch(/adeia_sk_[A-Za-z0-9_-]+/);
+  });
+
+  it("renames a project", async () => {
+    const me = await established("me", "1");
+    await post("/dashboard/project/rename", me.cookie, {
+      csrf: me.csrf,
+      projectId: me.projectId,
+      name: "renamed",
+    });
+    expect(projectsOf(me.user.id)[0]!.name).toBe("renamed");
+  });
+
+  it("ignores an empty name rather than leaving a project unnamed", async () => {
+    const me = await established("me", "1");
+    const before = projectsOf(me.user.id)[0]!.name;
+    await post("/dashboard/project/rename", me.cookie, {
+      csrf: me.csrf,
+      projectId: me.projectId,
+      name: "   ",
+    });
+    expect(projectsOf(me.user.id)[0]!.name).toBe(before);
+  });
+
+  it("refuses a rename without a CSRF token", async () => {
+    const me = await established("me", "1");
+    const before = projectsOf(me.user.id)[0]!.name;
+    const res = await post("/dashboard/project/rename", me.cookie, {
+      projectId: me.projectId,
+      name: "hijacked",
+    });
+    expect(res.status).toBe(403);
+    expect(projectsOf(me.user.id)[0]!.name).toBe(before);
+  });
+
+  it("refuses a create without a CSRF token", async () => {
+    const me = await established("me", "1");
+    const res = await post("/dashboard/project/new", me.cookie, { name: "hijacked" });
+    expect(res.status).toBe(403);
+    expect(projectsOf(me.user.id)).toHaveLength(1);
+  });
+
+  it("cannot rename a project belonging to somebody else", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    const yoursBefore = projectsOf(you.user.id)[0]!.name;
+
+    await post("/dashboard/project/rename", me.cookie, {
+      csrf: me.csrf,
+      projectId: you.projectId,
+      name: "taken",
+    });
+
+    // Untouched. The selector only ever finds ids inside the caller's own list,
+    // so the id falls through to the caller's first project instead.
+    expect(projectsOf(you.user.id)[0]!.name).toBe(yoursBefore);
+    expect(projectsOf(me.user.id)[0]!.name).toBe("taken");
+  });
+
+  it("cannot open somebody else's project with ?p=", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    await post("/dashboard/project/rename", you.cookie, {
+      csrf: you.csrf,
+      projectId: you.projectId,
+      name: "your-secret-project",
+    });
+
+    const page = await (await get(`/dashboard?p=${you.projectId}`, me.cookie)).text();
+    expect(page).not.toContain("your-secret-project");
+    expect(page).not.toContain(you.projectId);
+  });
+
+  it("cannot rotate the key on somebody else's project", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    const before = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .get(you.projectId) as { api_key_hash: string };
+
+    await post("/dashboard/key", me.cookie, { csrf: me.csrf, projectId: you.projectId });
+
+    const after = h.db.$client
+      .prepare("SELECT api_key_hash FROM projects WHERE id = ?")
+      .get(you.projectId) as { api_key_hash: string };
+    expect(after.api_key_hash).toBe(before.api_key_hash);
+  });
+});

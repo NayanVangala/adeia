@@ -90,6 +90,26 @@ export async function updateProjectKeyHash(db: Db, projectId: string, apiKeyHash
   return row ?? null;
 }
 
+/**
+ * Renames a project. Scoped by owner in the same statement rather than checked
+ * beforehand, so a name cannot be written to somebody else's project even if a
+ * caller forgets to look first.
+ */
+export async function renameProject(
+  db: Db,
+  projectId: string,
+  ownerUserId: string,
+  name: string,
+): Promise<Project | null> {
+  const [row] = await db
+    .update(projects)
+    .set({ name })
+    .where(and(eq(projects.id, projectId), eq(projects.ownerUserId, ownerUserId)))
+    .returning()
+    .all();
+  return row ?? null;
+}
+
 export async function getProjectByKeyHash(db: Db, hash: string): Promise<Project | null> {
   return await db.select().from(projects).where(eq(projects.apiKeyHash, hash)).get() ?? null;
 }

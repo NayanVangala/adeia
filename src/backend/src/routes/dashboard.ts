@@ -26,7 +26,9 @@ import {
   insertPolicy,
   insertProject,
   listActionsByProject,
+  getProject,
   listProjectsByOwner,
+  renameProject,
   toPolicy,
   updatePolicyConfig,
   updateProjectKeyHash,
@@ -104,6 +106,24 @@ export function normaliseHost(raw: string): string | null {
   return trimmed;
 }
 
+/**
+ * Picks which of the caller's projects a request is about.
+ *
+ * The candidate is found *within* the owner's own list rather than fetched by
+ * id and checked afterwards. The difference matters: a fetch-then-check can be
+ * forgotten at one call site and becomes an IDOR, where a list-then-find
+ * cannot express the bug at all — an id the caller does not own is simply not
+ * in the array. Every project-scoped route here goes through this.
+ *
+ * No match falls back to the first project rather than erroring, so a stale
+ * link to a project that was renamed or a bookmark from another account lands
+ * somewhere sane instead of on a failure.
+ */
+function selectProject(owned: Project[], requestedId: string | undefined): Project | undefined {
+  if (!requestedId) return owned[0];
+  return owned.find((p) => p.id === requestedId) ?? owned[0];
+}
+
 /** Creates the project, both policies and the first key. Returns the key once. */
 async function provisionProject(
   db: Db,
@@ -156,9 +176,13 @@ async function renderDashboardFor(
     records.map((r) => r.id),
   );
 
+  const owned = await listProjectsByOwner(deps.db, session.user.id);
+
   return renderDashboard({
     user: { login: session.user.login, avatarUrl: session.user.avatarUrl },
     projectName: project.name,
+    projectId: project.id,
+    projects: owned.map((p) => ({ id: p.id, name: p.name })),
     actions: records.map((action) => ({
       action,
       classifier: verdicts.get(action.id) ?? null,
@@ -254,7 +278,10 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       return c.text("This form has expired. Reload the dashboard and try again.", 403);
     }
 
-    const project = (await listProjectsByOwner(deps.db, session.user.id))[0];
+    const project = selectProject(
+      await listProjectsByOwner(deps.db, session.user.id),
+      typeof form["projectId"] === "string" ? form["projectId"] : undefined,
+    );
     if (!project) return c.redirect("/dashboard", 302);
 
     const row = await getPolicy(deps.db, project.id, "http");
@@ -316,7 +343,10 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       return c.text("This form has expired. Reload the dashboard and try again.", 403);
     }
 
-    const project = (await listProjectsByOwner(deps.db, session.user.id))[0];
+    const project = selectProject(
+      await listProjectsByOwner(deps.db, session.user.id),
+      typeof form["projectId"] === "string" ? form["projectId"] : undefined,
+    );
     if (!project) return c.redirect("/dashboard", 302);
 
     const apiKey = generateApiKey();
@@ -326,6 +356,64 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     // to carry the key in a URL — into browser history, the referer header and
     // every log between here and the user.
     return c.html(await renderDashboardFor(deps, session, project, apiKey));
+  });
+
+  /**
+   * A new project. Same provisioning the first sign-in uses, so a second
+   * project is not a lesser one: it gets both starter policies and its own
+   * key, and the key is shown once on the way back exactly as the first was.
+   */
+  routes.post("/dashboard/project/new", async (c) => {
+    const deps = c.get("deps");
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const raw = typeof form["name"] === "string" ? form["name"].trim() : "";
+    const created = await provisionProject(deps.db, session.user.id, session.user.login);
+    if (raw) await renameProject(deps.db, created.project.id, session.user.id, raw.slice(0, 60));
+
+    /* Rendered rather than redirected, for the same reason the first sign-in
+       renders: the key is shown once and a redirect would have to carry it in
+       a URL, where it lands in history and in any log the request passes. */
+    return c.html(
+      await renderDashboardFor(
+        deps,
+        session,
+        (await getProject(deps.db, created.project.id))!,
+        created.apiKey,
+      ),
+    );
+  });
+
+  /** Renames a project. Owner-scoped in the statement itself. */
+  routes.post("/dashboard/project/rename", async (c) => {
+    const deps = c.get("deps");
+    const session = await resolveSession(deps.db, getCookie(c, SESSION_COOKIE));
+    if (!session) return c.redirect("/dashboard", 302);
+
+    const form = await c.req.parseBody();
+    if (!csrfMatches(session.csrf, typeof form["csrf"] === "string" ? form["csrf"] : undefined)) {
+      return c.text("This form has expired. Reload the dashboard and try again.", 403);
+    }
+
+    const project = selectProject(
+      await listProjectsByOwner(deps.db, session.user.id),
+      typeof form["projectId"] === "string" ? form["projectId"] : undefined,
+    );
+    if (!project) return c.redirect("/dashboard", 302);
+
+    const raw = typeof form["name"] === "string" ? form["name"].trim() : "";
+    /* An empty name would leave a project with nothing to click on in the
+       switcher, so it is ignored rather than written. Capped because this is
+       rendered into a heading. */
+    if (raw) await renameProject(deps.db, project.id, session.user.id, raw.slice(0, 60));
+
+    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
   });
 
   routes.get("/dashboard", async (c) => {
@@ -344,9 +432,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       freshApiKey = created.apiKey;
     }
 
-    // One project per user for now. The query is by owner, so adding a project
-    // switcher later needs a selector, not a different data path.
-    const project = projects[0]!;
+    const project = selectProject(projects, c.req.query("p"))!;
 
     // Set by the redirect after a decision, so the page confirms what happened
     // rather than looking identical to a reload.
