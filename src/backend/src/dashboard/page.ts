@@ -804,7 +804,11 @@ function shell(title: string, body: string): string {
         verb === "Allow" ? "Allowing" :
         verb === "Save" ? "Saving" :
         verb === "Create project" ? "Creating" :
-        verb === "Generate a new key" ? "Generating" : "Working";
+        verb === "Generate a new key" ? "Generating" :
+        verb === "Archive project" ? "Archiving" :
+        verb === "Restore project" ? "Restoring" :
+        verb === "Remove" ? "Removing" :
+        verb === "Sign out" ? "Signing out" : "Working";
     });
   }
 
