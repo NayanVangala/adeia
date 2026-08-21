@@ -518,6 +518,37 @@ describe("more than one project", () => {
     expect(page).not.toContain(you.projectId);
   });
 
+  it("opens on the project you last looked at", async () => {
+    const me = await established("me", "1");
+    await post("/dashboard/project/new", me.cookie, { csrf: me.csrf, name: "second" });
+    const second = projectsOf(me.user.id)[1]!;
+
+    // Visit it explicitly; the response should hand back a cookie naming it.
+    const visited = await get(`/dashboard?p=${second.id}`, me.cookie);
+    const setCookie = visited.headers.get("set-cookie") ?? "";
+    expect(setCookie).toContain(`adeia_project=${second.id}`);
+
+    // A later visit with no ?p= lands on it rather than the first project.
+    const later = await get("/dashboard", `${me.cookie}; adeia_project=${second.id}`);
+    expect(await later.text()).toContain("second");
+  });
+
+  it("ignores a project cookie naming somebody else's project", async () => {
+    const me = await established("me", "1");
+    const you = await established("you", "2");
+    await post("/dashboard/project/rename", you.cookie, {
+      csrf: you.csrf,
+      projectId: you.projectId,
+      name: "not-yours",
+    });
+
+    // The cookie is a hint, never an authority: it still passes through the
+    // owner-scoped selector, so a forged one selects nothing.
+    const page = await (await get("/dashboard", `${me.cookie}; adeia_project=${you.projectId}`)).text();
+    expect(page).not.toContain("not-yours");
+    expect(page).not.toContain(you.projectId);
+  });
+
   it("edits the allowlist of the project being viewed, not the first one", async () => {
     // The forms carry projectId for a reason: without it the route falls back
     // to the caller's first project, so editing hosts while looking at a

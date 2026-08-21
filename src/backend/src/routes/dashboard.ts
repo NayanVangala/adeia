@@ -1,6 +1,6 @@
 import { env } from "../env.ts";
 import { Hono } from "hono";
-import { getCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 import { isBlockedHost } from "@adeia/shared";
 import { approveAction, denyAction, NotPendingApprovalError } from "../actions/service.ts";
 import type { AppDeps, AppEnv } from "../appEnv.ts";
@@ -120,6 +120,13 @@ export function normaliseHost(raw: string): string | null {
  * link to a project that was renamed or a bookmark from another account lands
  * somewhere sane instead of on a failure.
  */
+const PROJECT_COOKIE = "adeia_project";
+
+/** Secure only when this deployment is actually on https, matching auth.ts. */
+function cookieSecurityFor(c: { req: { url: string } }): { secure: boolean } {
+  return { secure: c.req.url.startsWith("https://") };
+}
+
 function selectProject(owned: Project[], requestedId: string | undefined): Project | undefined {
   /* A live project is the default landing, so signing in does not open an
      archived one just because it happens to be first. An explicit id still
@@ -479,7 +486,29 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       freshApiKey = created.apiKey;
     }
 
-    const project = selectProject(projects, c.req.query("p"))!;
+    /* Which project the dashboard opens on.
+   
+       An explicit ?p= wins. Otherwise the last one looked at, remembered in a
+       cookie — without it the selector returns whichever project the database
+       lists first, so every reload threw you back to a project you were not
+       working in.
+   
+       The cookie is a hint and never an authority: whatever it names is still
+       passed through selectProject, which only ever finds ids inside the
+       caller's own list. A forged cookie selects nothing and falls back. */
+    const requested = c.req.query("p") ?? getCookie(c, PROJECT_COOKIE);
+    const project = selectProject(projects, requested)!;
+
+    /* Written on the way out, so the next visit with no ?p= lands here again.
+       Not httpOnly-sensitive in the way a session is — it names a project the
+       holder already owns — but it is scoped and lax like everything else. */
+    setCookie(c, PROJECT_COOKIE, project.id, {
+      httpOnly: true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 90,
+      ...cookieSecurityFor(c),
+    });
 
     // Set by the redirect after a decision, so the page confirms what happened
     // rather than looking identical to a reload.
