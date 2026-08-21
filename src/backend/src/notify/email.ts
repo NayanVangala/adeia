@@ -109,44 +109,65 @@ function renderHttpApproval(
     .filter((line) => line !== "")
     .join("\n");
 
-  const html = `
-<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.55;color:#0B0E14;max-width:34rem">
-  <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .5rem">Approval needed</p>
-  <p style="font-size:26px;font-weight:600;margin:0 0 .25rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">${escapeHtml(method)}</p>
-  <p style="color:#48505E;margin:0 0 1.25rem;word-break:break-all">${escapeHtml(host)}</p>
-  <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:#F4F5F7;border:1px solid #C6CBD2;padding:.75rem;border-radius:6px;margin:0 0 1.5rem;word-break:break-all">${escapeHtml(target)}</p>
+  /* Adeia's palette, written as literal hex.
 
-  <div style="border:1px solid #C6CBD2;border-radius:8px;padding:1rem 1.125rem;margin:0 0 1.5rem">
-    <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .625rem">What this actually does</p>
-    <p style="margin:0 0 .5rem;font-weight:600">${escapeHtml(plain.headline)}</p>
-    <p style="margin:0;color:#48505E;font-size:15px">${escapeHtml(plain.what)}</p>
-    ${
-      plain.warning
-        ? `<p style="margin:.75rem 0 0;padding:.625rem .75rem;background:#FBF3E7;border-left:3px solid #B3701C;font-size:14px">${escapeHtml(plain.warning)}</p>`
-        : ""
-    }
-  </div>
+     An email cannot use CSS variables, cannot load Geist, and is read inside
+     somebody else's client. So the tokens are inlined, the type falls back to
+     the system stack, and the design states its own colour scheme: without
+     that, Gmail and Apple Mail invert a dark email into something neither
+     dark nor light and usually unreadable.
+
+     Same language as everywhere else — rules rather than boxes, mono for the
+     values a machine used, amber for the decision that is yours. The one
+     exception is the button: this is opened one-handed on a phone, and a
+     tappable target with a real edge is the right thing in this medium even
+     though nothing else in the product has one. */
+  const html = `
+<div style="color-scheme:dark;supported-color-schemes:dark;background:#0b0a09;padding:2rem 1.25rem;margin:0">
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.55;color:#f5f0e8;max-width:34rem;margin:0 auto">
+
+  <div style="height:2px;background:linear-gradient(100deg,#8fa9bb 0%,#b9ae90 26%,#e5a44b 58%,#d97742 84%,#d15f3f 100%);margin:0 0 1.75rem"></div>
+
+  <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8078;margin:0 0 .6rem">Approval needed</p>
+  <p style="font-size:28px;font-weight:600;margin:0 0 .35rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.02em;color:#f5f0e8">${escapeHtml(method)}</p>
+  <p style="color:#aaa196;margin:0 0 1.5rem;word-break:break-all">${escapeHtml(host)}</p>
+
+  <p style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;color:#aaa196;border-left:1px solid #2c2823;padding:0 0 0 .9rem;margin:0 0 1.75rem;word-break:break-all">${escapeHtml(target)}</p>
+
+  <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8078;margin:0 0 .6rem">What this actually does</p>
+  <p style="margin:0 0 .4rem;font-weight:600;color:#f5f0e8">${escapeHtml(plain.headline)}</p>
+  <p style="margin:0 0 1.5rem;color:#aaa196;font-size:15px">${escapeHtml(plain.what)}</p>
+  ${
+    plain.warning
+      ? `<p style="margin:0 0 1.5rem;padding:0 0 0 .9rem;border-left:2px solid #e5a44b;font-size:14px;color:#aaa196">${escapeHtml(plain.warning)}</p>`
+      : ""
+  }
 
   ${
     description
-      ? `<p style="margin:0 0 .25rem">The agent says it is for: <em>${escapeHtml(String(description))}</em></p>
-  <p style="margin:0 0 1.25rem;font-size:13px;color:#48505E">That is the agent's own wording, not something Adeia checked.</p>`
+      ? `<p style="margin:0 0 .3rem;color:#f5f0e8">The agent says it is for: <em>${escapeHtml(String(description))}</em></p>
+  <p style="margin:0 0 1.5rem;font-size:13px;color:#8a8078">That is the agent's own wording, not something Adeia checked.</p>`
       : ""
   }
   ${
     body
-      ? `<p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .375rem">Body</p>
-  <pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:#F4F5F7;border:1px solid #C6CBD2;padding:.75rem;border-radius:6px;margin:0 0 1.25rem;white-space:pre-wrap;word-break:break-word">${escapeHtml(body)}</pre>`
+      ? `<p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8078;margin:0 0 .45rem">Body</p>
+  <pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#aaa196;border-left:1px solid #2c2823;padding:0 0 0 .9rem;margin:0 0 1.5rem;white-space:pre-wrap;word-break:break-word">${escapeHtml(body)}</pre>`
       : ""
   }
-  <p style="padding:.875rem 1rem;border-left:3px solid #B3701C;background:#FBF3E7;font-size:14px;margin:0 0 1.5rem">${escapeHtml(reason)}</p>
-  <p style="margin:0 0 1.5rem">
-    <a href="${escapeHtml(url)}" style="display:inline-block;background:#3F6A4C;color:#fff;text-decoration:none;padding:.8rem 1.5rem;border-radius:8px;font-weight:600">Review and decide</a>
+
+  <p style="padding:0 0 0 .9rem;border-left:2px solid #e5a44b;font-size:14px;margin:0 0 1.75rem;color:#f5f0e8">${escapeHtml(reason)}</p>
+
+  <p style="margin:0 0 1.75rem">
+    <a href="${escapeHtml(url)}" style="display:inline-block;border:1px solid #e5a44b;color:#e5a44b;text-decoration:none;padding:.85rem 1.6rem;border-radius:4px;font-weight:600">Review and decide</a>
   </p>
-  <p style="font-size:13px;color:#48505E;margin:0">
+
+  <div style="height:1px;background:#2c2823;margin:0 0 1rem"></div>
+  <p style="font-size:13px;color:#8a8078;margin:0">
     The request has not been sent. Opening this link does not approve anything — you decide on the page itself.
     The link can be used once. Any credentials in this request are not shown here.
   </p>
+</div>
 </div>`;
 
   return { html, text };
@@ -186,20 +207,40 @@ export function renderApprovalEmail(action: ActionRecord, url: string): { html: 
     .filter((line) => line !== "")
     .join("\n");
 
+  /* Same treatment as the http mail above: Adeia's palette inlined, because an
+     email has no variables and no Geist, and its colour scheme declared,
+     because otherwise a client inverts a dark message into something neither
+     dark nor light. The amount leads, since that is the number being decided
+     on, and "nothing has been charged" is the last thing read. */
   const html = `
-<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.55;color:#0B0E14;max-width:32rem">
-  <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#48505E;margin:0 0 .5rem">Approval needed</p>
-  <p style="font-size:28px;font-weight:600;margin:0 0 .25rem">${escapeHtml(amount)}</p>
-  <p style="color:#48505E;margin:0 0 1.5rem">to ${escapeHtml(recipient)}</p>
-  ${description ? `<p style="margin:0 0 1rem">${escapeHtml(String(description))}</p>` : ""}
-  <p style="padding:.875rem 1rem;border-left:3px solid #B3701C;background:#FBF3E7;font-size:14px;margin:0 0 1.5rem">${escapeHtml(reason)}</p>
-  <p style="margin:0 0 1.5rem">
-    <a href="${escapeHtml(url)}" style="display:inline-block;background:#3F6A4C;color:#fff;text-decoration:none;padding:.8rem 1.5rem;border-radius:8px;font-weight:600">Review and decide</a>
+<div style="color-scheme:dark;supported-color-schemes:dark;background:#0b0a09;padding:2rem 1.25rem;margin:0">
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.55;color:#f5f0e8;max-width:34rem;margin:0 auto">
+
+  <div style="height:2px;background:linear-gradient(100deg,#8fa9bb 0%,#b9ae90 26%,#e5a44b 58%,#d97742 84%,#d15f3f 100%);margin:0 0 1.75rem"></div>
+
+  <p style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8078;margin:0 0 .6rem">Approval needed</p>
+  <p style="font-size:34px;font-weight:600;margin:0 0 .35rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:-.02em;color:#f5f0e8">${escapeHtml(amount)}</p>
+  <p style="color:#aaa196;margin:0 0 1.75rem">to ${escapeHtml(recipient)}</p>
+
+  ${
+    description
+      ? `<p style="margin:0 0 .3rem;color:#f5f0e8">${escapeHtml(String(description))}</p>
+  <p style="margin:0 0 1.75rem;font-size:13px;color:#8a8078">That is the agent's own wording, not something Adeia checked.</p>`
+      : ""
+  }
+
+  <p style="padding:0 0 0 .9rem;border-left:2px solid #e5a44b;font-size:14px;margin:0 0 1.75rem;color:#f5f0e8">${escapeHtml(reason)}</p>
+
+  <p style="margin:0 0 1.75rem">
+    <a href="${escapeHtml(url)}" style="display:inline-block;border:1px solid #e5a44b;color:#e5a44b;text-decoration:none;padding:.85rem 1.6rem;border-radius:4px;font-weight:600">Review and decide</a>
   </p>
-  <p style="font-size:13px;color:#48505E;margin:0">
+
+  <div style="height:1px;background:#2c2823;margin:0 0 1rem"></div>
+  <p style="font-size:13px;color:#8a8078;margin:0">
     Nothing has been charged. Opening this link does not approve anything — you decide on the page itself.
     The link can be used once.
   </p>
+</div>
 </div>`;
 
   return { html, text };
