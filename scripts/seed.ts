@@ -1,8 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { generateApiKey, hashApiKey } from "../src/backend/src/auth/apiKey.ts";
 import { createDb, migrate } from "../src/backend/src/db/client.node.ts";
+import { createTursoDb } from "../src/backend/src/db/client.turso.ts";
 import { insertPolicy, insertProject } from "../src/backend/src/db/repo.ts";
-import { env } from "../src/backend/src/env.ts";
+import { env, requireDatabaseConfig } from "../src/backend/src/env.ts";
+import type { Db } from "../src/backend/src/db/client.node.ts";
 
 /**
  * The demo policy. These four numbers are load-bearing for the Phase 7 script:
@@ -64,8 +66,21 @@ export const DEMO_HTTP_POLICY = {
 async function main(): Promise<void> {
   const name = process.argv[2] ?? "demo";
 
-  const db = createDb(env.ADEIA_DB_PATH);
-  migrate(db);
+  /* The same resolution the server and `npm run db:migrate` use. Naming
+     ADEIA_DB_PATH directly meant a deployment could be seeded and still start
+     empty: the project and the API key went to a local file the serverless
+     function has no way to open, and the only symptom was an API key that
+     authenticated nowhere.
+
+     Migrations run for a file only. A remote database is migrated by
+     `npm run db:migrate` as its own deploy step, and doing it here as well
+     would put two paths in a race to alter the same tables. */
+  const database = requireDatabaseConfig();
+  const db: Db =
+    database.kind === "file"
+      ? createDb(database.path)
+      : createTursoDb(database.url, database.authToken);
+  if (database.kind === "file") migrate(db);
 
   const apiKey = generateApiKey();
   const project = await insertProject(db, { name, apiKeyHash: hashApiKey(apiKey) });
@@ -80,7 +95,9 @@ async function main(): Promise<void> {
   const usd = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 
   console.log(`\n  project   ${project.id}  (${project.name})`);
-  console.log(`  database  ${env.ADEIA_DB_PATH}`);
+  console.log(
+    `  database  ${database.kind === "file" ? database.path : new URL(database.url).host}`,
+  );
   console.log(`\n  policy    ${policy.id}  type=${policy.actionType}`);
   console.log(`    per-action limit   ${usd(DEMO_POLICY.maxAmountCents)}   above this → approval`);
   console.log(`    hard maximum       ${usd(DEMO_POLICY.hardMaxAmountCents)}   above this → denied`);
@@ -102,7 +119,11 @@ async function main(): Promise<void> {
   console.log(`\n  API key — copy it now, it is not stored and will not be shown again:\n`);
   console.log(`    ${apiKey}\n`);
   console.log(`    export ADEIA_API_KEY=${apiKey}`);
-  console.log(`    export ADEIA_URL=http://localhost:${env.PORT}\n`);
+  // A seeded deployment is reached at its public URL; localhost is right only
+  // when the database is the local file too.
+  console.log(
+    `    export ADEIA_URL=${database.kind === "file" ? `http://localhost:${env.PORT}` : (env.PUBLIC_BASE_URL ?? "https://your-deployment")}\n`,
+  );
 }
 
 // Guarded so DEMO_POLICY can be imported (by the docs generator, by tests)
