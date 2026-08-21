@@ -534,6 +534,216 @@ const STYLE = `
   .rowform { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 1.25rem 0 0; }
   .rowform-note { color: var(--faint); font-size: var(--t-small); }
 
+  /* ---------- the shell, as the marketing site builds it ----------
+     Same primitives, same values, read out of v2.css and hero-v2.css rather
+     than approximated: an 80rem wrap on the shared --gutter, sections on
+     --section-y, alternating grounds for rhythm, and a masthead that is fixed
+     and blurred and earns its border once the page has moved under it.
+
+     The dashboard was a single 56rem column with no section rhythm and no
+     footer, which is why it read as a different, lesser product than the site
+     that links to it. */
+  body {
+    padding: 0;
+    display: block;
+  }
+  main { width: 100%; max-width: none; margin: 0; }
+
+  .wrap {
+    width: 100%;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Fixed, blurred, and out of the way. The border appears only once there is
+     something scrolled underneath it to separate from. */
+  header.bar {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem var(--gutter);
+    margin: 0;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: color-mix(in srgb, var(--black) 55%, transparent);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--quick) var(--ease), background var(--quick) var(--ease);
+  }
+  header.bar::after { display: none; }
+  html[data-scrolled] header.bar {
+    border-bottom-color: var(--hair);
+    background: color-mix(in srgb, var(--black) 78%, transparent);
+  }
+  /* Clears the fixed masthead. */
+  .dash-top { padding-top: 5.5rem; }
+
+  .section {
+    padding-block: clamp(2.5rem, 6vh, 4.5rem);
+    position: relative;
+  }
+  .section--raised {
+    background: var(--near);
+    border-block: 1px solid var(--hair);
+  }
+
+  /* Section heads carry a numbered eyebrow. The order is real — a key, then
+     the first call, then what is waiting, then what happened — so numbering
+     it is describing the page rather than decorating it. */
+  .section-eyebrow {
+    display: flex; align-items: baseline; gap: .8rem;
+    margin: 0 0 1.4rem;
+  }
+  .section-eyebrow b {
+    font-family: var(--mono); font-weight: 500;
+    font-size: var(--t-micro); color: var(--hair-lit);
+    letter-spacing: .06em;
+  }
+  .section-eyebrow span {
+    font-family: var(--mono); font-weight: 500;
+    font-size: var(--t-small); color: var(--muted);
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  .section-eyebrow i {
+    flex: 1; height: 1px; background: var(--hair);
+    font-style: normal;
+  }
+
+  footer.dash-foot {
+    border-top: 1px solid var(--hair);
+    padding-block: 3rem 4rem;
+    margin-top: clamp(3rem, 8vh, 6rem);
+  }
+  .dash-foot__inner {
+    display: flex; flex-wrap: wrap; align-items: center;
+    justify-content: space-between; gap: 1rem;
+    font-size: var(--t-small); color: var(--faint);
+  }
+  .dash-foot a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair); }
+  .dash-foot a:hover { color: var(--person); border-bottom-color: var(--person); }
+
+  /* The panel rule is redundant now that sections carry their own edges. */
+  .panel { border-top: 0; margin: 0; padding: 0; }
+  h2 { display: none; }
+
+  /* ---------- centred composition ----------
+     Layout borrowed from buildlaunchpad.org, palette and type kept: a pill
+     that announces the one thing needing attention, a floating pill nav, a
+     centred display line with the weight change carrying the emphasis, and a
+     primary control paired with a quiet secondary.
+
+     Their display is 72px at -0.035em in Geist 700. Ours is the same shape on
+     a warm near-black ground instead of white. */
+  .center { text-align: center; }
+
+  /* The announcement pill. One line, the count in a chip, an arrow that moves
+     on hover — the same grammar as their "FALL '26 / Applications open". Here
+     it carries the only thing on this page that is still open. */
+  .announce {
+    display: inline-flex; align-items: center; gap: .85rem;
+    margin: 0 auto 2.5rem;
+    padding: .45rem .45rem .45rem .5rem;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--raised) 70%, transparent);
+    color: var(--muted); font-size: var(--t-small);
+    text-decoration: none;
+    transition: border-color var(--quick) var(--ease), color var(--quick) var(--ease);
+  }
+  .announce:hover { border-color: var(--person); color: var(--paper); }
+  .announce b {
+    font-family: var(--mono); font-weight: 500;
+    font-size: var(--t-micro); letter-spacing: .1em; text-transform: uppercase;
+    padding: .3rem .6rem; border-radius: 999px;
+    background: var(--person); color: var(--black);
+  }
+  .announce svg { transition: transform var(--quick) var(--ease); }
+  .announce:hover svg { transform: translateX(3px); }
+  /* Nothing waiting is a different sentence, not a dimmer version of this one. */
+  .announce--calm b { background: var(--hair-lit); color: var(--paper); }
+
+  /* Display line. The weight change carries the emphasis rather than a colour
+     change, which is what makes theirs read as typography instead of markup. */
+  .display {
+    font-size: clamp(2rem, 1.1rem + 3.6vw, 4.25rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 400;
+    color: var(--paper);
+    margin: 0 auto;
+    max-width: 20ch;
+  }
+  .display strong { font-weight: 700; }
+  /* The accent rule under the emphasised words, drawn rather than underlined
+     so it can sit low and keep its own colour. */
+  .display .ruled { position: relative; white-space: nowrap; }
+  .display .ruled::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -0.12em;
+    height: 2px; border-radius: 2px;
+    background: var(--person);
+    transform: scaleX(0); transform-origin: left;
+    animation: rule-in 620ms var(--ease) 260ms forwards;
+  }
+  @keyframes rule-in { to { transform: scaleX(1); } }
+
+  .display-sub {
+    margin: 1.1rem auto 0; max-width: 46ch;
+    color: var(--muted); font-size: var(--t-body);
+  }
+
+  /* Floating pill nav, for the project switcher. */
+  .pillnav {
+    display: inline-flex; align-items: center; gap: .25rem;
+    padding: .3rem; margin: 0 auto 2rem;
+    border: 1px solid var(--hair); border-radius: 999px;
+    background: color-mix(in srgb, var(--raised) 60%, transparent);
+  }
+  .pillnav a {
+    padding: .42rem .95rem; border-radius: 999px;
+    font-size: var(--t-small); color: var(--faint); text-decoration: none;
+    transition: background var(--quick) var(--ease), color var(--quick) var(--ease);
+  }
+  .pillnav a:hover { color: var(--paper); }
+  .pillnav a.is-on { background: var(--person); color: var(--black); font-weight: 500; }
+  .pillnav a.is-archived { opacity: .6; }
+
+  /* Primary control beside a quiet one, their CTA row. */
+  .cta-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 1.5rem; flex-wrap: wrap; margin: 2rem 0 0;
+  }
+  .btn--pill {
+    border: 0; border-radius: 999px;
+    background: var(--person); color: var(--black);
+    padding: .7rem 1.4rem; min-height: 44px;
+    font-weight: 600; font-size: var(--t-small);
+    transition: background var(--quick) var(--ease), transform 90ms var(--ease);
+  }
+  .btn--pill:hover { background: var(--mid); }
+  .btn--quiet {
+    border: 0; border-bottom: 1px solid var(--hair);
+    color: var(--muted); background: none; padding: .5rem 0;
+  }
+  .btn--quiet:hover { color: var(--person); border-bottom-color: var(--person); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .display .ruled::after { animation: none; transform: scaleX(1); }
+  }
+
+  .dash-top .rename { flex-direction: column; align-items: center; gap: .5rem; }
+  .dash-top .rename .rename-open { order: 3; }
+  .dash-top .rename .display { order: 1; }
+  .dash-top .rename .rename-input { order: 2; text-align: center; }
+
+  .stats--center { justify-content: center; }
+  .dash-top .legend { justify-content: center; }
+  .dash-top .rename { justify-content: center; }
+  .dash-top .archived-note { margin-inline: auto; border-left: 0; border-top: 2px solid var(--machine); padding: .8rem 0 0; text-align: center; }
+
   /* ---------- press feedback ----------
      A form here posts, waits on a database on the other side of the country,
      and comes back as a whole new page. That is a second or two where the only
@@ -1024,7 +1234,6 @@ function hostsCard(hosts: string[], csrf: string, projectId: string): string {
     Add the API your agent needs to reach.</p>`;
 
   return `<section class="panel">
-    <p class="eyebrow">Hosts your agents may call</p>
     <p style="margin:0;color:var(--faint);font-size:.875rem">
       Exact hostnames only, no paths and no wildcards. Anything not on this list is denied
       before a request is made.
@@ -1127,7 +1336,6 @@ export function renderDashboard(view: DashboardView): string {
    */
   const keyBlock = view.freshApiKey
     ? `<section class="panel panel--key">
-      <p class="eyebrow">Your API key</p>
       <p style="margin:0">This is the only time it is shown. Adeia stores a hash, not the key,
       so it cannot be shown again — but you can generate a new one whenever you want.</p>
       <div class="key">${escapeHtml(view.freshApiKey)}</div>
@@ -1135,7 +1343,6 @@ export function renderDashboard(view: DashboardView): string {
       Keep it out of screenshots and out of git.</p>
     </section>`
     : `<section class="panel panel--key">
-      <p class="eyebrow">API key</p>
       <p style="margin:0 0 .75rem">Your agents authenticate with a key. Adeia only stores a
       hash of it, so an existing key can never be shown again — generating a new one is the
       way to get a key you can read.</p>
@@ -1169,7 +1376,6 @@ export function renderDashboard(view: DashboardView): string {
    */
   const firstCall = view.actions.length > 0 ? "" : `
     <section class="panel">
-      <p class="eyebrow">Your first call</p>
       <p class="panel-lede">Run this and it lands in the trail below. It is $25, which is
       under your $50 limit, so Adeia executes it rather than asking you about it.</p>
       <pre class="snippet"><code id="first-call">curl -X POST ${escapeHtml(view.baseUrl)}/v1/actions \\
@@ -1198,6 +1404,20 @@ export function renderDashboard(view: DashboardView): string {
       )}</p>`
     : "";
 
+  const arrow = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"/></svg>`;
+
+  /** A section, with the numbered rule the marketing site uses above each one. */
+  const section = (n: string, label: string, inner: string, raised = false): string =>
+    inner.trim() === ""
+      ? ""
+      : `<section class="section${raised ? " section--raised" : ""}">
+           <div class="wrap">
+             <p class="section-eyebrow"><b>${n}</b><span>${escapeHtml(label)}</span><i></i></p>
+             ${inner}
+           </div>
+         </section>`;
+
   const body = `
   <header class="bar">
     <p class="wordmark">Adeia</p>
@@ -1211,91 +1431,111 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </header>
 
-  ${
-    view.projects.length > 1
-      ? `<nav class="switch" aria-label="Projects">${view.projects
-          .map(
-            (p) =>
-              `<a class="switch-item${p.id === view.projectId ? " is-on" : ""}${p.archived ? " is-archived" : ""}"
-                  href="/dashboard?p=${encodeURIComponent(p.id)}"
-                  ${p.id === view.projectId ? 'aria-current="page"' : ""}
-               >${escapeHtml(p.name)}</a>`,
-          )
-          .join("")}</nav>`
-      : ""
-  }
+  <section class="section dash-top">
+    <div class="wrap center">
 
-  <!-- The heading is the name, and editing it happens in place: a separate
-       settings page for one text field is a page nobody would find. Without
-       JavaScript this is a visible text input and a Save button, which is the
-       whole feature; with it, the input only appears once you ask. -->
-  <form class="rename" method="POST" action="/dashboard/project/rename">
-    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-    <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
-    <h1 class="proj" data-rename-label>${escapeHtml(view.projectName)}</h1>
-    <input class="rename-input" name="name" value="${escapeHtml(view.projectName)}"
-           maxlength="60" aria-label="Project name">
-    <button class="btn btn--sm" type="submit">Save</button>
-    <button class="btn btn--sm rename-cancel" type="button" data-rename-cancel>Cancel</button>
-    <button class="btn btn--sm rename-open" type="button" data-rename-open>Rename</button>
-  </form>
+      <!-- The one open thing, announced. Links to it rather than describing it. -->
+      ${
+        view.counts.waiting > 0
+          ? `<a class="announce" href="#waiting">
+               <b>${view.counts.waiting} waiting</b>
+               <span>${view.counts.waiting === 1 ? "an action needs your decision" : "actions need your decision"}</span>
+               ${arrow}
+             </a>`
+          : `<span class="announce announce--calm">
+               <b>all clear</b>
+               <span>nothing is waiting on you</span>
+             </span>`
+      }
 
-  <p class="lede">Everything your agents asked to do, and what Adeia did about it.</p>
+      ${
+        view.projects.length > 1
+          ? `<nav class="pillnav" aria-label="Projects">${view.projects
+              .map(
+                (p) =>
+                  `<a class="${p.id === view.projectId ? "is-on" : ""}${p.archived ? " is-archived" : ""}"
+                      href="/dashboard?p=${encodeURIComponent(p.id)}"
+                      ${p.id === view.projectId ? 'aria-current="page"' : ""}
+                   >${escapeHtml(p.name)}</a>`,
+              )
+              .join("")}</nav>`
+          : ""
+      }
 
-  ${
-    view.projectArchivedAt
-      ? `<p class="archived-note">Archived ${escapeHtml(when(view.projectArchivedAt))}.
-         Its key no longer authenticates, so nothing can act as this project.
-         Everything below is still here.</p>`
-      : ""
-  }
+      <form class="rename" method="POST" action="/dashboard/project/rename">
+        <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+        <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+        <h1 class="display" data-rename-label><strong class="ruled">${escapeHtml(view.projectName)}</strong></h1>
+        <input class="rename-input" name="name" value="${escapeHtml(view.projectName)}"
+               maxlength="60" aria-label="Project name">
+        <button class="btn btn--sm" type="submit">Save</button>
+        <button class="btn btn--sm rename-cancel" type="button" data-rename-cancel>Cancel</button>
+        <button class="btn btn--sm rename-open" type="button" data-rename-open>Rename</button>
+      </form>
 
-  <form class="rowform" method="POST" action="/dashboard/project/archive">
-    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-    <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
-    ${view.projectArchivedAt ? `<input type="hidden" name="restore" value="1">` : ""}
-    <button class="btn btn--sm" type="submit">${
-      view.projectArchivedAt ? "Restore project" : "Archive project"
-    }</button>
-    ${
-      view.projectArchivedAt
-        ? ""
-        : `<span class="rowform-note">Stops its key working. Keeps every record.</span>`
-    }
-  </form>
+      <p class="display-sub">Everything your agents asked to do, and what Adeia did about it.</p>
 
-  <form class="newproj" method="POST" action="/dashboard/project/new">
-    <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-    <input class="newproj-input" name="name" placeholder="New project name" maxlength="60"
-           aria-label="New project name">
-    <button class="btn btn--sm" type="submit">Create project</button>
-  </form>
+      ${
+        view.projectArchivedAt
+          ? `<p class="archived-note">Archived ${escapeHtml(when(view.projectArchivedAt))}.
+             Its key no longer authenticates, so nothing can act as this project.
+             Everything below is still here.</p>`
+          : ""
+      }
 
-  ${flash}
-  ${keyBlock}
-  ${firstCall}
+      <div class="stats stats--center">
+        <div><div class="stat-n">${view.counts.waiting}</div><div class="stat-l">waiting on you</div></div>
+        <div><div class="stat-n">${view.counts.ranToday}</div><div class="stat-l">ran today</div></div>
+        <div><div class="stat-n">${view.counts.refusedToday}</div><div class="stat-l">refused today</div></div>
+      </div>
 
-  <div class="stats">
-    <div><div class="stat-n">${view.counts.waiting}</div><div class="stat-l">waiting on you</div></div>
-    <div><div class="stat-n">${view.counts.ranToday}</div><div class="stat-l">ran today</div></div>
-    <div><div class="stat-n">${view.counts.refusedToday}</div><div class="stat-l">refused today</div></div>
-  </div>
+      <div class="cta-row">
+        <form method="POST" action="/dashboard/project/new" style="margin:0;display:flex;gap:.75rem;align-items:center">
+          <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+          <input class="newproj-input" name="name" placeholder="New project name" maxlength="60"
+                 aria-label="New project name">
+          <button class="btn btn--pill" type="submit">Create project</button>
+        </form>
+        <form method="POST" action="/dashboard/project/archive" style="margin:0">
+          <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+          <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+          ${view.projectArchivedAt ? `<input type="hidden" name="restore" value="1">` : ""}
+          <button class="btn btn--quiet btn--sm" type="submit">${
+            view.projectArchivedAt ? "Restore project" : "Archive project"
+          }</button>
+        </form>
+      </div>
 
-  <ul class="legend">
-    <li class="is-person"><i></i> you decided</li>
-    <li class="is-machine"><i></i> a model judged</li>
-    <li><i></i> your policy decided</li>
-  </ul>
+      ${flash}
+    </div>
+  </section>
 
-  <h2>Waiting on you</h2>
-  ${table(waiting, "Nothing is waiting. Adeia will email you when something needs a decision.")}
+  ${section("01", "your api key", keyBlock, true)}
+  ${section("02", "your first call", firstCall)}
 
-  <h2>Recent activity</h2>
-  ${table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here.")}
+  <section class="section section--raised" id="waiting">
+    <div class="wrap">
+      <p class="section-eyebrow"><b>03</b><span>waiting on you</span><i></i></p>
+      <ul class="legend">
+        <li class="is-person"><i></i> you decided</li>
+        <li class="is-machine"><i></i> a model judged</li>
+        <li><i></i> your policy decided</li>
+      </ul>
+      ${table(waiting, "Nothing is waiting. Adeia will email you when something needs a decision.")}
+    </div>
+  </section>
 
-  <h2>Policy</h2>
-  ${hostsCard(view.allowedHosts, view.csrf, view.projectId)}
+  ${section("04", "recent activity", table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here."))}
+  ${section("05", "policy", hostsCard(view.allowedHosts, view.csrf, view.projectId), true)}
+
+  <footer class="dash-foot">
+    <div class="wrap dash-foot__inner">
+      <span>Adeia — the agent asks, you decide.</span>
+      <a href="https://adeia.xyz">adeia.xyz</a>
+    </div>
+  </footer>
   `;
+
 
   return shell(`${view.projectName} — Adeia`, body);
 }
