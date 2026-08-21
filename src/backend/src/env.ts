@@ -1,3 +1,4 @@
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
@@ -13,9 +14,30 @@ import { z } from "zod";
  * missing-variable error that points nowhere near the cause.
  */
 function loadDotEnv(): void {
+  /* Assembled at runtime, deliberately, rather than written as one literal.
+     `new URL("../../../.env", import.meta.url)` is not a path to a bundler —
+     it is a static asset reference. Turbopack resolved it at build time and
+     copied the developer's .env into the deployment, Turso token and SMTP
+     password and all, where `loadEnvFile` then found it and quietly preferred
+     it to the variables the host had set. That is how a production deployment
+     came to hand out a GitHub redirect pointing at localhost.
+
+     Splitting the path defeats that analysis. Nothing is lost: a hosted
+     environment supplies its own variables and has no .env to read. */
+  /* A managed host sets the variables itself, and must not be overridden by a
+     file. Next traces `.env` into the function whatever the tracing config
+     says, so on a build produced from a developer's machine that file is
+     present in production carrying their credentials — and without this guard
+     `loadEnvFile` prefers it to what the platform set. The symptom was a
+     production sign-in redirecting to `http://localhost:3000`, which is the
+     harmless-looking end of a leak that also included the Turso token and the
+     SMTP password. */
+  if (process.env.VERCEL) return;
+
+  const here = dirname(fileURLToPath(import.meta.url));
   try {
-    // src/backend/src/env.ts -> the repo root
-    process.loadEnvFile(fileURLToPath(new URL("../../../.env", import.meta.url)));
+    // src/backend/src/ -> the repo root
+    process.loadEnvFile(join(here, "..", "..", "..", ".env"));
   } catch {
     // no .env file — env comes from the real environment
   }

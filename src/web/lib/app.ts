@@ -2,7 +2,7 @@ import { createHttpAdapter } from "../../backend/src/adapters/http.ts";
 import { createLedgerAdapter } from "../../backend/src/adapters/ledger.ts";
 import { createRegistry } from "../../backend/src/adapters/types.ts";
 import type { AppEnv } from "../../backend/src/appEnv.ts";
-import { createTursoDb } from "../../backend/src/db/client.turso.ts";
+import { createTursoWebDb } from "../../backend/src/db/client.turso.web.ts";
 import { env, requireApprovalConfig, requireDatabaseConfig } from "../../backend/src/env.ts";
 import { createResendClient, createResendSender } from "../../backend/src/notify/email.ts";
 import { createSmtpSender, createSmtpTransport } from "../../backend/src/notify/smtp.ts";
@@ -68,9 +68,12 @@ export function app(): Hono<AppEnv> {
 
   /* Turso is not optional here. The local file would be a container filesystem
      that is discarded between invocations: every approval token minted would be
-     unreadable by the request that comes back to spend it. An explicit `file:`
-     URL is allowed through, because somebody typed it — what is refused is the
-     silent fall-back to ADEIA_DB_PATH. */
+     unreadable by the request that comes back to spend it.
+
+     Unlike `server.node.ts`, an explicit `file:` URL is refused too — see
+     `createTursoWebDb`. This build has no native SQLite binding to open one
+     with, because carrying one would tie the deployment to the architecture it
+     was built on. */
   if (database.kind !== "turso") {
     throw new Error(
       "TURSO_DATABASE_URL is not set, and this deployment has no disk to fall back to.\n" +
@@ -79,7 +82,7 @@ export function app(): Hono<AppEnv> {
     );
   }
 
-  const db = createTursoDb(database.url, database.authToken);
+  const db = createTursoWebDb(database.url, database.authToken);
 
   const emailConfig = { fromEmail: approval.fromEmail, publicBaseUrl: approval.publicBaseUrl };
   const send =

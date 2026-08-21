@@ -17,7 +17,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "dev": "node --experimental-strip-types src/backend/src/server.node.ts",
-    "dev:web": "TURSO_DATABASE_URL=\"file:$PWD/adeia.db\" npm run dev --workspace @adeia/web",
+    "dev:web": "npm run dev --workspace @adeia/web",
     "seed": "node --experimental-strip-types scripts/seed.ts",
     "audit": "node --experimental-strip-types scripts/audit.ts",
     "docs:json": "node --experimental-strip-types scripts/gen-docs.ts",
@@ -26,7 +26,8 @@
     "demo": "npm run -w @adeia/demo-agent start",
     "db:generate": "npm run -w @adeia/server db:generate",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
-    "demo:video": "node --experimental-strip-types scripts/demo.ts"
+    "demo:video": "node --experimental-strip-types scripts/demo.ts",
+    "deploy": "node scripts/deploy.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

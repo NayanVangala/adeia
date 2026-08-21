@@ -1,0 +1,15 @@
+# Uploaded to Vercel for a remote build. Everything here is either rebuilt
+# there or has no business leaving this machine.
+.next
+src/web/.next
+.vercel/output
+.wrangler
+.playwright-mcp
+*.db
+*.db-shm
+*.db-wal
+tests
+
+# Never uploaded. The server reads its variables from the platform.
+.env
+.env.local
