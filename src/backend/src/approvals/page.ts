@@ -21,71 +21,124 @@ export function escapeHtml(value: unknown): string {
 }
 
 const STYLE = `
+  /* The same clothes as the rest of Adeia. This page used to carry its own
+     light palette and its own greys, which meant the one screen a person sees
+     when money is at stake looked like a different product from the site that
+     sent them here.
+
+     It also carried a real defect: .explain and .claim-note stated #48505E and
+     #C6CBD2 literally, outside the prefers-color-scheme block, so dark mode
+     rendered the plain-language explanation at about 1.9:1 against its own
+     surface. The block written for the person who does not read HTTP was the
+     block they could not read. Tokens fix that by construction — every pairing
+     in tokens.css states its measured contrast. */
+  @import url("/styles/tokens.css");
+
   :root {
-    --paper: #E9EBEE; --ink: #0B0E14; --ink-soft: #48505E;
-    --rule: #C6CBD2; --surface: #FFFFFF;
-    --held: #B3701C; --exec: #3F6A4C; --deny: #97362D;
-    --bg: var(--paper); --fg: var(--ink);
+    --bg: var(--black);
+    --fg: var(--paper);
+    --ink-soft: var(--muted);
+    --rule: var(--hair);
+    --surface: var(--raised);
   }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #0B0E14; --fg: #E9EBEE; --ink-soft: #98A0AE;
-            --rule: #2A303B; --surface: #141922; }
-  }
+
   * { box-sizing: border-box; }
+
   body {
-    margin: 0; padding: 2rem 1.25rem; background: var(--bg); color: var(--fg);
-    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 2rem 1.25rem 4rem;
+    background: var(--bg); color: var(--fg);
+    font-family: var(--sans);
+    font-size: 1rem; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
     display: flex; justify-content: center;
+    /* An approval link is tapped, not browsed. Nothing here should bounce. */
+    overscroll-behavior: contain;
   }
   main { width: 100%; max-width: 32rem; }
+
   .card {
+    position: relative;
     background: var(--surface); border: 1px solid var(--rule);
-    border-radius: 12px; padding: 1.5rem;
+    border-radius: var(--radius-sm); padding: 1.5rem;
   }
+  /* The gradient edge that runs through the rest of Adeia: cold where a
+     machine decided, warm where a person is about to. This page is the warm
+     end of it, which is the whole argument of the product. */
+  .card::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    background: var(--sweep);
+  }
+
   .eyebrow {
-    font-size: .75rem; letter-spacing: .08em; text-transform: uppercase;
+    font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase;
     color: var(--ink-soft); margin: 0 0 .5rem;
   }
-  h1 { font-size: 1.75rem; margin: 0 0 .25rem; line-height: 1.2; }
+  h1 { font-size: var(--t-h2); margin: 0 0 .25rem; line-height: 1.15; letter-spacing: var(--tracking-tight); }
   .to { color: var(--ink-soft); margin: 0 0 1.5rem; }
+
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: .6rem 1rem; }
-  dt { color: var(--ink-soft); font-size: .875rem; }
-  dd { margin: 0; font-size: .875rem; word-break: break-word; white-space: pre-wrap; }
-  /* An http verb or a URL. Monospace because a character that differs by one
-     letter — DELETE against a host you half-recognise — is the whole decision. */
+  dt { color: var(--ink-soft); font-size: var(--t-small); }
+  dd { margin: 0; font-size: var(--t-small); word-break: break-word; white-space: pre-wrap; }
+
   h1.mono, dd { font-variant-ligatures: none; }
-  h1.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.01em; }
-  /* The plain-language block. Boxed rather than run into the page, because
-     it is the part someone unfamiliar with HTTP is meant to read first. */
-  .explain { border: 1px solid #C6CBD2; border-radius: 8px; padding: 1rem 1.125rem; margin: 0 0 1.25rem; }
-  .explain-label { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: #48505E; margin: 0 0 .625rem; }
+  h1.mono { font-family: var(--mono); letter-spacing: -.01em; }
+
+  .explain { border: 1px solid var(--rule); border-radius: var(--radius-sm); padding: 1rem 1.125rem; margin: 0 0 1.25rem; }
+  .explain-label { font-size: var(--t-micro); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 .625rem; }
   .explain-headline { font-weight: 600; margin: 0 0 .5rem; }
-  .explain-what { margin: 0; color: #48505E; font-size: .9375rem; }
-  /* Both of these paint a fixed pale background, so they must state a fixed
-     dark ink too. Inheriting --fg means near-white text on pale yellow the
-     moment the page renders in dark mode — which is exactly what happened. */
-  .explain-warning { margin: .75rem 0 0; padding: .625rem .75rem; background: #FBF3E7; border-left: 3px solid #B3701C; font-size: .875rem; color: #0B0E14; }
-  /* Visually separate from .explain above it: that is derived from the
-     request, this is only what the agent said about itself. */
-  .claim { margin: 0 0 .25rem; font-size: .9375rem; }
-  .claim-note { margin: 0 0 1.25rem; font-size: .8125rem; color: #48505E; }
-  .reason {
-    margin: 1.5rem 0 0; padding: .875rem 1rem; border-radius: 8px;
-    background: color-mix(in srgb, var(--held) 12%, transparent);
-    border-left: 3px solid var(--held); font-size: .875rem;
+  .explain-what { margin: 0; color: var(--ink-soft); font-size: .9375rem; }
+
+  /* Paints its own ground, so it states its own ink rather than inheriting
+     one that flips. --held/--held-ink are a fixed pair for exactly this. */
+  .explain-warning {
+    margin: .75rem 0 0; padding: .625rem .75rem;
+    background: var(--held); color: var(--held-ink);
+    border-left: 3px solid var(--person); font-size: var(--t-small);
   }
+
+  .claim { margin: 0 0 .25rem; font-size: .9375rem; }
+  .claim-note { margin: 0 0 1.25rem; font-size: .8125rem; color: var(--faint); }
+
+  .reason {
+    margin: 1.5rem 0 0; padding: .875rem 1rem; border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--person) 12%, transparent);
+    border-left: 3px solid var(--person); font-size: var(--t-small);
+  }
+
   .actions { display: flex; gap: .75rem; margin-top: 1.5rem; }
   form { flex: 1; margin: 0; }
   button {
-    width: 100%; padding: .8rem 1rem; font-size: 1rem; font-weight: 600;
-    border-radius: 8px; border: 1px solid transparent; cursor: pointer;
-    font-family: inherit;
+    width: 100%;
+    /* 44px floor. This is tapped on a phone, one-handed, often at night. */
+    min-height: 44px;
+    padding: .8rem 1rem; font-size: 1rem; font-weight: 600;
+    border-radius: var(--radius-sm); border: 1px solid transparent;
+    cursor: pointer; font-family: inherit;
+    transition: background var(--quick) var(--ease), color var(--quick) var(--ease);
   }
-  .approve { background: var(--exec); color: #fff; }
-  .deny { background: transparent; color: var(--deny); border-color: var(--deny); }
+  .approve { background: var(--person); color: var(--black); }
+  .deny { background: transparent; color: var(--hot); border-color: var(--hot); }
+  .approve:hover { background: var(--mid); }
+  .deny:hover { background: color-mix(in srgb, var(--hot) 14%, transparent); }
+  button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+
+  /* The armed state. Approving moves money and cannot be undone, so the
+     first tap arms and the second commits — and the armed label repeats the
+     amount, so what is confirmed is the number rather than the word. Without
+     JavaScript the button stays a plain submit: this guards a mis-tap, it is
+     not the security control. That is the token. */
+  .approve[data-armed] { background: var(--hot); color: var(--paper); }
+  .arm-note { margin: .75rem 0 0; font-size: .8125rem; color: var(--person); }
+  .arm-note[hidden] { display: none; }
+
   .note { margin: 1.25rem 0 0; font-size: .8125rem; color: var(--ink-soft); }
-  .status { font-size: 1.25rem; margin: 0 0 .5rem; }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8125rem; }
+  .status { font-size: var(--t-h3); margin: 0 0 .5rem; }
+  code { font-family: var(--mono); font-size: .8125rem; }
+
+  @media (max-width: 26rem) {
+    .actions { flex-direction: column; }
+  }
 `;
 
 function shell(title: string, body: string): string {
@@ -100,7 +153,38 @@ function shell(title: string, body: string): string {
 <title>${escapeHtml(title)}</title>
 <style>${STYLE}</style>
 </head>
-<body><main>${body}</main></body>
+<body><main>${body}</main>
+<script>
+/* Arm-then-commit on Approve only.
+
+   Approving executes the action and cannot be undone; denying only records a
+   refusal, so it stays a single tap. The armed label repeats the amount, so
+   the second tap confirms the figure rather than the word, and the button
+   disarms on blur or after eight seconds — an armed control left sitting on a
+   locked phone is part of what this is meant to prevent.
+
+   Enhancement only. With JavaScript off it is an ordinary submit: this guards
+   a mis-tap, it is not the security control. That is the token. */
+(function () {
+  var b = document.querySelector("[data-arm]");
+  if (!b) return;
+  var label = b.textContent, timer = null;
+  function disarm() {
+    b.removeAttribute("data-armed");
+    b.textContent = label;
+    if (timer) { clearTimeout(timer); timer = null; }
+  }
+  b.addEventListener("click", function (e) {
+    if (b.hasAttribute("data-armed")) return;
+    e.preventDefault();
+    b.setAttribute("data-armed", "");
+    b.textContent = "Confirm " + (b.dataset.amount || "");
+    timer = setTimeout(disarm, 8000);
+  });
+  b.addEventListener("blur", disarm);
+})();
+</script>
+</body>
 </html>`;
 }
 
@@ -215,7 +299,7 @@ export function renderApprovalPage(
     <div class="actions">
       <form method="POST" action="">
         <input type="hidden" name="decision" value="approve">
-        <button class="approve" type="submit">Approve</button>
+        <button class="approve" type="submit" data-arm data-amount="${escapeHtml(headline)}">Approve</button>
       </form>
       <form method="POST" action="">
         <input type="hidden" name="decision" value="deny">

@@ -20,3 +20,6 @@ src/web/public/
 .next/
 .vercel
 .env*
+
+# Local security reports. Never committed.
+.gstack/
