@@ -922,8 +922,16 @@ export interface DashboardView {
  * do for them — but it is only defensible if changing it takes one field. An
  * empty list with no way to edit it is not a safe default, it is a dead end.
  */
-function hostsCard(hosts: string[], csrf: string): string {
-  const field = `<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">`;
+function hostsCard(hosts: string[], csrf: string, projectId: string): string {
+  /* projectId travels with every host edit.
+   
+     Without it the route falls back to the caller's first project, so editing
+     the allowlist while looking at a second one silently edited the first —
+     the form said one thing and the database did another, with no error to
+     notice. Every form that changes a project has to name which project. */
+  const field =
+    `<input type="hidden" name="csrf" value="${escapeHtml(csrf)}">` +
+    `<input type="hidden" name="projectId" value="${escapeHtml(projectId)}">`;
 
   const rows = hosts
     .map(
@@ -1211,7 +1219,7 @@ export function renderDashboard(view: DashboardView): string {
   ${table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here.")}
 
   <h2>Policy</h2>
-  ${hostsCard(view.allowedHosts, view.csrf)}
+  ${hostsCard(view.allowedHosts, view.csrf, view.projectId)}
   `;
 
   return shell(`${view.projectName} — Adeia`, body);

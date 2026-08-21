@@ -518,6 +518,32 @@ describe("more than one project", () => {
     expect(page).not.toContain(you.projectId);
   });
 
+  it("edits the allowlist of the project being viewed, not the first one", async () => {
+    // The forms carry projectId for a reason: without it the route falls back
+    // to the caller's first project, so editing hosts while looking at a
+    // second one silently edits the first, with nothing to notice.
+    const me = await established("me", "1");
+    await post("/dashboard/project/new", me.cookie, { csrf: me.csrf, name: "second" });
+    const owned = projectsOf(me.user.id);
+    const second = owned[1]!;
+
+    await post("/dashboard/policy/hosts", me.cookie, {
+      csrf: me.csrf,
+      projectId: second.id,
+      add: "api.github.com",
+    });
+
+    const hostsOf = (id: string) => {
+      const row = h.db.$client
+        .prepare("SELECT config FROM policies WHERE project_id = ? AND action_type = 'http'")
+        .get(id) as { config: string } | undefined;
+      return row ? (JSON.parse(row.config).allowedHosts as string[]) : [];
+    };
+
+    expect(hostsOf(second.id)).toContain("api.github.com");
+    expect(hostsOf(owned[0]!.id)).not.toContain("api.github.com");
+  });
+
   it("cannot rotate the key on somebody else's project", async () => {
     const me = await established("me", "1");
     const you = await established("you", "2");

@@ -201,7 +201,7 @@ describe("rate limiting", () => {
     const blocked = await post(h, h.apiKey, 100, "k-over");
     expect(blocked.status).toBe(429);
     expect(blocked.headers.get("retry-after")).toBe("60");
-    expect((await blocked.json()).error).toBe("rate_limited");
+    expect(((await blocked.json()) as { error: string }).error).toBe("rate_limited");
   });
 
   it("records nothing for the refused request", async () => {
