@@ -1,12 +1,7 @@
 /* ---------------------------------------------------------------
    Adeia — design tokens
 
-   Bone ground, warm ink, and one lamp.
-
-   Inverted from the original dark field after runrobrun.com: that page runs
-   near-black type on a light warm grey with a single hot orange, and reads as
-   equipment rather than as a screen. Every value below was re-derived and
-   re-measured against the new ground — none of them are the old ones lightened.
+   Warm ink, bone, and one lamp.
 
    The field is a warm near-black rather than a blue one, the ink is
    bone rather than white, and there is no violet or magenta anywhere.
@@ -43,12 +38,12 @@
   /* ---- the field ----
      Warm blacks. Every one of these has more red than blue in it, which
      is what stops the page reading as the usual blue-black slab. */
-  --black: #dbdbda;
-  --near: #d4d4d2;
-  --raised: #cdcdca;
-  --lifted: #c6c6c3;
-  --hair: #c2c2bf;
-  --hair-lit: #adada9;
+  --black: #0b0a09;
+  --near: #121110;
+  --raised: #1a1815;
+  --lifted: #232019;
+  --hair: #2c2823;
+  --hair-lit: #3f3931;
 
   /* ---- the gradient, as stops ----
      Named by temperature rather than hue, so the meaning survives a
@@ -78,19 +73,8 @@
      same, so it works as ink or as ground.
      Cold is a model: classifier verdicts, anything judged rather than
      decided. --machine on --black is 8.1:1. */
-  --person: #825511;
-  --machine: #3d5666;
-
-  /* A refusal is not a warm decision and not a cold one — it is the end of the
-     conversation, and it was borrowing --hot, which is the last stop of the
-     gradient and therefore also just "very warm". This is its own mark: hotter
-     and more saturated than anything else in the palette, used only where
-     something was denied. On --black it measures 6.68:1.
-
-     Taken from runrobrun.com, whose whole page runs on one orange against
-     bone. Here the ground is the opposite, so it is a mark rather than a
-     field. */
-  --refused-mark: #a33408;
+  --person: #e5a44b;
+  --machine: #8fa9bb;
 
   /* ---- outcomes ----
      Fixed pairs, warmed to the new field. A pill paints its own ground,
@@ -109,9 +93,9 @@
      hole punched in the page. --paper on --black is 17.4:1, --muted is
      7.8:1, --faint is 5.1:1 — which is a full step better than the
      --faint this palette replaced, and it is used at 11px. */
-  --paper: #111110;
-  --muted: #4a4945;
-  --faint: #615f5a;
+  --paper: #f5f0e8;
+  --muted: #aaa196;
+  --faint: #8a8078;
 
   /* ---- type ----
      Geist, not Inter. Both are geometric grotesks, but Geist has a
@@ -122,24 +106,13 @@
 
      Monospace carries meaning here: it marks a value the machine used —
      a verb, a hostname, an amount, an id. */
-  /* Geist Mono is the body face now, not the accent. runrobrun.com sets its
-     entire page in a monospace at 13px uppercase, and the sans appears only in
-     the display plate. The effect is a page that reads as a readout rather
-     than as prose — which is what this product produces. */
   --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Linear in viewport width rather than stepped, so nothing jumps at a
      breakpoint. The display size tracks the reference's 80px at 1440
      and keeps its -0.04em. */
-  /* Display, at the reference's scale. runrobrun.com sets 120px at weight 900
-     and -6% tracking, edge to edge; this was 88px at -4% and stopped well short
-     of the gutters. The difference is not size, it is that the words become a
-     mark rather than a line of text.
-
-     Tracked in vw so it stays edge-relative at every width, which is the whole
-     point of type used as a plate rather than as a heading. */
-  --t-display: clamp(2.75rem, 0.5rem + 9.2vw, 9rem);
+  --t-display: clamp(2.5rem, 1rem + 6.2vw, 5.5rem);
   --t-h1: clamp(2rem, 1.2rem + 3.4vw, 3.75rem);
   --t-h2: clamp(1.625rem, 1.2rem + 1.8vw, 2.5rem);
   --t-h3: clamp(1.0625rem, 0.98rem + 0.5vw, 1.3125rem);
@@ -147,15 +120,11 @@
   --t-small: 0.875rem;
   --t-micro: 0.6875rem;
 
-  --tracking-display: -0.06em;
+  --tracking-display: -0.04em;
   --tracking-tight: -0.02em;
 
   /* ---- rhythm ---- */
-  /* Their grid, read off the live page: a 1440px container on a flat 24px
-     gutter. This was up to 72px, which is why the type never reached the edges
-     — a plate cannot be a plate if it stops three-quarters of the way out. */
-  --gutter: 24px;
-  --container: 1440px;
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --measure: 38rem;
   --section-y: clamp(5rem, 13vh, 12rem);
   --radius: 18px;
@@ -164,13 +133,9 @@
   /* ---- motion ---- */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-cursor: cubic-bezier(0.33, 1, 0.68, 1);
-  /* Read off their live elements: 1.05s on transforms, 0.34s on opacity,
-     0.18s on colour, all on cubic-bezier(0.16, 1, 0.3, 1) — which is already
-     --ease here. The curve was the same before any of this; only the
-     durations move. */
-  --slow: 1050ms;
-  --mid-dur: 340ms;
-  --quick: 180ms;
+  --slow: 1100ms;
+  --mid-dur: 620ms;
+  --quick: 260ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

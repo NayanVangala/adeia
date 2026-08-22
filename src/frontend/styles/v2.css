@@ -70,7 +70,7 @@ a {
 
 .wrap {
   width: 100%;
-  max-width: var(--container);
+  max-width: 80rem;
   margin: 0 auto;
   padding-inline: var(--gutter);
 }
@@ -352,69 +352,4 @@ p {
    fighting a heading that wraps differently at a new width. */
 [data-typing] {
   min-height: 0;
-}
-
-/* ---- the readout register ----
-
-   runrobrun.com sets its entire body in a monospace at 13px, uppercase, on
-   +3% tracking, with 78% ink. Only the display plate is a sans. The result is
-   a page that reads as an instrument panel rather than as a document, and it
-   is the single biggest reason that site feels the way it does.
-
-   Applied here rather than reserved for labels: every piece of running text on
-   this site is describing what a machine decided, so a machine's register is
-   not costume. */
-body {
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.03em;
-  line-height: 1.7;
-}
-
-p,
-li,
-dd,
-dt,
-label,
-figcaption,
-small {
-  font-family: var(--mono);
-  letter-spacing: 0.03em;
-}
-
-/* Small labels spread further, as theirs do at 11px and +6%. */
-.eyebrow,
-.mock__when,
-.foot,
-.readout dt {
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* The plate stays a sans, tight. The opposition between the two registers is
-   the whole signature: display packs in, everything else spreads out. */
-.display,
-.h1,
-.h2,
-.hero__title {
-  font-family: var(--sans);
-  letter-spacing: var(--tracking-display);
-  text-transform: uppercase;
-}
-
-/* Their grain. A light ground with no texture reads as a blank div; theirs
-   carries a fine noise that makes it feel like stock. Drawn as an SVG data
-   URI so it costs one declaration and no request. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.32;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'>\
-<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter>\
-<rect width='140' height='140' filter='url(%23n)' opacity='0.5'/></svg>");
 }

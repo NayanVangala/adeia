@@ -13,10 +13,10 @@
       content="A permission layer for AI agents. Spend limits, host allowlists, human approval, and an append-only audit trail — so an agent can act without being trusted."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="/styles/tokens.css?v=1787436967919" />
-    <link rel="stylesheet" href="/styles/v2.css?v=1787436986707" />
-    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787437038945" />
-    <link rel="stylesheet" href="/styles/page-v2.css?v=1787437410708" />
+    <link rel="stylesheet" href="/styles/tokens.css?v=1787185293202" />
+    <link rel="stylesheet" href="/styles/v2.css?v=1787185676570" />
+    <link rel="stylesheet" href="/styles/hero-v2.css?v=1787435022668" />
+    <link rel="stylesheet" href="/styles/page-v2.css?v=1787186564579" />
     <link rel="stylesheet" href="/styles/cursor.css?v=1787119951704" />
   </head>
 
@@ -68,7 +68,6 @@
            ========================================================== -->
       <section class="hero">
         <div class="hero__orb" aria-hidden="true"></div>
-        <div class="hero__marks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <div class="hero__grain" aria-hidden="true"></div>
         <div class="frame frame--a" aria-hidden="true"></div>
         <div class="frame frame--b" aria-hidden="true"></div>
@@ -79,8 +78,8 @@
                above the headline saying what is new. A line rather than a
                capsule, because nothing else on this page is a box. -->
           <a class="hero__announce" href="/dashboard" data-reveal>
-            <b class="mono">NOW LIVE</b>
-            <span>THE DASHBOARD IS OPEN — SIGN IN WITH GITHUB</span>
+            <b class="mono">now live</b>
+            <span>the dashboard is open — sign in with GitHub</span>
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h13M12 5l7 7-7 7" />
@@ -91,20 +90,6 @@
             Agents that act<br />
             <span class="sweep">inside a fence</span>
           </h1>
-
-          <!-- The readout.
-
-               runrobrun.com opens on LOADING STUDIO HDR..., a progress bar and
-               a timecode, none of which measure anything — it is instrumentation
-               as style. This product genuinely has instruments, so this row says
-               true things: what the fence is set to, and what it does when a
-               request crosses it. -->
-          <dl class="readout" data-reveal>
-            <div><dt>PER ACTION</dt><dd>$50.00</dd></div>
-            <div><dt>HARD MAX</dt><dd>$1,000.00</dd></div>
-            <div><dt>OVER THE LINE</dt><dd>WAITS FOR YOU</dd></div>
-            <div><dt>RECORDED</dt><dd class="readout--live">EVERY DECISION</dd></div>
-          </dl>
 
           <p class="hero__sub" data-type data-reveal>
             An agent asks Adeia before it spends money or calls an API. Rules
@@ -871,76 +856,7 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
       </section>
     </main>
 
-    
-      <!-- ==== the marquee ====
-           runrobrun.com runs a band of words that scrolls forever between its
-           hero and its first real section. Theirs says THOUGHTFUL IDEAS SHAPED
-           WITH MEANING; this one says what the product does, because a band
-           that loops past you twice a second should be the one sentence worth
-           repeating. -->
-      <section class="band" aria-label="What Adeia does">
-        <div class="band__track" aria-hidden="true">
-          <span>THE AGENT ASKS <em>·</em> YOU DECIDE <em>·</em> EVERY DECISION RECORDED <em>·</em></span>
-          <span>THE AGENT ASKS <em>·</em> YOU DECIDE <em>·</em> EVERY DECISION RECORDED <em>·</em></span>
-        </div>
-        <p class="sr-only">The agent asks, you decide, every decision recorded.</p>
-      </section>
-
-      <!-- ==== the numbered capabilities ====
-           Their [01] Visual systems / [02] Front-end craft pattern: a bracketed
-           index, a name in the display face, and a caps-mono description. The
-           numbering here is not styling — it is the order a request actually
-           travels through. -->
-      <section class="section stack">
-        <div class="wrap">
-          <article class="stack__row">
-            <p class="stack__idx">[01]</p>
-            <h2 class="stack__name">Policy</h2>
-            <p class="stack__body">RULES YOU WROTE, EVALUATED BEFORE ANYTHING RUNS. A PER-ACTION
-            LIMIT, A HARD MAXIMUM, A DAILY CAP, AND AN ALLOWLIST OF HOSTS. THE MODEL NEVER SEES
-            THEM AND CANNOT ARGUE WITH THEM.</p>
-          </article>
-          <article class="stack__row">
-            <p class="stack__idx">[02]</p>
-            <h2 class="stack__name">Approval</h2>
-            <p class="stack__body">ANYTHING OVER THE LINE STOPS AND EMAILS A PERSON. THE AGENT
-            WAITS. THE LINK IS SINGLE-USE AND EXPIRES, AND APPROVING TAKES TWO TAPS BECAUSE IT
-            CANNOT BE UNDONE.</p>
-          </article>
-          <article class="stack__row">
-            <p class="stack__idx">[03]</p>
-            <h2 class="stack__name">Record</h2>
-            <p class="stack__body">EVERY REQUEST, EVERY VERDICT, EVERY EXECUTION, IN ORDER AND
-            APPEND-ONLY — INCLUDING WHETHER A PERSON DECIDED IT OR A MODEL DID. THOSE ARE
-            DIFFERENT THINGS AND THE TRAIL NEVER CONFLATES THEM.</p>
-          </article>
-          <article class="stack__row">
-            <p class="stack__idx">[04]</p>
-            <h2 class="stack__name">Reach</h2>
-            <p class="stack__body">ANY HTTP API, BEHIND THE SAME FENCE. THE HOSTNAME IS
-            RE-RESOLVED AND EVERY ADDRESS CHECKED, AND A REDIRECT IS NEVER FOLLOWED — AN ALLOWED
-            HOST CANNOT HAND YOU SOMEWHERE ELSE.</p>
-          </article>
-        </div>
-      </section>
-
-      <!-- ==== the pixel quote ====
-           Their closing section lays two 12x9 grids over the copy: a solid one
-           and a coloured one underneath, and the pointer clears cells from the
-           top layer so the colour shows through. It is the most distinctive
-           thing on their page and it costs one grid and one pointer handler.
-
-           Here the mask is the fence, and clearing it is what an approval does. -->
-      <section class="quote" aria-labelledby="quote-line">
-        <div class="quote__under" aria-hidden="true"></div>
-        <div class="quote__mask" data-pixels aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="quote__inner">
-          <p class="quote__line" id="quote-line">&ldquo;WHAT STOPS IT AT 2AM WHEN IT DECIDES A
-          $40,000 PAYMENT IS REASONABLE?&rdquo;</p>
-        </div>
-      </section>
-
-<footer class="foot">
+    <footer class="foot">
       <div class="wrap foot__inner">
         <a class="mast__mark" href="/">
           <span>adeia</span>
@@ -970,7 +886,6 @@ action.status; <span class="tok-com">// "pending_approval"</span></code></pre>
     <script src="/reveal.js?v=1787185655333" type="module"></script>
     <script src="/decide.js?v=1787186079158" type="module"></script>
     <script src="/scenes.js?v=1787121181350" type="module"></script>
-    <script src="/pixels.js?v=1787437431592" type="module"></script>
     <script src="/motion.js?v=1787119962681" type="module"></script>
     <script src="/fence.js?v=1787185293200" type="module"></script>
     <script src="/visits.js?v=1786649098421" type="module"></script>
