@@ -771,6 +771,88 @@ const STYLE = `
   .dash-top .rename { justify-content: center; }
   .dash-top .archived-note { margin-inline: auto; border-left: 0; border-top: 2px solid var(--machine); padding: .8rem 0 0; text-align: center; }
 
+  /* ---------- the atmosphere, ported from the marketing site ----------
+     Measured the two pages against each other: the landing page carries an
+     orb, three parallax frames, grain and thirty-five reveal targets. The
+     dashboard carried none of them. That, not the palette, is why one looked
+     designed and the other looked like a form — the colours were already
+     identical.
+
+     Values are hero-v2.css's, not approximations. The parallax needs no new
+     script either: cursor.js drives anything inside a .hero, so the top
+     section carries that class and the frames move for free. */
+  .dash-top, body:has(.field) main { position: relative; }
+
+  .atmos { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+
+  /* A light source below the fold, not a wash over the page. Big enough to
+     warm the type, small enough not to drown it — the note in hero-v2.css is
+     there because the first attempt at this drowned the headline. */
+  .atmos__orb {
+    position: absolute;
+    left: 50%; bottom: -30%;
+    width: min(88vw, 42rem);
+    aspect-ratio: 1;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 45%,
+      var(--warm) 0%,
+      var(--mid) 38%,
+      color-mix(in srgb, var(--cool) 45%, transparent) 62%,
+      transparent 74%
+    );
+    filter: blur(56px);
+    opacity: 0.38;
+    animation: orb-breathe 13s ease-in-out infinite;
+  }
+  @keyframes orb-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.38; }
+    50%      { transform: scale(1.06); opacity: 0.46; }
+  }
+
+  .atmos__grain {
+    position: absolute; inset: 0;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Parallax panels. --px and --py come from cursor.js, which writes them on
+     the nearest .hero — so these move with the pointer without a line of new
+     script. Cold on one side, warm on the other: the same axis the marks use. */
+  .atmos__frame {
+    position: absolute;
+    border: 1px solid;
+    border-radius: 20px;
+    translate: calc(var(--px, 0) * var(--depth, 10px)) calc(var(--py, 0) * var(--depth, 10px));
+    transition: translate var(--mid-dur) var(--ease-cursor);
+  }
+  .atmos__frame--a {
+    top: 12%; left: -10%; width: 26rem; height: 14rem;
+    border-color: color-mix(in srgb, var(--cold) 34%, transparent);
+    box-shadow: 0 0 60px -20px var(--cold);
+    --depth: 26px;
+  }
+  .atmos__frame--b {
+    top: 34%; right: -12%; width: 30rem; height: 17rem;
+    border-color: color-mix(in srgb, var(--warm) 30%, transparent);
+    box-shadow: 0 0 70px -24px var(--warm);
+    --depth: 16px;
+  }
+  .atmos__frame--c {
+    bottom: -6%; right: 8%; width: 20rem; height: 11rem;
+    border-color: color-mix(in srgb, var(--hair-lit) 60%, transparent);
+    --depth: 34px;
+  }
+
+  /* Content sits above all of it. */
+  .dash-top > .wrap, body:has(.field) main > * { position: relative; z-index: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atmos__orb { animation: none; }
+    .atmos__frame { transition: none; translate: none; }
+  }
+
   /* ---------- press feedback ----------
      A form here posts, waits on a database on the other side of the country,
      and comes back as a whole new page. That is a second or two where the only
@@ -979,7 +1061,7 @@ function shell(title: string, body: string): string {
 <link rel="stylesheet" href="/styles/cursor.css">
 <style>${STYLE}</style>
 </head>
-<body><main>${body}</main>
+<body><main class="hero">${body}</main>
 <!-- Enhancement, loaded after the document and never depended on. Every
      effect these add is absent under prefers-reduced-motion and on a device
      without a hovering pointer, which is the same judgement the marketing
@@ -1440,7 +1522,7 @@ export function renderDashboard(view: DashboardView): string {
       ? ""
       : `<section class="section${raised ? " section--raised" : ""}">
            <div class="wrap">
-             <p class="section-eyebrow"><b>${n}</b><span>${escapeHtml(label)}</span><i></i></p>
+             <p class="section-eyebrow" data-reveal><b>${n}</b><span>${escapeHtml(label)}</span><i></i></p>
              ${inner}
            </div>
          </section>`;
@@ -1458,7 +1540,14 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </header>
 
-  <section class="section dash-top">
+  <section class="section dash-top hero">
+      <div class="atmos" aria-hidden="true">
+        <div class="atmos__orb"></div>
+        <div class="atmos__grain"></div>
+        <div class="atmos__frame atmos__frame--a"></div>
+        <div class="atmos__frame atmos__frame--b"></div>
+        <div class="atmos__frame atmos__frame--c"></div>
+      </div>
     <div class="wrap center">
 
       <!-- The one open thing, announced. Links to it rather than describing it. -->
@@ -1564,8 +1653,8 @@ export function renderDashboard(view: DashboardView): string {
 
   <section class="section section--raised" id="waiting">
     <div class="wrap">
-      <p class="section-eyebrow"><b>03</b><span>waiting on you</span><i></i></p>
-      <ul class="legend">
+      <p class="section-eyebrow" data-reveal><b>03</b><span>waiting on you</span><i></i></p>
+      <ul class="legend" data-reveal>
         <li class="is-person"><i></i> you decided</li>
         <li class="is-machine"><i></i> a model judged</li>
         <li><i></i> your policy decided</li>
@@ -1601,7 +1690,7 @@ export function renderDashboard(view: DashboardView): string {
       : ""
   }
 
-  <footer class="dash-foot">
+  <footer class="dash-foot" data-reveal>
     <div class="wrap dash-foot__inner">
       <span>Adeia — the agent asks, you decide.</span>
       <a href="https://adeia.xyz">adeia.xyz</a>
@@ -1627,6 +1716,13 @@ export function renderSignIn(configured: boolean): string {
      value a machine used, and the amounts in a column you can read down. */
   const body = `
   <header class="bar"><p class="wordmark">Adeia</p></header>
+  <div class="atmos" aria-hidden="true">
+        <div class="atmos__orb"></div>
+        <div class="atmos__grain"></div>
+        <div class="atmos__frame atmos__frame--a"></div>
+        <div class="atmos__frame atmos__frame--b"></div>
+        <div class="atmos__frame atmos__frame--c"></div>
+      </div>
 
   <h1 class="signin-h1">Agents that act,<br><em>inside a fence you set.</em></h1>
 
@@ -1634,13 +1730,13 @@ export function renderSignIn(configured: boolean): string {
   Anything over your limit stops and waits for you.</p>
 
   <section class="ledger" aria-label="What happens at three amounts">
-    <div class="ledger-row">
+    <div class="ledger-row" data-reveal>
       <b>$25</b><i class="ran">runs</i><span>inside the limit you set</span>
     </div>
-    <div class="ledger-row">
+    <div class="ledger-row" data-reveal>
       <b>$500</b><i class="held">waits</i><span>emails you, and the agent stops until you answer</span>
     </div>
-    <div class="ledger-row">
+    <div class="ledger-row" data-reveal>
       <b>$9,999,999</b><i class="no">refused</i><span>over your hard maximum, and it says so</span>
     </div>
   </section>
