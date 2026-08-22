@@ -139,6 +139,21 @@ export const EnvSchema = z.object({
   GITHUB_REDIRECT_URI: optional(z.string().url()),
 
   /**
+   * 32 bytes, hex or base64, encrypting the secret-looking values inside an
+   * action's params — the credential an http action carries in its headers.
+   *
+   * Optional, and its absence is not a silent downgrade: without it an action
+   * whose params contain a secret-looking value is refused rather than stored
+   * in the clear. A deployment that never sends credentials is unaffected.
+   *
+   *   openssl rand -hex 32
+   *
+   * Changing it makes every already-stored credential unreadable, which fails
+   * an approved action at execution rather than corrupting anything.
+   */
+  ADEIA_PARAMS_KEY: optional(z.string().min(1)),
+
+  /**
    * How many actions one project may create in a minute. Zero disables it.
    *
    * A ceiling on damage per unit time, not a pricing tier. The policy engine

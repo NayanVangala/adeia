@@ -73,6 +73,8 @@ export interface HarnessOptions {
    * policy exists, which the engine denies — the same as production.
    */
   httpPolicy?: Partial<HttpPolicyConfig> | null;
+  /** 32-byte key encrypting secret-looking params. Absent refuses them. */
+  paramsKey?: Buffer;
   /** Actions one project may create per minute. 0 disables the limit. */
   actionsPerMinute?: number;
   /** Configures dashboard sign-in. Absent means the deployment has no OAuth app. */
@@ -150,6 +152,7 @@ export async function createHarness(opts: HarnessOptions = {}): Promise<Harness>
     approverEmail: APPROVER_EMAIL,
     oauth: opts.oauth,
     actionsPerMinute: opts.actionsPerMinute,
+    paramsKey: opts.paramsKey,
     fetch: opts.fetch,
     classifier: async (input) => {
       classifierCalls.push(input);

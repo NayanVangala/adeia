@@ -1,6 +1,7 @@
 import type { ActionRecord, ActionRequest, Decision } from "@adeia/shared";
 import type { Adapter, AdapterRegistry } from "../adapters/types.ts";
 import { appendAudit } from "../audit/log.ts";
+import { hasSecrets, openParams, sealParams } from "../crypto/params.ts";
 import type { Db } from "../db/client.ts";
 import {
   countExecutedTodayByType,
@@ -24,6 +25,14 @@ import { evaluate, type PolicyResult } from "../policy/evaluate.ts";
 export interface RequestDeps {
   db: Db;
   adapters: AdapterRegistry;
+  /**
+   * 32 bytes, encrypting the secret-looking values in an action's params.
+   *
+   * Absent means this deployment cannot accept an action carrying a
+   * credential — see `requestAction`. Injected rather than read from the
+   * environment so a test can exercise both halves of that.
+   */
+  paramsKey?: Buffer;
   /**
    * Injected so Phases 3 and 4 need no email account and the tests never send
    * mail. Phase 5 swaps the stub for the real sender without this file
@@ -52,6 +61,15 @@ function errorCode(err: unknown): string {
 export class UnknownAdapterError extends Error {}
 export class NotApprovedError extends Error {}
 
+/**
+ * Thrown when params carry a credential and there is no key to encrypt it with.
+ *
+ * A refusal rather than a downgrade. Every other unanswerable question in this
+ * file means stop; storing somebody's API token in the clear because a variable
+ * was unset would be the one place it quietly meant carry on.
+ */
+export class ParamsKeyRequiredError extends Error {}
+
 function requireAdapter(adapters: AdapterRegistry, type: string): Adapter {
   const adapter = adapters.get(type);
   if (!adapter) throw new UnknownAdapterError(`no adapter registered for action type "${type}"`);
@@ -78,7 +96,13 @@ async function execute(deps: RequestDeps, action: ActionRecord): Promise<ActionR
   });
 
   try {
-    const result = await adapter.execute(action.params, {
+    /* Opened here and nowhere else. The plaintext exists for the duration of
+       one adapter call and is never written back, never logged, and never put
+       on a page. Without a key the stored value is already plaintext — an
+       action carrying a secret could not have been created without one. */
+    const params = deps.paramsKey ? openParams(deps.paramsKey, action.params) : action.params;
+
+    const result = await adapter.execute(params as Record<string, unknown>, {
       actionId: action.id,
       idempotencyKey: action.idempotencyKey,
     });
@@ -189,10 +213,28 @@ export async function requestAction(
   const existing = await findActionByIdempotencyKey(deps.db, projectId, req.idempotencyKey);
   if (existing) return existing;
 
+  /* The credential an http action carries in its headers is encrypted before
+     it is stored, and only the secret-looking values are — the method, the URL
+     and the body stay readable, because the approval page has to show a person
+     what they are approving.
+
+     Refused rather than downgraded when no key is configured. Storing somebody
+     else's API token in the clear because a variable was unset is exactly the
+     kind of quiet failure the rest of this file refuses to make: every other
+     "cannot answer" here means stop, and this one does too. */
+  const secrets = hasSecrets(req.params);
+  if (secrets && !deps.paramsKey) {
+    throw new ParamsKeyRequiredError(
+      "This request carries a credential and this deployment has no ADEIA_PARAMS_KEY set, " +
+        "so there is nowhere safe to keep it. Generate one with: openssl rand -hex 32",
+    );
+  }
+  const storedParams = secrets ? sealParams(deps.paramsKey!, req.params) : req.params;
+
   let action = await insertAction(deps.db, {
     projectId,
     type: req.type,
-    params: req.params,
+    params: storedParams as ActionRequest["params"],
     status: "pending_policy",
     idempotencyKey: req.idempotencyKey,
   });

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ActionRecord } from "@adeia/shared";
 import { generateApiKey, hashApiKey } from "../../../src/backend/src/auth/apiKey.ts";
-import { insertAction } from "../../../src/backend/src/db/repo.ts";
+import { executeApproved } from "../../../src/backend/src/actions/service.ts";
+import { insertAction, updateActionStatus } from "../../../src/backend/src/db/repo.ts";
 import { createHarness, paymentRequest, type Harness } from "../../helpers/harness.ts";
 
 let h: Harness;
@@ -243,5 +244,92 @@ describe("rate limiting", () => {
     for (let i = 0; i < 6; i++) {
       expect((await post(h, h.apiKey, 100, `z${i}`)).status).toBeLessThan(400);
     }
+  });
+});
+
+describe("credentials in params", () => {
+  const KEY = Buffer.alloc(32, 7);
+
+  const send = (h: Harness, key: string, body: unknown) =>
+    h.app.request("/v1/actions", {
+      method: "POST",
+      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+  const httpWithToken = (idem: string) => ({
+    type: "http",
+    idempotencyKey: idem,
+    params: {
+      method: "GET",
+      url: "https://api.github.com/repos/x/y",
+      headers: { authorization: "Bearer ghp_supersecret", accept: "application/json" },
+    },
+  });
+
+  it("never writes the credential to the actions table", async () => {
+    const h = await createHarness({ paramsKey: KEY, httpPolicy: { allowedHosts: ["api.github.com"] } });
+    await send(h, h.apiKey, httpWithToken("a"));
+
+    const row = h.db.$client
+      .prepare("SELECT params FROM actions WHERE project_id = ? ORDER BY rowid DESC LIMIT 1")
+      .get(h.projectId) as { params: string };
+    expect(row.params).not.toContain("ghp_supersecret");
+    // And the parts a person needs to approve are still readable.
+    expect(row.params).toContain("api.github.com");
+    expect(row.params).toContain("GET");
+  });
+
+  it("hands the adapter the real credential, not the sealed one", async () => {
+    const h = await createHarness({ paramsKey: KEY, httpPolicy: { allowedHosts: ["api.github.com"] } });
+    await send(h, h.apiKey, httpWithToken("b"));
+
+    const seen = h.httpAdapter.calls.at(-1);
+    const headers = (seen?.params as { headers?: Record<string, string> })?.headers ?? {};
+    expect(headers["authorization"]).toBe("Bearer ghp_supersecret");
+  });
+
+  it("refuses the request when there is nowhere safe to keep it", async () => {
+    // No key configured. A downgrade to plaintext would be the one place this
+    // codebase quietly said carry on.
+    const h = await createHarness({ httpPolicy: { allowedHosts: ["api.github.com"] } });
+    const res = await send(h, h.apiKey, httpWithToken("c"));
+
+    expect(res.status).toBe(400);
+    expect(((await res.json()) as { error: string }).error).toBe("params_key_required");
+
+    const row = h.db.$client
+      .prepare("SELECT COUNT(*) AS n FROM actions WHERE project_id = ?")
+      .get(h.projectId) as { n: number };
+    expect(row.n).toBe(0);
+  });
+
+  it("still accepts a request carrying no credential without a key", async () => {
+    const h = await createHarness({ httpPolicy: { allowedHosts: ["api.github.com"] } });
+    const res = await send(h, h.apiKey, {
+      type: "http",
+      idempotencyKey: "d",
+      params: { method: "GET", url: "https://api.github.com/repos/x/y" },
+    });
+    expect(res.status).toBeLessThan(400);
+  });
+
+  it("opens the credential after an approval delay, not just on the spot", async () => {
+    // The case redaction could never have served: stored now, run later.
+    const h = await createHarness({
+      paramsKey: KEY,
+      httpPolicy: { allowedHosts: ["api.github.com"], approvalMethods: ["GET"] },
+    });
+    const res = await send(h, h.apiKey, httpWithToken("e"));
+    const action = (await res.json()) as { id: string; status: string };
+    expect(action.status).toBe("pending_approval");
+
+    // Approve it the way the approval route does, then run it.
+    await updateActionStatus(h.db, action.id, { status: "approved" });
+    await executeApproved(h.deps, action.id);
+
+    const seen = h.httpAdapter.calls.at(-1);
+    const headers = (seen?.params as { headers?: Record<string, string> })?.headers ?? {};
+    expect(headers["authorization"]).toBe("Bearer ghp_supersecret");
   });
 });

@@ -1,3 +1,4 @@
+import { parseKey } from "./crypto/params.ts";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
@@ -134,6 +135,7 @@ export async function boot(): Promise<void> {
     approverEmail: approval.approverEmail,
     onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
     classifier,
+    paramsKey: env.ADEIA_PARAMS_KEY ? parseKey(env.ADEIA_PARAMS_KEY) : undefined,
     oauth,
     staticMiddleware: createStaticMiddleware(siteRoot),
   });

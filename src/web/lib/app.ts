@@ -1,3 +1,4 @@
+import { parseKey } from "../../backend/src/crypto/params.ts";
 import { createHttpAdapter } from "../../backend/src/adapters/http.ts";
 import { createLedgerAdapter } from "../../backend/src/adapters/ledger.ts";
 import { createRegistry } from "../../backend/src/adapters/types.ts";
@@ -114,6 +115,7 @@ export function app(): Hono<AppEnv> {
     approverEmail: approval.approverEmail,
     onApprovalNeeded: createApprovalNotifier(db, send, approval.approverEmail, approval.tokenTtlMs),
     classifier,
+    paramsKey: env.ADEIA_PARAMS_KEY ? parseKey(env.ADEIA_PARAMS_KEY) : undefined,
     oauth,
     // No staticMiddleware: the ten marketing pages are served by the CDN in
     // front of this, and a request for one never arrives here.

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { requestAction } from "../actions/service.ts";
 import type { AppEnv } from "../appEnv.ts";
 import { apiKeyAuth } from "../auth/apiKey.ts";
+import { ParamsKeyRequiredError } from "../actions/service.ts";
 import { countActionsSince } from "../db/repo.ts";
 import { env } from "../env.ts";
 import { getAction } from "../db/repo.ts";
@@ -75,7 +76,19 @@ export function createActionRoutes(): Hono<AppEnv> {
       }
     }
 
-    const action = await requestAction(c.get("deps"), c.get("projectId"), parsed.data);
+    let action;
+    try {
+      action = await requestAction(c.get("deps"), c.get("projectId"), parsed.data);
+    } catch (err) {
+      /* 400, not 500. The deployment is missing configuration, but from the
+         caller's side this request cannot be accepted as sent, and the message
+         says exactly what would make it acceptable. A 500 would tell an agent
+         to retry something that will fail identically every time. */
+      if (err instanceof ParamsKeyRequiredError) {
+        return c.json({ error: "params_key_required", message: err.message }, 400);
+      }
+      throw err;
+    }
     return c.json(action, statusCodeFor(action.status));
   });
 
