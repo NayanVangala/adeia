@@ -517,3 +517,102 @@
 .hero__announce:hover svg {
   transform: translateX(3px);
 }
+
+/* ---- the readout, and the caps-mono register ----
+
+   runrobrun.com's whole voice is instrumentation: every label is 13px
+   monospace, uppercase, at +3% tracking and 78% ink, set against a display
+   face at 120px and -6%. The opposition is the signature — the big type packs
+   in, the small type spreads out — and it is what makes the page read as
+   equipment rather than as a document.
+
+   Adapted rather than copied. Rob's readouts measure nothing; a timecode that
+   counts up from nowhere and a progress bar labelled LOADING STUDIO HDR are
+   there for the feel of a machine. This product is one, so this row states
+   what the fence is actually set to. */
+
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 clamp(1.75rem, 4vw, 3.5rem);
+  margin: 0;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  width: 100%;
+}
+
+.readout div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-block: 0.35rem;
+}
+
+.readout dt {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.readout dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+/* The one line that is a claim rather than a number. */
+.readout--live {
+  color: var(--person);
+}
+
+/* The announcement joins the same register: uppercase, spread, mono. */
+.hero__announce b,
+.hero__announce span {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- registration marks ----
+
+   Rob's page carries a crosshair at each corner of the grid. It is a
+   blueprint convention — the mark a printer aligns plates to — and it is the
+   cheapest thing on the page that makes it feel measured. Drawn rather than
+   set as a glyph, so the arms stay hairline at any size. */
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  opacity: 0.5;
+  background:
+    linear-gradient(var(--hair-lit), var(--hair-lit)) center / 1px 100% no-repeat,
+    linear-gradient(var(--hair-lit), var(--hair-lit)) center / 100% 1px no-repeat;
+  pointer-events: none;
+}
+
+.hero::before {
+  top: calc(var(--gutter) - 4px);
+  left: calc(var(--gutter) - 4px);
+}
+
+.hero::after {
+  bottom: calc(var(--gutter) - 4px);
+  right: calc(var(--gutter) - 4px);
+}
+
+@media (max-width: 48rem) {
+  .readout div {
+    min-width: 40%;
+  }
+}
