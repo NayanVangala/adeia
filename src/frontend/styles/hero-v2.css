@@ -483,3 +483,37 @@
     display: none;
   }
 }
+
+/* ---- the announcement ----
+   A line above the headline naming what is new. Launchpad sets theirs in a
+   capsule; this page has no boxes on it, so the emphasis is the mono weight
+   and the warm mark instead, and the arrow moves the way every other forward
+   link here does. */
+.hero__announce {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  color: var(--faint);
+  font-size: var(--t-small);
+  text-decoration: none;
+  transition: color var(--quick) var(--ease);
+}
+
+.hero__announce b {
+  font-weight: 500;
+  font-size: var(--t-small);
+  letter-spacing: 0.02em;
+  color: var(--person);
+}
+
+.hero__announce svg {
+  transition: transform var(--quick) var(--ease);
+}
+
+.hero__announce:hover {
+  color: var(--muted);
+}
+
+.hero__announce:hover svg {
+  transform: translateX(3px);
+}
