@@ -670,16 +670,24 @@ const STYLE = `
 
   /* Display line. The weight change carries the emphasis rather than a colour
      change, which is what makes theirs read as typography instead of markup. */
+  /* Display type at the reference's confidence: it sets 115px at weight 900
+     and -6% tracking, where this was 68px at 500 and -3.5%. The difference is
+     not size, it is conviction — tight enough that the words read as one mark
+     rather than a row of letters. Geist is variable to 900, so this costs
+     nothing to load.
+
+     Still capped by ch rather than px: a project name is user-supplied and a
+     long one has to wrap somewhere sensible. */
   .display {
-    font-size: clamp(2rem, 1.1rem + 3.6vw, 4.25rem);
-    line-height: 1.04;
-    letter-spacing: -0.035em;
-    font-weight: 400;
+    font-size: clamp(2.4rem, 1.2rem + 5.4vw, 6.25rem);
+    line-height: 0.94;
+    letter-spacing: -0.055em;
+    font-weight: 700;
     color: var(--paper);
     margin: 0 auto;
-    max-width: 20ch;
+    max-width: 14ch;
   }
-  .display strong { font-weight: 700; }
+  .display strong { font-weight: 800; }
   /* The accent rule under the emphasised words, drawn rather than underlined
      so it can sit low and keep its own colour. */
   .display .ruled { position: relative; white-space: nowrap; }
@@ -693,9 +701,17 @@ const STYLE = `
   }
   @keyframes rule-in { to { transform: scaleX(1); } }
 
+  /* Mono for the body line. The reference sets its whole body in a monospace
+     face, and this product already ships one — and mono here is not only
+     borrowed style: tokens.css says mono marks a value a machine used, and
+     this line is describing what the machines did. */
   .display-sub {
-    margin: 1.6rem auto 0; max-width: 46ch;
-    color: var(--muted); font-size: var(--t-body);
+    margin: 1.8rem auto 0; max-width: 52ch;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: var(--t-small);
+    letter-spacing: -0.01em;
+    line-height: 1.65;
   }
 
   /* Floating pill nav, for the project switcher. */
@@ -739,7 +755,10 @@ const STYLE = `
     .display .ruled::after { animation: none; transform: scaleX(1); }
   }
 
-  .dash-top .rename { flex-direction: column; align-items: center; gap: .5rem; }
+  /* The rule under the name sits below its baseline, so the gap has to clear
+     the rule and not just the text — at .5rem the Rename control landed on
+     top of it. */
+  .dash-top .rename { flex-direction: column; align-items: center; gap: 1.5rem; }
   .dash-top .rename .rename-open { order: 3; }
   .dash-top .rename .display { order: 1; }
   .dash-top .rename .rename-input { order: 2; text-align: center; }
@@ -762,9 +781,9 @@ const STYLE = `
     font-family: var(--mono); font-size: var(--t-small);
   }
   .danger-input::placeholder { color: var(--hair-lit); }
-  .danger-input:focus { outline: none; border-bottom-color: var(--hot); }
-  .btn--danger { color: var(--hot); border-bottom-color: color-mix(in srgb, var(--hot) 45%, transparent); }
-  .btn--danger:hover { color: var(--paper); border-bottom-color: var(--hot); }
+  .danger-input:focus { outline: none; border-bottom-color: var(--refused-mark); }
+  .btn--danger { color: var(--refused-mark); border-bottom-color: color-mix(in srgb, var(--refused-mark) 45%, transparent); }
+  .btn--danger:hover { color: var(--paper); border-bottom-color: var(--refused-mark); }
 
   .stats--center { justify-content: center; }
   .dash-top .legend { justify-content: center; }
@@ -865,6 +884,10 @@ const STYLE = `
     max-width: 68rem;
     min-height: 100vh;
     min-height: 100svh;
+    /* Clears the masthead, which is fixed. The dashboard gets this from
+       .dash-top; the signed-out page has no such section and was rendering its
+       first line underneath the bar. */
+    padding-top: clamp(6rem, 12vh, 9rem);
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr auto;
@@ -890,6 +913,22 @@ const STYLE = `
   /* The second line is the promise, and it is the warm end of the gradient —
      the same colour the dashboard uses for a decision a person made. */
   .signin-h1 em { font-style: normal; color: var(--person); }
+
+  /* Words arrive one at a time. Resting state is visible and untransformed, so
+     a browser that runs no animations shows a finished heading rather than an
+     empty one — fill-mode both fills backwards from the first keyframe only while
+     the animation is pending, and a client that ignores it never hides anything. */
+  .word {
+    display: inline-block;
+    animation: word-in 620ms var(--ease) both;
+  }
+  @keyframes word-in {
+    from { opacity: 0; transform: translateY(0.35em); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .word { animation: none; }
+  }
 
   .signin-lede {
     margin: 1.25rem 0 0;
@@ -919,7 +958,7 @@ const STYLE = `
   .ledger-row span { color: var(--faint); font-size: var(--t-small); }
   .ledger-row .ran { color: var(--ran); }
   .ledger-row .held { color: var(--person); }
-  .ledger-row .no { color: var(--hot); }
+  .ledger-row .no { color: var(--refused-mark); }
 
   /* The way in. A rule under a line of type rather than a filled pill: the
      pill is the part that read as generated, and nothing else on this page
@@ -1613,6 +1652,30 @@ export function renderDashboard(view: DashboardView): string {
   return shell(`${view.projectName} — Adeia`, body);
 }
 
+/**
+ * Splits a line into words that arrive one after another.
+ *
+ * The reference animates its headings per word, and it is the single thing
+ * that makes them feel authored rather than placed. Done here at render time
+ * rather than by splitting text in the browser: two separate bugs today were
+ * scripts that hid content and then failed to bring it back, and a heading is
+ * the worst possible thing to lose. Every word is present in the HTML, styled
+ * visible, and the animation only moves it — with no JavaScript at all, the
+ * page is already correct.
+ *
+ * `offset` continues the stagger across a line break so the second line does
+ * not restart the count.
+ */
+function words(text: string, tag: "span" | "em" = "span", offset = 0): string {
+  return text
+    .split(" ")
+    .map(
+      (w, i) =>
+        `<${tag} class="word" style="animation-delay:${(offset + i) * 70 + 120}ms">${escapeHtml(w)}</${tag}>`,
+    )
+    .join(" ");
+}
+
 /** Shown to a signed-out visitor. */
 export function renderSignIn(configured: boolean): string {
   /* No card.
@@ -1628,7 +1691,7 @@ export function renderSignIn(configured: boolean): string {
   const body = `
   <header class="bar"><p class="wordmark">Adeia</p></header>
 
-  <h1 class="signin-h1">Agents that act,<br><em>inside a fence you set.</em></h1>
+  <h1 class="signin-h1">${words("Agents that act,")}<br>${words("inside a fence you set.", "em", 3)}</h1>
 
   <p class="signin-lede">Your agent asks before it spends. Small things run.
   Anything over your limit stops and waits for you.</p>

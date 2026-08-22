@@ -76,6 +76,17 @@
   --person: #e5a44b;
   --machine: #8fa9bb;
 
+  /* A refusal is not a warm decision and not a cold one — it is the end of the
+     conversation, and it was borrowing --hot, which is the last stop of the
+     gradient and therefore also just "very warm". This is its own mark: hotter
+     and more saturated than anything else in the palette, used only where
+     something was denied. On --black it measures 6.68:1.
+
+     Taken from runrobrun.com, whose whole page runs on one orange against
+     bone. Here the ground is the opposite, so it is a mark rather than a
+     field. */
+  --refused-mark: #ff641c;
+
   /* ---- outcomes ----
      Fixed pairs, warmed to the new field. A pill paints its own ground,
      so it states its own ink rather than inheriting one that flips. */
