@@ -1049,9 +1049,9 @@ const STYLE = `
   }
 `;
 
-function shell(title: string, body: string): string {
+function shell(title: string, body: string, os: "app" | "lock" = "app"): string {
   return `<!doctype html>
-<html lang="en" data-os="app">
+<html lang="en" data-os="${os}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1066,6 +1066,8 @@ function shell(title: string, body: string): string {
 <link rel="stylesheet" href="/styles/os.css">
 <script src="/os.js"></script>
 <script src="/hero3d.js" type="module"></script>
+<script src="/transition.js"></script>
+<script src="/objects3d.js" type="module"></script>
 </head>
 <body><script src="/boot.js"></script><main class="hero">${body}</main>
 <!-- Enhancement, loaded after the document and never depended on. Every
@@ -1296,6 +1298,14 @@ export const DASHBOARD_TABS = [
 ] as const;
 
 export type DashboardTab = (typeof DASHBOARD_TABS)[number]["id"];
+
+/** The object each page of the dashboard opens on. */
+const TAB_ART: Record<Exclude<DashboardTab, "overview">, string> = {
+  activity: "audit",
+  policy: "policy",
+  keys: "capability",
+  settings: "settings",
+};
 
 export interface DashboardView {
   /** Which page of the dashboard to render. Anything unknown is the overview. */
@@ -1710,7 +1720,11 @@ export function renderDashboard(view: DashboardView): string {
 
   <section class="section dash-top hero${tab === "overview" ? "" : " dash-top--compact"}">
     <div class="wrap center">
-      ${tab === "overview" ? `<img class="dash-3d" src="/3d/hero.webp" alt="" width="1800" height="1000">` : ""}
+      ${
+        tab === "overview"
+          ? `<img class="dash-3d" src="/3d/hero.webp" alt="" width="1800" height="1000">`
+          : `<img class="tab-art" src="/3d/icon-${TAB_ART[tab]}.webp" alt="" width="220" height="220">`
+      }
       ${
         tab === "overview"
           ? view.counts.waiting > 0
@@ -1749,59 +1763,53 @@ export function renderDashboard(view: DashboardView): string {
 
 /** Shown to a signed-out visitor. */
 export function renderSignIn(configured: boolean): string {
-  /* No card.
+  /* A lock screen, the way a Mac asks for a password: the wallpaper is the
+     desk itself — the live wordmark, no files — with the date and time
+     above it and one small panel below. Two small buttons, nothing else.
 
-     A centred panel on a near-black page with a filled accent button is the
-     house style of every generated landing page of the last two years, which
-     tokens.css opens by refusing. Boxing the only content on a page also says
-     nothing: a border groups things, and there is one thing here.
-
-     What replaced it is the shape the product actually makes — a ledger. Rules
-     rather than boxes, the display face in mono because mono here marks a
-     value a machine used, and the amounts in a column you can read down. */
+     Google is shown but not live: the server only speaks GitHub OAuth today,
+     and accounts are keyed by GitHub id. It stays a labelled, disabled
+     button until that exists, rather than a link to an error. */
+  const github = `<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
+  const google = `<svg viewBox="0 0 18 18" width="15" height="15" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 010-3.44V4.95H.96a9 9 0 000 8.1l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 00.96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>`;
   const body = `
-  <header class="bar"><p class="wordmark">Adeia</p></header>
-  <div class="atmos" aria-hidden="true">
-        <div class="atmos__orb"></div>
-        <div class="atmos__grain"></div>
-        <div class="atmos__frame atmos__frame--a"></div>
-        <div class="atmos__frame atmos__frame--b"></div>
-        <div class="atmos__frame atmos__frame--c"></div>
-      </div>
-
-  <h1 class="signin-h1">Agents that act,<br><em>inside a fence you set.</em></h1>
-
-  <p class="signin-lede">Your agent asks before it spends. Small things run.
-  Anything over your limit stops and waits for you.</p>
-
-  <section class="ledger" aria-label="What happens at three amounts">
-    <div class="ledger-row" data-reveal>
-      <b>$25</b><i class="ran">runs</i><span>inside the limit you set</span>
+  <main class="desk lock">
+    <div class="lock__clock" aria-hidden="true">
+      <p class="lock__date" data-lock-date></p>
+      <p class="lock__time" data-lock-time></p>
     </div>
-    <div class="ledger-row" data-reveal>
-      <b>$500</b><i class="held">waits</i><span>emails you, and the agent stops until you answer</span>
-    </div>
-    <div class="ledger-row" data-reveal>
-      <b>$9,999,999</b><i class="no">refused</i><span>over your hard maximum, and it says so</span>
-    </div>
-  </section>
 
-  ${
-    configured
-      ? `<a class="enter" data-magnet href="/auth/github">
-           <span>Sign in with GitHub</span>
-           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none"
-                stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-             <path d="M5 12h13M12 5l7 7-7 7"/>
-           </svg>
-         </a>
-         <p class="enter-note">Asks for <code>read:user</code>. Never your repositories.
-         You get a project and an API key on the way in.</p>`
-      : `<p class="enter-note">Sign-in is not configured on this deployment.</p>`
-  }
+    <img class="desk__hero" src="/3d/hero.webp" width="1800" height="1000"
+         alt="The word adeia in tinted glass, circled by a chrome ring.">
 
-  <canvas class="field" data-fence aria-hidden="true"></canvas>`;
-  return shell("Sign in — Adeia", body);
+    <section class="lock__panel" aria-labelledby="lock-name">
+      <div class="lock__avatar" aria-hidden="true">a<i>.</i></div>
+      <h1 class="lock__name" id="lock-name">Sign in to Adeia</h1>
+      ${
+        configured
+          ? `<div class="lock__buttons">
+               <a class="lock__btn" href="/auth/github">${github}<span>GitHub</span></a>
+               <button class="lock__btn" type="button" disabled
+                       title="Google sign-in is not available yet">${google}<span>Google</span><small>soon</small></button>
+             </div>
+             <p class="lock__hint">Asks for <code>read:user</code>. Never your repositories.</p>`
+          : `<p class="lock__hint">Sign-in is not configured on this deployment.</p>`
+      }
+    </section>
+  </main>
+  <script>
+    (() => {
+      const d = document.querySelector("[data-lock-date]"), t = document.querySelector("[data-lock-time]");
+      const tick = () => {
+        const now = new Date();
+        d.textContent = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+        t.textContent = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).replace(/\s?[AP]M$/i, "");
+      };
+      tick();
+      setInterval(tick, 10000);
+    })();
+  </script>`;
+  return shell("Sign in — Adeia", body, "lock");
 }
 
 /**

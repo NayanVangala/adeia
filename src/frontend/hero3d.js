@@ -30,6 +30,7 @@
 import * as THREE from "/vendor/three.module.min.js";
 import { RoomEnvironment } from "/vendor/RoomEnvironment.js";
 import { RGBELoader } from "/vendor/RGBELoader.js";
+import { meltable, droplets, tween, arrival } from "/look3d.js";
 
 const poster = document.querySelector("img.desk__hero, img.dash-3d");
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -299,6 +300,12 @@ async function loadWord(maps) {
     }),
   );
   mesh.scale.setScalar(2); // positions were stored divided by 2
+  // Local space is half size: the word spans x ±0.89, y ±0.32 before the scale.
+  mesh.userData.melt = meltable(mesh.material, -0.32, 0.32, 3.7);
+  const drops = droplets(420, new THREE.Box3(new THREE.Vector3(-0.89, -0.32, -0.17), new THREE.Vector3(0.89, 0.32, 0.17)));
+  drops.uniforms.uScale.value = 1.4;
+  mesh.add(drops.points);
+  mesh.userData.drops = drops;
   return mesh;
 }
 
@@ -447,6 +454,10 @@ async function start() {
     new THREE.MeshBasicMaterial({ toneMapped: false }),
   );
   backdrop.position.z = -7;
+  // Drawn only into the refraction pass, never to the screen, so the page
+  // behind the canvas (the dashboard's drifting colour) stays visible.
+  backdrop.material.depthWrite = false;
+  backdrop.onBeforeRender = (r) => { backdrop.material.colorWrite = r.getRenderTarget() !== null; };
   scene.add(backdrop);
   const paintBackdrop = () => {
     const bg = getComputedStyle(canvas.parentElement || document.body).backgroundColor;
@@ -567,6 +578,31 @@ async function start() {
   resize();
   frame(2.2); // a good opening angle, and the only one under reduced motion
   poster.style.display = "none";
+
+  /* The melt, and the reform on arrival. The word melts by the shared
+     patch; the ring sinks and shrinks into the puddle with its dust. */
+  const wu = word.userData.melt, wd = word.userData.drops.uniforms;
+  let melted = 0;
+  const setMelt = (v) => {
+    melted = v;
+    wu.uMelt.value = wd.uMelt.value = v;
+    const k = v * v;
+    pivot.scale.setScalar(1 - k * 0.85);
+    pivot.position.y = -k * 1.6;
+    if (reduced) frame(2.2);
+  };
+  const setMode = (m) => { wu.uMode.value = wd.uMode.value = m; };
+  addEventListener("adeia:melt", (e) => {
+    setMode(e.detail.mode);
+    tween(melted, 1, e.detail.ms, setMelt, (x) => Math.pow(x, 1.15));
+  });
+  addEventListener("pageshow", (e) => { if (e.persisted) setMelt(0); });
+  const came = arrival();
+  if (came && !reduced) {
+    setMode(came.form);
+    setMelt(1);
+    setTimeout(() => tween(1, 0, 1700, setMelt, (x) => 1 - Math.pow(1 - x, 3)), 150);
+  }
   dispatchEvent(new Event("adeia:hero-ready"));
 
   if (!reduced) renderer.setAnimationLoop(() => frame(2.2 + clock.getElapsedTime()));

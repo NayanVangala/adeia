@@ -1845,3 +1845,200 @@ html.is-booting {
     animation: none;
   }
 }
+
+/* ---------- live objects (objects3d.js) ---------- */
+
+.objects3d {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* A dashboard page's own object, above its title. */
+.tab-art {
+  display: block;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 4px;
+}
+
+/* ---------- page changes (transition.js) ----------
+   After the melt, the page swooshes down to the next: the old view lifts
+   away and blurs while the new one rises in from below. The menubar,
+   notch, dock and bezel are named so they stay put across the change. */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-lift 0.8s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-rise 0.8s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+@keyframes vt-lift {
+  to { transform: translateY(-38%) scale(0.96); opacity: 0; filter: blur(12px); }
+}
+
+@keyframes vt-rise {
+  from { transform: translateY(100%); }
+}
+
+.os-notch { view-transition-name: os-notch; }
+.os-dock { view-transition-name: os-dock; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* ---------- the lock screen (sign-in) ----------
+   The desk as wallpaper, the date and time above, and one small panel the
+   size of a Mac's password field. */
+
+[data-os="lock"] .os-dock,
+[data-os="lock"] .os-scrim {
+  display: none;
+}
+
+.lock {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+}
+
+.lock__clock {
+  position: absolute;
+  top: clamp(64px, 11vh, 120px);
+  left: 0;
+  right: 0;
+  z-index: 3;
+  text-align: center;
+  color: var(--paper);
+  pointer-events: none;
+}
+
+.lock__date {
+  margin: 0;
+  font: 600 clamp(16px, 1.6vw, 20px)/1.2 var(--sans);
+  opacity: 0.8;
+}
+
+.lock__time {
+  margin: 2px 0 0;
+  font: 700 clamp(64px, 9vw, 112px)/1 var(--sans);
+  letter-spacing: -0.04em;
+  background: linear-gradient(180deg, var(--paper), color-mix(in srgb, var(--paper) 55%, transparent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lock__panel {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(56px, 11vh, 120px);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(320px, calc(100vw - 32px));
+  translate: -50% 0;
+  text-align: center;
+  animation: lock-in 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both 0.2s;
+}
+
+@keyframes lock-in {
+  from { opacity: 0; translate: -50% 16px; filter: blur(6px); }
+}
+
+.lock__avatar {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgb(255 255 255 / 0.85), transparent 32%),
+    radial-gradient(circle at 70% 80%, #8b5cf6, transparent 60%),
+    linear-gradient(140deg, #3e6cff, #6d3df5);
+  box-shadow:
+    inset 0 -6px 14px rgb(20 10 80 / 0.35),
+    inset 0 2px 2px rgb(255 255 255 / 0.6),
+    0 10px 26px -10px rgb(40 20 140 / 0.6);
+  color: #fff;
+  font: 700 24px/1 var(--sans);
+}
+
+.lock__avatar i {
+  font-style: normal;
+  color: #c4b5fd;
+}
+
+.lock__name {
+  margin: 2px 0 4px;
+  font: 600 15px/1.2 var(--sans);
+  color: var(--paper);
+}
+
+.lock__buttons {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--raised) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raised) 55%, transparent);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: 0 12px 30px -14px rgb(30 20 90 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+
+.lock__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--raised);
+  font: 500 13px/1 var(--sans);
+  text-decoration: none;
+  cursor: pointer;
+  transition: scale 0.4s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.2s;
+}
+
+.lock__btn:hover { scale: 1.04; }
+.lock__btn:active { scale: 0.95; }
+
+.lock__btn:disabled {
+  background: color-mix(in srgb, var(--raised) 85%, transparent);
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.lock__btn small {
+  font: 500 10px/1 var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.lock__hint {
+  margin: 2px 0 0;
+  font: 400 12px/1.4 var(--sans);
+  color: var(--faint);
+}
+
+.lock__hint code {
+  font-size: 11px;
+}

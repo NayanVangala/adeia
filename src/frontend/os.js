@@ -14,7 +14,7 @@
   // The desk is light by default, as the reference is; dark is a choice.
   root.dataset.theme = stored === "dark" ? "dark" : "light";
 
-  const mode = root.dataset.os; // "site" (the desk), "page", or "app"
+  const mode = root.dataset.os; // "site" (the desk), "page", "app", or "lock" (sign-in)
   if (!mode) return;
 
   // [path, label, icon, file name shown under it]
@@ -149,6 +149,8 @@
       for (const t of toggles) t.setAttribute("aria-expanded", String(on));
     };
     for (const t of toggles) t.addEventListener("click", () => setDock(!dock.classList.contains("is-open")));
+    // transition.js folds the dock away before a page change starts.
+    addEventListener("adeia:dock-close", () => setDock(false));
     scrim.addEventListener("click", () => setDock(false));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") setDock(false); });
 
@@ -318,7 +320,7 @@
           });
         });
       }
-    } else {
+    } else if (mode !== "lock") {
       // A whole page in one window. The footer comes inside with it.
       const main = document.querySelector("main");
       if (!main) return;
@@ -346,6 +348,12 @@
     }
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  // objects3d.js waits for this: the page art it replaces is added by start().
+  const ready = () => {
+    start();
+    root.dataset.osReady = "1";
+    dispatchEvent(new Event("adeia:os-ready"));
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);
+  else ready();
 })();
