@@ -139,8 +139,33 @@ function lacquerMaps() {
       p.stroke();
     }
   }
+  // Flaws: a few shallow dents and hairline scratches, the kind a real
+  // glass object collects. Drawn as a height field, then turned into normals.
+  const f = document.createElement("canvas");
+  f.width = f.height = S;
+  const fc = f.getContext("2d");
+  fc.fillStyle = "rgb(128,128,128)";
+  fc.fillRect(0, 0, S, S);
+  for (let i = 0; i < 18; i++) {
+    const x = Math.random() * S, y = Math.random() * S, r = 2 + Math.random() * 7;
+    const g = fc.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, "rgba(60,60,60,0.9)");
+    g.addColorStop(1, "rgba(128,128,128,0)");
+    fc.fillStyle = g;
+    fc.beginPath(); fc.arc(x, y, r, 0, Math.PI * 2); fc.fill();
+  }
+  fc.strokeStyle = "rgba(200,200,200,0.7)";
+  for (let i = 0; i < 26; i++) {
+    const x = Math.random() * S, y = Math.random() * S, a = Math.random() * Math.PI, l = 10 + Math.random() * 60;
+    fc.lineWidth = 0.6;
+    fc.beginPath(); fc.moveTo(x, y); fc.quadraticCurveTo(x + Math.cos(a + 0.3) * l * 0.5, y + Math.sin(a + 0.3) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); fc.stroke();
+  }
+  const fd = fc.getImageData(0, 0, S, S).data;
+  const fh = new Float32Array(S * S);
+  for (let i = 0; i < S * S; i++) fh[i] = fd[i * 4] / 255 + (peel[i] - 0.5) * 0.15;
   return {
     peel: normalMapFrom(peel, S, 3.2, [1, 1]),
+    flaws: normalMapFrom(fh, S, 4, [1, 1]),
     gloss: finishTexture(prints, [1, 1], false),
   };
 }
@@ -227,7 +252,9 @@ async function loadWord(maps) {
     const a = RAMP[Math.min(1, Math.floor(t))];
     const b = RAMP[Math.min(2, Math.floor(t) + 1)];
     const f = t - Math.floor(t);
-    for (let c = 0; c < 3; c++) col[i * 3 + c] = a[c] + (b[c] - a[c]) * f;
+    // Lifted toward white: glass tints what passes through, so a pure
+    // saturated tint would read as ink rather than colour.
+    for (let c = 0; c < 3; c++) col[i * 3 + c] = 0.24 + 0.76 * (a[c] + (b[c] - a[c]) * f);
     // Box projection: the geometry has no UVs, and noise does not need good ones.
     const ax = Math.abs(nor[i * 3]), ay = Math.abs(nor[i * 3 + 1]), az = Math.abs(nor[i * 3 + 2]);
     const [u, v] = az >= ax && az >= ay ? [x, y] : ax >= ay ? [z, y] : [x, z];
@@ -245,22 +272,30 @@ async function loadWord(maps) {
   const mesh = new THREE.Mesh(
     g,
     new THREE.MeshPhysicalMaterial({
+      // Coloured glass, not paint: light goes in, bends, picks up colour
+      // the deeper it travels, and comes out split at the edges. The vertex
+      // colours tint it blue to violet across the word.
       vertexColors: true,
-      roughness: 0.32,
+      transmission: 1,
+      thickness: 0.8,
+      attenuationColor: new THREE.Color(0.42, 0.34, 1.0),
+      attenuationDistance: 1.5,
+      ior: 1.5,
+      dispersion: 0.4,
+      roughness: 0.06,
       roughnessMap: maps.gloss,
+      normalMap: maps.flaws,
+      normalScale: new THREE.Vector2(0.06, 0.06),
       clearcoat: 1,
-      clearcoatRoughness: 0.08,
+      clearcoatRoughness: 0.05,
       clearcoatRoughnessMap: maps.gloss,
       clearcoatNormalMap: maps.peel,
-      clearcoatNormalScale: new THREE.Vector2(0.22, 0.22),
-      sheen: 0.28,
-      sheenRoughness: 0.45,
-      sheenColor: new THREE.Color(0.55, 0.45, 1.0),
-      iridescence: 0.28,
+      clearcoatNormalScale: new THREE.Vector2(0.12, 0.12),
+      iridescence: 0.18,
       iridescenceIOR: 1.32,
       iridescenceThicknessRange: [180, 520],
       specularIntensity: 1,
-      envMapIntensity: 1.15,
+      envMapIntensity: 1.25,
     }),
   );
   mesh.scale.setScalar(2); // positions were stored divided by 2
@@ -403,6 +438,27 @@ async function start() {
   const rig = new THREE.Group(); // pointer parallax tilts everything together
   scene.add(rig);
 
+  // Glass refracts what is rendered behind it, and a transparent canvas has
+  // nothing there. So a plane far back carries the page's own background
+  // colour, exempt from tone mapping so it matches the page exactly, and
+  // follows the light/dark switch.
+  const backdrop = new THREE.Mesh(
+    new THREE.PlaneGeometry(80, 50),
+    new THREE.MeshBasicMaterial({ toneMapped: false }),
+  );
+  backdrop.position.z = -7;
+  scene.add(backdrop);
+  const paintBackdrop = () => {
+    const bg = getComputedStyle(canvas.parentElement || document.body).backgroundColor;
+    const from = bg && !/rgba\(0, 0, 0, 0\)|transparent/.test(bg) ? bg : getComputedStyle(document.body).backgroundColor;
+    backdrop.material.color.setStyle(from);
+    if (reduced) frame(2.2);
+  };
+  new MutationObserver(() => requestAnimationFrame(paintBackdrop)).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme", "class"],
+  });
+
   const word = await loadWord(lacquerMaps());
   rig.add(word);
 
@@ -506,6 +562,7 @@ async function start() {
   }
 
   poster.after(canvas);
+  paintBackdrop();
   new ResizeObserver(resize).observe(canvas);
   resize();
   frame(2.2); // a good opening angle, and the only one under reduced motion
