@@ -175,6 +175,7 @@ async function renderDashboardFor(
   project: Project,
   freshApiKey?: string,
   flash?: { text: string; kind: "approved" | "denied" },
+  tab?: string,
 ): Promise<string> {
   const httpRow = await getPolicy(deps.db, project.id, "http");
   let allowedHosts: string[] = [];
@@ -207,6 +208,7 @@ async function renderDashboardFor(
       refusedToday: await countActionsByStatusToday(deps.db, project.id, "denied"),
     },
     freshApiKey,
+    tab,
     csrf: session.csrf,
     flash,
     allowedHosts,
@@ -315,12 +317,12 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     if (typeof add === "string" && add.trim() !== "") {
       const candidate = normaliseHost(add);
       if (!candidate) {
-        return c.redirect("/dashboard?policy=invalid", 302);
+        return c.redirect("/dashboard?tab=policy&policy=invalid", 302);
       }
       if (isBlockedHost(candidate)) {
         // Refused here as well as in the engine, because "I added it and
         // nothing happened" is a worse experience than being told why.
-        return c.redirect("/dashboard?policy=private", 302);
+        return c.redirect("/dashboard?tab=policy&policy=private", 302);
       }
       if (!hosts.includes(candidate)) hosts.push(candidate);
     }
@@ -333,7 +335,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
       maxCallsPerDay: policy.maxCallsPerDay,
     });
 
-    return c.redirect("/dashboard?policy=saved", 302);
+    return c.redirect("/dashboard?tab=policy&policy=saved", 302);
   });
 
   /**
@@ -427,7 +429,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
        rendered into a heading. */
     if (raw) await renameProject(deps.db, project.id, session.user.id, raw.slice(0, 60));
 
-    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
+    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&tab=settings`, 302);
   });
 
   /**
@@ -463,12 +465,12 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     if (!restoring) {
       const liveOthers = owned.filter((p) => p.id !== project.id && p.archivedAt === null);
       if (liveOthers.length === 0) {
-        return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&archive=last`, 302);
+        return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&tab=settings&archive=last`, 302);
       }
     }
 
     await setProjectArchived(deps.db, project.id, session.user.id, !restoring);
-    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}`, 302);
+    return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&tab=settings`, 302);
   });
 
   /**
@@ -503,12 +505,12 @@ export function createDashboardRoutes(): Hono<AppEnv> {
     if (!project) return c.redirect("/dashboard", 302);
 
     if (owned.length <= 1) {
-      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&del=last`, 302);
+      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&tab=settings&del=last`, 302);
     }
 
     const typed = typeof form["confirm"] === "string" ? form["confirm"].trim() : "";
     if (typed !== project.name) {
-      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&del=name`, 302);
+      return c.redirect(`/dashboard?p=${encodeURIComponent(project.id)}&tab=settings&del=name`, 302);
     }
 
     await deleteProject(deps.db, project.id, session.user.id);
@@ -597,7 +599,7 @@ export function createDashboardRoutes(): Hono<AppEnv> {
                     }
                   : undefined;
 
-    return c.html(await renderDashboardFor(deps, session, project, freshApiKey, flash));
+    return c.html(await renderDashboardFor(deps, session, project, freshApiKey, flash, c.req.query("tab")));
   });
 
   return routes;

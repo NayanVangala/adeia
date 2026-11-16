@@ -163,7 +163,7 @@ describe("what the dashboard shows", () => {
     const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, paymentRequest(2_500));
 
-    const body = await (await get("/dashboard", cookie)).text();
+    const body = await (await get("/dashboard?tab=activity", cookie)).text();
     expect(body).toContain("$25.00");
     expect(body).toContain("ran");
   });
@@ -174,7 +174,7 @@ describe("what the dashboard shows", () => {
     const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("POST"));
 
-    const body = await (await get("/dashboard", cookie)).text();
+    const body = await (await get("/dashboard?tab=activity", cookie)).text();
     expect(body).toContain("A model judged this low risk and let it run");
     expect(body).toContain("Creates an issue.");
   });
@@ -208,7 +208,7 @@ describe("what the dashboard shows", () => {
     const { cookie } = await ownProject();
     await requestAction(h.deps, h.projectId, httpRequest("POST"));
 
-    const body = await (await get("/dashboard", cookie)).text();
+    const body = await (await get("/dashboard?tab=activity", cookie)).text();
     expect(body).not.toContain("<img src=x");
     expect(body).toContain("&lt;img src=x");
   });
@@ -257,7 +257,7 @@ describe("rotating the API key", () => {
 
   /** Reads the CSRF token the page embedded in its forms. */
   async function csrfFrom(cookie: string): Promise<string> {
-    const body = await (await get("/dashboard", cookie)).text();
+    const body = await (await get("/dashboard?tab=settings", cookie)).text();
     return /name="csrf" value="([a-f0-9]+)"/.exec(body)?.[1] ?? "";
   }
 
@@ -391,7 +391,8 @@ describe("more than one project", () => {
   /** Signs in, provisioning the first project, and reads back its CSRF token. */
   async function established(login: string, ghId: string) {
     const session = await signIn(login, ghId);
-    const page = await (await get("/dashboard", session.cookie)).text();
+    await get("/dashboard", session.cookie); // provisions; that visit shows only the new key
+    const page = await (await get("/dashboard?tab=settings", session.cookie)).text();
     const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
     const rows = h.db.$client
       .prepare("SELECT id FROM projects WHERE owner_user_id = ?")
@@ -598,7 +599,8 @@ describe("archiving a project", () => {
 
   async function established(login: string, ghId: string) {
     const session = await signIn(login, ghId);
-    const page = await (await get("/dashboard", session.cookie)).text();
+    await get("/dashboard", session.cookie); // provisions; that visit shows only the new key
+    const page = await (await get("/dashboard?tab=settings", session.cookie)).text();
     const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
     const rows = h.db.$client
       .prepare("SELECT id FROM projects WHERE owner_user_id = ?")
@@ -712,7 +714,8 @@ describe("deleting a project", () => {
 
   async function established(login: string, ghId: string) {
     const session = await signIn(login, ghId);
-    const page = await (await get("/dashboard", session.cookie)).text();
+    await get("/dashboard", session.cookie); // provisions; that visit shows only the new key
+    const page = await (await get("/dashboard?tab=settings", session.cookie)).text();
     const csrf = /name="csrf" value="([^"]+)"/.exec(page)?.[1] ?? "";
     const rows = h.db.$client
       .prepare("SELECT id, name FROM projects WHERE owner_user_id = ?")

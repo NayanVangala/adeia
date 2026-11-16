@@ -208,7 +208,7 @@ describe("the dashboard shows the allowlist", () => {
     const s = await signIn("alice", "1");
     own(s);
 
-    const body = await (await h.app.request("/dashboard", { headers: { cookie: s.cookie } })).text();
+    const body = await (await h.app.request("/dashboard?tab=policy", { headers: { cookie: s.cookie } })).text();
 
     expect(body).toContain("No hosts allowed yet");
     expect(body).toContain("every outbound call is refused");
@@ -219,7 +219,7 @@ describe("the dashboard shows the allowlist", () => {
     own(s);
     await editHosts({ csrf: s.csrf, add: "api.github.com" }, s.cookie);
 
-    const body = await (await h.app.request("/dashboard", { headers: { cookie: s.cookie } })).text();
+    const body = await (await h.app.request("/dashboard?tab=policy", { headers: { cookie: s.cookie } })).text();
 
     expect(body).toContain("api.github.com");
     expect(body).toContain(">Remove<");

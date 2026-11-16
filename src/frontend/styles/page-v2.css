@@ -1455,7 +1455,7 @@ body::after {
 
 .decide__yes {
   background: var(--person);
-  color: var(--black);
+  color: var(--on-mark);
 }
 
 .decide__no:hover {

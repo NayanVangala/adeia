@@ -41,7 +41,7 @@ const STYLE = `
     padding: 2rem 1.25rem 5rem;
     background: var(--bg);
     color: var(--fg);
-    font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--sans);
     font-size: 1rem;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
@@ -94,7 +94,7 @@ const STYLE = `
   /* ---------- the three figures ---------- */
   .stats { display: flex; gap: 3rem; flex-wrap: wrap; margin: 0 0 2.5rem; }
   .stat-n {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-family: var(--mono);
     font-size: 2.25rem; font-weight: 400; line-height: 1; letter-spacing: -0.03em;
   }
   .stat-l {
@@ -116,7 +116,7 @@ const STYLE = `
   tr:last-child td { border-bottom: 0; }
   .what { font-weight: 500; font-size: 0.9375rem; }
   .mono {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-family: var(--mono);
     font-variant-ligatures: none; letter-spacing: -0.01em;
   }
   .sub { color: var(--quiet); font-size: 0.8125rem; margin-top: 0.25rem; word-break: break-word; }
@@ -154,14 +154,14 @@ const STYLE = `
     border-radius: 3px; border: 1px solid transparent; cursor: pointer;
     white-space: nowrap; transition: all 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-  .decide .yes { background: var(--warm); color: var(--black); }
+  .decide .yes { background: var(--warm); color: var(--on-mark); }
   .decide .yes:hover { background: var(--hot); }
   .decide .no { background: transparent; color: var(--quiet); border-color: var(--rule); }
   .decide .no:hover { color: var(--refused); border-color: var(--refused); }
 
   /* ---------- credential ---------- */
   .key {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-family: var(--mono);
     font-size: 0.8125rem; background: var(--black); border: 1px solid var(--rule);
     border-radius: 3px; padding: 0.875rem; word-break: break-all;
     margin: 1rem 0; color: var(--warm);
@@ -177,7 +177,7 @@ const STYLE = `
   }
 
   .btn {
-    display: inline-block; background: var(--warm); color: var(--black);
+    display: inline-block; background: var(--warm); color: var(--on-mark);
     text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 3px;
     font-weight: 600; font-size: 0.8125rem; letter-spacing: 0.06em;
     text-transform: uppercase; border: 0; font-family: inherit; cursor: pointer;
@@ -204,14 +204,14 @@ const STYLE = `
   .addhost input[type="text"] {
     flex: 1 1 16rem; padding: 0.625rem 0.75rem; border-radius: 3px;
     border: 1px solid var(--rule); background: var(--black); color: var(--fg);
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace; font-size: 0.8125rem;
+    font-family: var(--mono); font-size: 0.8125rem;
   }
   .addhost input[type="text"]:focus-visible {
     outline: 2px solid var(--warm); outline-offset: 1px;
   }
 
   code {
-    font-family: "Geist Mono", ui-monospace, Menlo, monospace;
+    font-family: var(--mono);
     font-size: 0.8125rem; color: var(--warm);
   }
   .steps { padding-left: 1.25rem; line-height: 1.8; }
@@ -640,7 +640,7 @@ const STYLE = `
      centred display line with the weight change carrying the emphasis, and a
      primary control paired with a quiet secondary.
 
-     Their display is 72px at -0.035em in Geist 700. Ours is the same shape on
+     Their display is 72px at -0.035em. Ours is the same shape on
      a warm near-black ground instead of white. */
   .center { text-align: center; }
 
@@ -1051,7 +1051,7 @@ const STYLE = `
 
 function shell(title: string, body: string): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-os="app">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1060,8 +1060,14 @@ function shell(title: string, body: string): string {
 <title>${escapeHtml(title)}</title>
 <link rel="stylesheet" href="/styles/cursor.css">
 <style>${STYLE}</style>
+<!-- The desktop the marketing site sits on: menubar, notch, Explore island,
+     windows, and the light/dark switch. os.js is synchronous so the theme is
+     set before first paint; everything else it does is enhancement. -->
+<link rel="stylesheet" href="/styles/os.css">
+<script src="/os.js"></script>
+<script src="/hero3d.js" type="module"></script>
 </head>
-<body><main class="hero">${body}</main>
+<body><script src="/boot.js"></script><main class="hero">${body}</main>
 <!-- Enhancement, loaded after the document and never depended on. Every
      effect these add is absent under prefers-reduced-motion and on a device
      without a hovering pointer, which is the same judgement the marketing
@@ -1281,7 +1287,19 @@ export interface DashboardAction {
   classifier: { verdict: string; reason: string; model: string } | null;
 }
 
+export const DASHBOARD_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "activity", label: "Activity" },
+  { id: "policy", label: "Policy" },
+  { id: "keys", label: "API key" },
+  { id: "settings", label: "Settings" },
+] as const;
+
+export type DashboardTab = (typeof DASHBOARD_TABS)[number]["id"];
+
 export interface DashboardView {
+  /** Which page of the dashboard to render. Anything unknown is the overview. */
+  tab?: string;
   user: { login: string; avatarUrl: string | null };
   projectName: string;
   /** Which project this page is about. Carried on every form that changes it. */
@@ -1483,16 +1501,16 @@ export function renderDashboard(view: DashboardView): string {
    * snippet carries a placeholder, because Adeia stores a hash and genuinely
    * cannot print the key again.
    */
-  const firstCall = view.actions.length > 0 ? "" : `
+  const firstCall = `
     <section class="panel">
-      <p class="panel-lede">Run this and it lands in the trail below. It is $25, which is
+      <p class="panel-lede">Run this and it shows up under Activity. It is $25, which is
       under your $50 limit, so Adeia executes it rather than asking you about it.</p>
       <pre class="snippet"><code id="first-call">curl -X POST ${escapeHtml(view.baseUrl)}/v1/actions \\
   -H "authorization: Bearer ${escapeHtml(view.freshApiKey ?? "YOUR_API_KEY")}" \\
   -H "content-type: application/json" \\
   -d '{"type":"payment","idempotencyKey":"'$(uuidgen)'","params":{"amountCents":2500,"currency":"usd","recipient":"acct_example"}}'</code></pre>
       <button class="btn" type="button" data-copy="first-call">Copy</button>
-      <p class="panel-note">Then reload this page. Try it again with
+      <p class="panel-note">Then open Activity. Try it again with
       <code>"amountCents":50000</code> and it stops and emails you instead.
       <br><span class="panel-dim">The idempotency key is what stops a retry becoming
       a second payment — send the same one twice and you get the same action back,
@@ -1527,6 +1545,156 @@ export function renderDashboard(view: DashboardView): string {
            </div>
          </section>`;
 
+  /* Which page of the dashboard this is. A freshly minted key always lands
+     on the key page and nowhere else, so the secret is never on screen next
+     to payments, hosts or the delete button. */
+  const tab: DashboardTab = view.freshApiKey
+    ? "keys"
+    : DASHBOARD_TABS.some((t) => t.id === view.tab)
+      ? (view.tab as DashboardTab)
+      : "overview";
+  const href = (t: DashboardTab, projectId = view.projectId): string =>
+    `/dashboard?p=${encodeURIComponent(projectId)}&amp;tab=${t}`;
+
+  const tabs = `<nav class="dash-tabs" aria-label="Dashboard sections">${DASHBOARD_TABS.map(
+    (t) =>
+      `<a href="${href(t.id)}"${t.id === tab ? ' class="is-on" aria-current="page"' : ""}>${escapeHtml(t.label)}${
+        t.id === "overview" && view.counts.waiting > 0 ? ` <b>${view.counts.waiting}</b>` : ""
+      }</a>`,
+  ).join("")}</nav>`;
+
+  /* Archived projects are kept out of the switcher. That is the whole
+     complaint archiving used to earn: a project you retired is not one you
+     want to keep stepping past. The one you are actually looking at still
+     appears, archived or not, so the switcher never lies about where you are.
+     Switching keeps you on the same page of the dashboard. */
+  const switcher = (() => {
+    const shown = view.projects.filter((p) => !p.archived || p.id === view.projectId);
+    const hidden = view.projects.filter((p) => p.archived && p.id !== view.projectId);
+    const nav =
+      shown.length > 1
+        ? `<nav class="pillnav" aria-label="Projects">${shown
+            .map(
+              (p) =>
+                `<a class="${p.id === view.projectId ? "is-on" : ""}${p.archived ? " is-archived" : ""}"
+                    href="${href(tab, p.id)}"
+                    ${p.id === view.projectId ? 'aria-current="page"' : ""}
+                 >${escapeHtml(p.name)}</a>`,
+            )
+            .join("")}</nav>`
+        : "";
+    const rest =
+      hidden.length > 0
+        ? `<p class="archived-list">${hidden.length} archived —
+           ${hidden.map((p) => `<a href="${href(tab, p.id)}">${escapeHtml(p.name)}</a>`).join(", ")}</p>`
+        : "";
+    return nav + rest;
+  })();
+
+  const archivedNote = view.projectArchivedAt
+    ? `<p class="archived-note">Archived ${escapeHtml(when(view.projectArchivedAt))}.
+       Its key no longer authenticates, so nothing can act as this project.
+       Everything is still here.</p>`
+    : "";
+
+  const legend = `<ul class="legend" data-reveal>
+        <li class="is-person"><i></i> you decided</li>
+        <li class="is-machine"><i></i> a model judged</li>
+        <li><i></i> your policy decided</li>
+      </ul>`;
+
+  const overview = `
+    <div class="stats stats--center">
+      <div><img class="stat-ico" src="/3d/icon-contact.webp" alt=""><div class="stat-n">${view.counts.waiting}</div><div class="stat-l">waiting on you</div></div>
+      <div><img class="stat-ico" src="/3d/icon-proof.webp" alt=""><div class="stat-n">${view.counts.ranToday}</div><div class="stat-l">ran today</div></div>
+      <div><img class="stat-ico" src="/3d/icon-policy.webp" alt=""><div class="stat-n">${view.counts.refusedToday}</div><div class="stat-l">refused today</div></div>
+    </div>`;
+
+  const settings = `
+    <form class="setting" method="POST" action="/dashboard/project/rename">
+      <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+      <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+      <label class="setting-label" for="rename-input">Project name</label>
+      <div class="setting-row">
+        <input id="rename-input" class="newproj-input" name="name" value="${escapeHtml(view.projectName)}"
+               maxlength="60" aria-label="Project name">
+        <button class="btn btn--sm" type="submit">Rename</button>
+      </div>
+    </form>
+    <form class="setting" method="POST" action="/dashboard/project/new">
+      <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+      <label class="setting-label" for="newproj-input">New project</label>
+      <div class="setting-row">
+        <input id="newproj-input" class="newproj-input" name="name" placeholder="New project name" maxlength="60"
+               aria-label="New project name">
+        <button class="btn btn--sm" type="submit">Create project</button>
+      </div>
+      <p class="panel-dim">You get its key once, on the API key page.</p>
+    </form>
+    <form class="setting" method="POST" action="/dashboard/project/archive">
+      <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+      <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+      ${view.projectArchivedAt ? `<input type="hidden" name="restore" value="1">` : ""}
+      <p class="setting-label">${view.projectArchivedAt ? "Restore" : "Archive"}</p>
+      <div class="setting-row">
+        <p class="panel-dim" style="margin:0;flex:1">${
+          view.projectArchivedAt
+            ? "Restoring makes the existing key work again."
+            : "Archiving stops the key immediately and keeps every record."
+        }</p>
+        <button class="btn btn--quiet btn--sm" type="submit">${
+          view.projectArchivedAt ? "Restore project" : "Archive project"
+        }</button>
+      </div>
+    </form>`;
+
+  const danger =
+    view.projects.length > 1
+      ? `<form class="danger" method="POST" action="/dashboard/project/delete">
+           <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
+           <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
+           <p class="danger-lede">Deleting <strong>${escapeHtml(view.projectName)}</strong> removes its
+           key, every action it took and the whole audit trail. There is no undo.
+           Archiving stops the key and keeps the record — prefer it unless you
+           genuinely want the history gone.</p>
+           <label class="danger-label" for="confirm-name">Type <code>${escapeHtml(view.projectName)}</code> to confirm</label>
+           <div class="danger-row">
+             <input id="confirm-name" class="danger-input" name="confirm" autocomplete="off"
+                    placeholder="${escapeHtml(view.projectName)}" aria-label="Type the project name to confirm">
+             <button class="btn btn--danger btn--sm" type="submit">Delete permanently</button>
+           </div>
+         </form>`
+      : "";
+
+  const getStarted =
+    view.actions.length === 0
+      ? `<p class="empty">No actions yet. Get your key and the first call to send on the
+         <a href="${href("keys")}">API key</a> page.</p>`
+      : "";
+
+  const content: Record<DashboardTab, string> = {
+    overview: `
+      <section class="section section--raised" id="waiting">
+        <div class="wrap">
+          <p class="section-eyebrow" data-reveal><b>01</b><span>waiting on you</span><i></i></p>
+          ${legend}
+          ${table(waiting, "Nothing is waiting. Adeia will email you when something needs a decision.")}
+          ${getStarted}
+        </div>
+      </section>`,
+    activity: `
+      <section class="section">
+        <div class="wrap">
+          <p class="section-eyebrow" data-reveal><b>01</b><span>recent activity</span><i></i></p>
+          ${legend}
+          ${table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here.")}
+        </div>
+      </section>`,
+    policy: section("01", "allowed hosts", hostsCard(view.allowedHosts, view.csrf, view.projectId), true),
+    keys: `${section("01", "your api key", keyBlock, true)}${section("02", "your first call", firstCall)}`,
+    settings: `${section("01", "project", settings, true)}${section("02", "danger", danger)}`,
+  };
+
   const body = `
   <header class="bar">
     <p class="wordmark">Adeia</p>
@@ -1540,155 +1708,33 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </header>
 
-  <section class="section dash-top hero">
-      <div class="atmos" aria-hidden="true">
-        <div class="atmos__orb"></div>
-        <div class="atmos__grain"></div>
-        <div class="atmos__frame atmos__frame--a"></div>
-        <div class="atmos__frame atmos__frame--b"></div>
-        <div class="atmos__frame atmos__frame--c"></div>
-      </div>
+  <section class="section dash-top hero${tab === "overview" ? "" : " dash-top--compact"}">
     <div class="wrap center">
-
-      <!-- The one open thing, announced. Links to it rather than describing it. -->
+      ${tab === "overview" ? `<img class="dash-3d" src="/3d/hero.webp" alt="" width="1800" height="1000">` : ""}
       ${
-        view.counts.waiting > 0
-          ? `<a class="announce" href="#waiting">
-               <b>${view.counts.waiting} waiting</b>
-               <span>${view.counts.waiting === 1 ? "an action needs your decision" : "actions need your decision"}</span>
-               ${arrow}
-             </a>`
-          : `<span class="announce announce--calm">
-               <b>all clear</b>
-               <span>nothing is waiting on you</span>
-             </span>`
-      }
-
-      ${
-        /* Archived projects are kept out of the switcher. That is the whole
-           complaint archiving used to earn: a project you retired is not one
-           you want to keep stepping past. The one you are actually looking at
-           still appears, archived or not, so the switcher never lies about
-           where you are. */
-        (() => {
-          const shown = view.projects.filter((p) => !p.archived || p.id === view.projectId);
-          const hidden = view.projects.filter((p) => p.archived && p.id !== view.projectId);
-          const nav =
-            shown.length > 1
-              ? `<nav class="pillnav" aria-label="Projects">${shown
-                  .map(
-                    (p) =>
-                      `<a class="${p.id === view.projectId ? "is-on" : ""}${p.archived ? " is-archived" : ""}"
-                          href="/dashboard?p=${encodeURIComponent(p.id)}"
-                          ${p.id === view.projectId ? 'aria-current="page"' : ""}
-                       >${escapeHtml(p.name)}</a>`,
-                  )
-                  .join("")}</nav>`
-              : "";
-          const rest =
-            hidden.length > 0
-              ? `<p class="archived-list">${hidden.length} archived —
-                 ${hidden
-                   .map(
-                     (p) =>
-                       `<a href="/dashboard?p=${encodeURIComponent(p.id)}">${escapeHtml(p.name)}</a>`,
-                   )
-                   .join(", ")}</p>`
-              : "";
-          return nav + rest;
-        })()
-      }
-
-
-      <form class="rename" method="POST" action="/dashboard/project/rename">
-        <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-        <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
-        <h1 class="display" data-rename-label><strong class="ruled">${escapeHtml(view.projectName)}</strong></h1>
-        <input class="rename-input" name="name" value="${escapeHtml(view.projectName)}"
-               maxlength="60" aria-label="Project name">
-        <button class="btn btn--sm" type="submit">Save</button>
-        <button class="btn btn--sm rename-cancel" type="button" data-rename-cancel>Cancel</button>
-        <button class="btn btn--sm rename-open" type="button" data-rename-open>Rename</button>
-      </form>
-
-      <p class="display-sub">Everything your agents asked to do, and what Adeia did about it.</p>
-
-      ${
-        view.projectArchivedAt
-          ? `<p class="archived-note">Archived ${escapeHtml(when(view.projectArchivedAt))}.
-             Its key no longer authenticates, so nothing can act as this project.
-             Everything below is still here.</p>`
+        tab === "overview"
+          ? view.counts.waiting > 0
+            ? `<a class="announce" href="#waiting">
+                 <b>${view.counts.waiting} waiting</b>
+                 <span>${view.counts.waiting === 1 ? "an action needs your decision" : "actions need your decision"}</span>
+                 ${arrow}
+               </a>`
+            : `<span class="announce announce--calm">
+                 <b>all clear</b>
+                 <span>nothing is waiting on you</span>
+               </span>`
           : ""
       }
-
-      <div class="stats stats--center">
-        <div><div class="stat-n">${view.counts.waiting}</div><div class="stat-l">waiting on you</div></div>
-        <div><div class="stat-n">${view.counts.ranToday}</div><div class="stat-l">ran today</div></div>
-        <div><div class="stat-n">${view.counts.refusedToday}</div><div class="stat-l">refused today</div></div>
-      </div>
-
-      <div class="cta-row">
-        <form method="POST" action="/dashboard/project/new" style="margin:0;display:flex;gap:.75rem;align-items:center">
-          <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-          <input class="newproj-input" name="name" placeholder="New project name" maxlength="60"
-                 aria-label="New project name">
-          <button class="btn btn--pill" type="submit">Create project</button>
-        </form>
-        <form method="POST" action="/dashboard/project/archive" style="margin:0">
-          <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-          <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
-          ${view.projectArchivedAt ? `<input type="hidden" name="restore" value="1">` : ""}
-          <button class="btn btn--quiet btn--sm" type="submit">${
-            view.projectArchivedAt ? "Restore project" : "Archive project"
-          }</button>
-        </form>
-      </div>
-
+      ${switcher}
+      <h1 class="display"><strong class="ruled">${escapeHtml(view.projectName)}</strong></h1>
+      ${tabs}
+      ${archivedNote}
+      ${tab === "overview" ? overview : ""}
       ${flash}
     </div>
   </section>
 
-  ${section("01", "your api key", keyBlock, true)}
-  ${section("02", "your first call", firstCall)}
-
-  <section class="section section--raised" id="waiting">
-    <div class="wrap">
-      <p class="section-eyebrow" data-reveal><b>03</b><span>waiting on you</span><i></i></p>
-      <ul class="legend" data-reveal>
-        <li class="is-person"><i></i> you decided</li>
-        <li class="is-machine"><i></i> a model judged</li>
-        <li><i></i> your policy decided</li>
-      </ul>
-      ${table(waiting, "Nothing is waiting. Adeia will email you when something needs a decision.")}
-    </div>
-  </section>
-
-  ${section("04", "recent activity", table(rest, "No actions yet. Point an agent at Adeia with your API key and they will show up here."))}
-  ${section("05", "policy", hostsCard(view.allowedHosts, view.csrf, view.projectId), true)}
-
-  ${
-    view.projects.length > 1
-      ? `<section class="section">
-           <div class="wrap">
-             <p class="section-eyebrow"><b>06</b><span>danger</span><i></i></p>
-             <form class="danger" method="POST" action="/dashboard/project/delete">
-               <input type="hidden" name="csrf" value="${escapeHtml(view.csrf)}">
-               <input type="hidden" name="projectId" value="${escapeHtml(view.projectId)}">
-               <p class="danger-lede">Deleting <strong>${escapeHtml(view.projectName)}</strong> removes its
-               key, every action it took and the whole audit trail. There is no undo.
-               Archiving stops the key and keeps the record — prefer it unless you
-               genuinely want the history gone.</p>
-               <label class="danger-label" for="confirm-name">Type <code>${escapeHtml(view.projectName)}</code> to confirm</label>
-               <div class="danger-row">
-                 <input id="confirm-name" class="danger-input" name="confirm" autocomplete="off"
-                        placeholder="${escapeHtml(view.projectName)}" aria-label="Type the project name to confirm">
-                 <button class="btn btn--danger btn--sm" type="submit">Delete permanently</button>
-               </div>
-             </form>
-           </div>
-         </section>`
-      : ""
-  }
+  ${content[tab]}
 
   <footer class="dash-foot" data-reveal>
     <div class="wrap dash-foot__inner">
@@ -1697,7 +1743,6 @@ export function renderDashboard(view: DashboardView): string {
     </div>
   </footer>
   `;
-
 
   return shell(`${view.projectName} — Adeia`, body);
 }

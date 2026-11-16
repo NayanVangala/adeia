@@ -1,0 +1,1842 @@
+/* ---------------------------------------------------------------
+   Adeia OS — the desk every page sits on.
+
+   Measured from the reference desktop: a #f3f1f2 desk, white chips
+   44px tall on an 8px radius with 4px between them, a black dock
+   480 x 58 on a 16px radius, and windows that are a white 20px card
+   inside an 8px translucent frame. Two lights: close and minimise.
+
+   Every value comes from tokens.css, so the dark desk is a token swap.
+   The notch and the dock stay black in both themes: they are
+   hardware, not paint.
+   --------------------------------------------------------------- */
+
+[data-os] {
+  --os-ink: #000000;
+  --os-dock-edge: #282829;
+  --os-red: #e06551;
+  --os-yellow: #ecb944;
+  --os-top: 72px;
+  --os-bottom: 96px;
+}
+
+[data-os] body {
+  background: var(--black);
+  color: var(--paper);
+  font-family: var(--sans);
+}
+
+/* The incumbent pages carried their own masthead, loader and hero
+   atmosphere. On the desk the menubar and the dock replace the
+   masthead, and the desk is flat. */
+[data-os] .mast,
+[data-os] .loader,
+[data-os] .phero__orb,
+[data-os] .phero__grain,
+[data-os] .hero__orb,
+[data-os] .hero__grain,
+[data-os] .frame,
+[data-os] .field,
+[data-os] .eyebrow {
+  display: none !important;
+}
+
+[data-os] .section[data-num]::before {
+  content: none;
+}
+
+/* Buttons, as the reference draws them: a blue pill that darkens on
+   hover, and a hairline ghost. No glow. */
+[data-os] .btn {
+  background: var(--warm);
+  color: var(--on-mark);
+  box-shadow: none;
+}
+
+[data-os] .btn:hover {
+  background: var(--hot);
+  box-shadow: none;
+}
+
+[data-os] .btn--ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--hair-lit);
+}
+
+[data-os] .btn--ghost:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+
+/* One-colour headlines, as on the reference: no gradient fill, no
+   second colour for the phrase that matters. */
+[data-os] .sweep {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: inherit;
+}
+
+/* The hero stat strip is the old page's furniture, not the desk's. */
+[data-os] .phero__facts {
+  display: none;
+}
+
+/* The on-this-page row, as a row of chips. Inter, not wide-tracked mono. */
+[data-os] .anchors {
+  top: 64px;
+  background: var(--raised);
+  border-bottom: 1px solid var(--hair);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+[data-os] .anchors__inner {
+  gap: 4px;
+  padding-block: 10px;
+}
+
+[data-os] .anchors a {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--black);
+  color: var(--paper);
+  font: 500 14px/1 var(--sans);
+  letter-spacing: -0.14px;
+  text-transform: none;
+}
+
+[data-os] .anchors a::after {
+  display: none;
+}
+
+[data-os] .anchors a:hover,
+[data-os] .anchors a.is-here {
+  background: var(--person);
+  color: var(--on-mark);
+}
+
+.os-ground {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--black);
+  pointer-events: none;
+}
+
+/* ---------- menubar ---------- */
+
+.os-bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 12px 0;
+  pointer-events: none;
+}
+
+.os-bar__end {
+  display: flex;
+  gap: 4px;
+}
+
+.os-chip {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--paper);
+  font: 400 16px/1.4 var(--sans);
+  letter-spacing: -0.14px;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--quick) var(--ease), transform var(--quick) var(--ease);
+}
+
+.os-chip:hover {
+  background: var(--lifted);
+}
+
+.os-chip:active {
+  transform: scale(0.98);
+}
+
+.os-chip:focus-visible,
+.os-dock button:focus-visible,
+.os-dock a:focus-visible,
+.win__light:focus-visible,
+.ico:focus-visible,
+.os-notch:focus-visible {
+  outline: 2px solid var(--person);
+  outline-offset: 2px;
+}
+
+.os-brand {
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  text-transform: uppercase;
+}
+
+.os-chip--ink {
+  gap: 8px;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.os-chip--ink:hover {
+  background: #000000;
+}
+
+.os-chip svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.os-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--person);
+}
+
+/* The theme switch, shaped like the reference's toggle chip. */
+.os-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--hair-lit);
+  transition: background var(--quick) var(--ease);
+}
+
+.os-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  transition: transform var(--mid-dur) var(--ease);
+}
+
+[data-theme="dark"] .os-switch {
+  background: var(--warm);
+}
+
+[data-theme="dark"] .os-switch::after {
+  transform: translateX(16px);
+}
+
+/* ---------- the notch ---------- */
+
+.os-notch {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 188px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 0 0 16px 16px;
+  background: var(--os-ink);
+  color: #ffffff;
+  transform: translateX(-50%);
+  overflow: hidden;
+  transition:
+    width var(--mid-dur) var(--ease),
+    height var(--mid-dur) var(--ease),
+    border-radius var(--mid-dur) var(--ease);
+}
+
+.os-notch__cam {
+  margin-left: auto;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2c3a52, #07090c 60%);
+  box-shadow: inset 0 0 0 1.5px #16181c;
+}
+
+.os-notch__glyph {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--sweep);
+  opacity: 0;
+  transition: opacity var(--quick) var(--ease);
+}
+
+.os-notch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--quick) var(--ease), transform var(--quick) var(--ease);
+}
+
+.os-notch__text b {
+  font: 600 14px/1.1 var(--sans);
+  white-space: nowrap;
+}
+
+.os-notch__text span {
+  font: 400 12px/1.2 var(--sans);
+  color: #b7b7b7;
+  white-space: nowrap;
+}
+
+.os-notch.is-open {
+  width: min(380px, calc(100vw - 24px));
+  height: 62px;
+  border-radius: 0 0 24px 24px;
+}
+
+.os-notch.is-open .os-notch__text,
+.os-notch.is-open .os-notch__glyph {
+  opacity: 1;
+  transform: none;
+  transition-delay: 120ms;
+}
+
+/* ---------- the Explore dock ---------- */
+
+.os-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  z-index: 65;
+  width: min(480px, calc(100vw - 24px));
+  border: 2px solid var(--os-dock-edge);
+  border-radius: 16px;
+  background: var(--os-ink);
+  color: #ffffff;
+  transform: translateX(-50%);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  transition: width var(--mid-dur) var(--ease);
+}
+
+.os-dock.is-open {
+  width: min(760px, calc(100vw - 24px));
+}
+
+.os-dock__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--mid-dur) var(--ease);
+}
+
+.os-dock.is-open .os-dock__panel {
+  grid-template-rows: 1fr;
+}
+
+.os-dock__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.os-dock__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 4px;
+  max-height: min(60vh, 520px);
+  padding: 16px 16px 4px;
+  overflow-y: auto;
+}
+
+.os-dock__app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    background var(--quick) var(--ease),
+    opacity var(--quick) var(--ease),
+    transform var(--mid-dur) var(--ease);
+}
+
+.os-dock.is-open .os-dock__app {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i) * 24ms + 80ms);
+}
+
+.os-dock__app:hover,
+.os-dock__app[aria-current="page"] {
+  background: rgb(255 255 255 / 0.1);
+}
+
+.os-dock__app img {
+  width: 76px;
+  height: 76px;
+  margin: -10px 0 -8px;
+  transition: transform var(--mid-dur) var(--ease);
+}
+
+.os-dock__app:hover img {
+  transform: translateY(-4px);
+}
+
+.os-dock__app small {
+  font: 400 12px/1 var(--sans);
+  color: #aba9a9;
+}
+
+.os-dock__min {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 16px 0;
+}
+
+.os-dock__min:empty {
+  display: none;
+}
+
+.os-dock__min button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.1);
+  color: inherit;
+  font: 500 13px/1 var(--sans);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.os-dock__min button::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--os-yellow);
+}
+
+.os-dock__bar {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  height: 54px;
+  padding: 0 12px;
+}
+
+.os-dock__logo {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  color: inherit;
+  font: 700 26px/1 var(--sans);
+  letter-spacing: -0.06em;
+  text-decoration: none;
+}
+
+.os-dock__logo i {
+  font-style: normal;
+}
+
+.os-dock__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 600 18px/1.4 var(--sans);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.os-dock__toggle b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--os-yellow);
+  color: #000000;
+  font: 600 12px/1 var(--sans);
+}
+
+.os-dock__burger {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.os-dock__burger span,
+.os-dock__burger span::before,
+.os-dock__burger span::after {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.os-dock__burger span {
+  position: relative;
+  transition: background var(--quick) var(--ease);
+}
+
+.os-dock__burger span::before,
+.os-dock__burger span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  transition: transform var(--mid-dur) var(--ease);
+}
+
+.os-dock__burger span::before { transform: translateY(-7px); }
+.os-dock__burger span::after { transform: translateY(7px); }
+.os-dock.is-open .os-dock__burger span { background: transparent; }
+.os-dock.is-open .os-dock__burger span::before { transform: rotate(45deg); }
+.os-dock.is-open .os-dock__burger span::after { transform: rotate(-45deg); }
+
+.os-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 64;
+  background: rgb(27 24 24 / 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--mid-dur) var(--ease);
+}
+
+.os-scrim.is-on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- windows ----------
+   A white card on a 20px radius inside a translucent 8px frame on a
+   24px radius. The frame is the window's edge; no drop shadow. */
+
+.win {
+  position: relative;
+  padding: 8px;
+  border-radius: 24px;
+  background: var(--frame);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  color: var(--paper);
+  transition: transform var(--mid-dur) var(--ease), opacity var(--mid-dur) var(--ease);
+}
+
+.win__inner {
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  background: var(--raised);
+  overflow: hidden;
+}
+
+.win__bar {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  align-items: center;
+  height: 50px;
+  padding: 0 16px;
+  background: var(--raised);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.win__title {
+  overflow: hidden;
+  font: 400 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--paper);
+}
+
+.win__lights {
+  display: flex;
+  gap: 4px;
+}
+
+.win__light {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--os-red);
+  cursor: pointer;
+}
+
+.win__light--min {
+  background: var(--os-yellow);
+}
+
+/* Drawn glyphs on hover, as on a Mac. */
+.win__light svg {
+  position: absolute;
+  inset: 3px;
+  width: 10px;
+  height: 10px;
+  color: rgb(0 0 0 / 0.55);
+  opacity: 0;
+  transition: opacity var(--quick) var(--ease);
+}
+
+.win__lights:hover .win__light svg,
+.win__light:focus-visible svg {
+  opacity: 1;
+}
+
+.win__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.win__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+}
+
+.win__foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--person);
+  text-decoration: none;
+}
+
+.win__foot a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.win__foot svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Floating windows on the desk. */
+.win--float {
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 20%);
+  z-index: 10;
+  width: var(--w, 736px);
+}
+
+.win--float .win__inner {
+  max-height: calc(100svh - var(--os-top) - var(--os-bottom) - 16px);
+}
+
+.win--float .win__bar {
+  cursor: grab;
+}
+
+.win.is-dragging {
+  transition: none;
+}
+
+.win.is-dragging .win__bar {
+  cursor: grabbing;
+}
+
+.win[hidden] {
+  display: none;
+}
+
+.win.is-opening {
+  animation: win-open var(--mid-dur) var(--ease) both;
+}
+
+@keyframes win-open {
+  from { opacity: 0; transform: scale(0.94); }
+}
+
+/* Minimise: shrink toward the dock, which is where it can be found. */
+.win.is-min {
+  opacity: 0;
+  transform: translate(var(--to-x, 0), var(--to-y, 60vh)) scale(0.06);
+  pointer-events: none;
+}
+
+/* A whole page, in one window. */
+.win--page {
+  width: min(1240px, calc(100% - 24px));
+  margin: var(--os-top) auto var(--os-bottom);
+}
+
+.win--page > .win__inner {
+  overflow: clip;
+}
+
+.win--page .win__body {
+  overflow: visible;
+  background: var(--raised);
+}
+
+/* The incumbent sections sit on the window's white, with the desk's
+   grey for the raised ones, so the rhythm survives the new palette. */
+.win--page .section--raised {
+  background: var(--black);
+}
+
+.win--page .section,
+.win--page .phero {
+  --section-y: clamp(3.5rem, 8vh, 6rem);
+}
+
+.os-desk-art {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: min(1000px, 80vw);
+  height: auto;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--slow) var(--ease);
+}
+
+.os-desk-art.is-on {
+  opacity: 1;
+}
+
+/* A doc page's own 3D object, on the right of its hero. */
+[data-os] .phero {
+  position: relative;
+}
+
+.os-page-art {
+  position: absolute;
+  right: clamp(1rem, 6vw, 6rem);
+  top: 50%;
+  z-index: 0;
+  width: clamp(220px, 30vw, 420px);
+  height: auto;
+  transform: translateY(-55%);
+  pointer-events: none;
+  animation: desk-float 10s ease-in-out infinite;
+}
+
+/* ---------- the landing desk ---------- */
+
+.desk {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+}
+
+.desk__hero {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(1180px, 82vw);
+  height: auto;
+  transform:
+    translate(-50%, -50%)
+    translate(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -10px));
+  pointer-events: none;
+  user-select: none;
+  animation: desk-float 10s ease-in-out infinite;
+}
+
+/* The live wordmark (hero3d.js) takes the poster's place and box. */
+canvas.desk__hero {
+  aspect-ratio: 9 / 5;
+}
+
+@keyframes desk-float {
+  50% { translate: 0 -10px; }
+}
+
+/* Desktop icons: a 74px object over a 14px label, 8px apart. */
+.ico {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 132px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  animation: ico-in var(--slow) var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 50ms + 150ms);
+}
+
+@keyframes ico-in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+.ico img {
+  width: 104px;
+  height: 104px;
+  margin: -15px 0 -13px;
+  transition: transform var(--mid-dur) var(--ease);
+}
+
+.ico:hover img {
+  transform: translateY(-4px);
+}
+
+.ico span {
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  transition: background var(--quick) var(--ease), color var(--quick) var(--ease);
+}
+
+.ico:hover span,
+.ico.is-selected span {
+  background: var(--person);
+  color: var(--on-mark);
+}
+
+/* The featured file in the middle of the desk, like a dropped download. */
+.ico--feature {
+  left: calc(50% - 66px);
+  top: calc(50% + min(15vw, 190px));
+  z-index: 6;
+  animation-name: ico-in-feature;
+}
+
+@keyframes ico-in-feature {
+  from { opacity: 0; transform: scale(0.9); }
+}
+
+.ico--feature img {
+  width: 160px;
+  height: 160px;
+  margin: -20px 0 -16px;
+}
+
+.ico--feature span {
+  background: var(--person);
+  color: var(--on-mark);
+  text-transform: uppercase;
+}
+
+/* ---------- window content on the desk ---------- */
+
+.doc {
+  padding: 8px 16px 8px;
+  color: var(--muted);
+  font: 400 16px/1.5 var(--sans);
+}
+
+.doc__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.doc__head img {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  border-radius: 16px;
+  background: var(--black);
+}
+
+.doc__head h2 {
+  margin: 0 0 4px;
+  font: 600 24px/1.2 var(--sans);
+  letter-spacing: -0.02em;
+  color: var(--paper);
+}
+
+.doc__head p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.doc__row {
+  padding: 12px 8px;
+}
+
+.doc__row + .doc__row {
+  border-top: 1px solid var(--hair);
+}
+
+.doc__row h3 {
+  margin: 0 0 6px;
+  font: 600 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  color: var(--paper);
+}
+
+.doc__row p {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 15px;
+}
+
+/* The ledger: three amounts, three outcomes. */
+.ledger-win {
+  margin: 0;
+  padding: 0 16px 8px;
+  list-style: none;
+}
+
+.ledger-win li {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 8px;
+  font: 400 15px/1.3 var(--sans);
+}
+
+.ledger-win li + li {
+  border-top: 1px solid var(--hair);
+}
+
+.ledger-win b {
+  font: 500 15px/1 var(--mono);
+  color: var(--paper);
+}
+
+.ledger-win small {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--faint);
+}
+
+.ledger-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 500 12px/1.2 var(--sans);
+  white-space: nowrap;
+}
+
+.ledger-tag--ran { background: var(--ran); color: var(--ran-ink); }
+.ledger-tag--held { background: var(--held); color: var(--held-ink); }
+.ledger-tag--refused { background: var(--refused); color: var(--refused-ink); }
+
+/* Finder grid inside the DOCS folder. */
+.finder {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 8px;
+  padding: 8px 16px 16px;
+}
+
+.finder a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border-radius: 10px;
+  color: var(--paper);
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  text-decoration: none;
+}
+
+.finder a:hover {
+  background: var(--black);
+}
+
+.finder img {
+  width: 84px;
+  height: 84px;
+  margin: -10px 0 -8px;
+}
+
+/* ---------- the dashboard ----------
+   One big window on the same desk; every numbered section inside it
+   is a small window whose title bar is the section's name. */
+
+[data-os="app"] body {
+  padding: 0;
+}
+
+[data-os="app"] header.bar {
+  position: static;
+  padding: 12px 24px;
+  background: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--hair);
+}
+
+[data-os="app"] header.bar .wordmark {
+  font: 500 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+[data-os="app"] .atmos {
+  display: none;
+}
+
+[data-os="app"] .win--page .win__body {
+  background: var(--black);
+}
+
+[data-os="app"] .dash-top {
+  padding-top: clamp(1rem, 3vh, 2rem);
+  padding-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+
+.dash-3d {
+  display: block;
+  width: min(640px, 88%);
+  height: auto;
+  margin: 0 auto -1rem;
+  pointer-events: none;
+  animation: desk-float 10s ease-in-out infinite;
+}
+
+[data-os="app"] .stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+[data-os="app"] .stats > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--raised);
+  text-align: left;
+}
+
+.stat-ico {
+  grid-row: span 2;
+  width: 64px;
+  height: 64px;
+  margin: -6px -4px;
+}
+
+[data-os="app"] .stats .stat-l {
+  margin-top: 4px;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--faint);
+}
+
+[data-os="app"] .section:not(.dash-top) {
+  padding-block: 0 16px;
+  border-top: 0;
+}
+
+[data-os="app"] .section:not(.dash-top) > .wrap {
+  max-width: 64rem;
+  padding: 0 24px 24px;
+  border: 8px solid var(--frame);
+  border-radius: 28px;
+  background: var(--raised) padding-box;
+}
+
+[data-os="app"] .section-eyebrow {
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  align-items: center;
+  height: 50px;
+  margin: 0 -24px 8px;
+  padding: 0 16px;
+}
+
+[data-os="app"] .section-eyebrow::before {
+  content: "";
+  width: 36px;
+  height: 16px;
+  background:
+    radial-gradient(circle at 8px 8px, var(--os-red) 7.5px, transparent 8px),
+    radial-gradient(circle at 28px 8px, var(--os-yellow) 7.5px, transparent 8px);
+}
+
+[data-os="app"] .section-eyebrow b,
+[data-os="app"] .section-eyebrow i {
+  display: none;
+}
+
+[data-os="app"] .section-eyebrow span {
+  font: 400 14px/1.2 var(--sans);
+  letter-spacing: -0.14px;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+[data-os="app"] footer.dash-foot {
+  margin-top: 8px;
+  padding-block: 24px 32px;
+  border-top: 0;
+}
+
+/* Dashboard controls, as the reference's chips: a dark 44px chip for the
+   primary action, a white chip for the rest, red only for deletion. */
+[data-os] { --cta-bg: #1a1a1a; --cta-ink: #ffffff; }
+[data-theme="dark"][data-os] { --cta-bg: #f3f1f2; --cta-ink: #1b1818; }
+
+[data-os="app"] .btn,
+[data-os="app"] .decide button,
+[data-os="app"] .addhost button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--cta-bg);
+  color: var(--cta-ink);
+  font: 500 15px/1 var(--sans);
+  letter-spacing: -0.14px;
+  text-transform: none;
+  text-decoration: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+[data-os="app"] .btn:hover,
+[data-os="app"] .decide button:hover,
+[data-os="app"] .addhost button:hover {
+  background: var(--cta-bg);
+  color: var(--cta-ink);
+  opacity: 0.86;
+}
+
+[data-os="app"] .btn--sm { min-height: 36px; padding: 0 14px; }
+
+[data-os="app"] .btn--quiet,
+[data-os="app"] .decide .no,
+[data-os="app"] .rename-open,
+[data-os="app"] .rename-cancel {
+  background: var(--raised);
+  color: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--hair-lit);
+}
+
+[data-os="app"] .btn--danger {
+  background: #b42318;
+  color: #ffffff;
+}
+
+[data-os="app"] .newproj-input,
+[data-os="app"] .rename-input,
+[data-os="app"] .danger-input,
+[data-os="app"] .addhost input[type="text"] {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--hair-lit);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--paper);
+}
+
+/* No side stripes: who decided is a dot, warnings are a tinted block. */
+[data-os="app"] .warn,
+[data-os="app"] .flash,
+[data-os="app"] .archived-note,
+[data-os="app"] .by-model {
+  border-left: 0;
+}
+
+[data-os="app"] .warn,
+[data-os="app"] .flash {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--black);
+}
+
+[data-os="app"] .by-model,
+[data-os="app"] .archived-note {
+  padding-left: 0;
+}
+
+[data-os="app"] td.what-cell {
+  padding-left: 1.25rem;
+}
+
+[data-os="app"] td.what-cell::before {
+  top: 1.5rem;
+  bottom: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: none;
+}
+
+[data-os="app"] .legend {
+  margin-bottom: 1.5rem;
+}
+
+[data-os="app"] .legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+[data-os] .mock__model,
+[data-os] .mail__reason,
+[data-os] .decide__rule {
+  border-left: 0;
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 860px) {
+  [data-os] {
+    --os-top: 64px;
+  }
+
+  .os-bar__end .os-chip--clock,
+  .os-theme__label,
+  .os-brand__long {
+    display: none;
+  }
+
+  .os-chip {
+    height: 40px;
+    padding: 4px 10px;
+  }
+
+  /* A phone already has its own notch. */
+  .os-notch {
+    display: none;
+  }
+
+  .desk {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 72px 12px calc(58px + 18px + 32px + env(safe-area-inset-bottom));
+  }
+
+  .desk__hero {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 112%;
+    margin: 0 -6%;
+    transform: none;
+  }
+
+  .desk__icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 16px 4px;
+  }
+
+  .ico,
+  .ico--feature {
+    position: static;
+    width: auto;
+  }
+
+  .ico img,
+  .ico--feature img {
+    width: 88px;
+    height: 88px;
+    margin: -12px 0 -10px;
+  }
+
+  .win--float {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: 100%;
+  }
+
+  .win--float .win__inner {
+    max-height: none;
+  }
+
+  .win--float .win__bar {
+    cursor: default;
+  }
+
+  .win--page {
+    width: calc(100% - 16px);
+  }
+
+  .os-page-art {
+    display: none;
+  }
+
+  [data-os="app"] .stats {
+    grid-template-columns: 1fr;
+  }
+
+  [data-os="app"] .section:not(.dash-top) > .wrap {
+    padding: 0 14px 18px;
+  }
+
+  [data-os="app"] .section-eyebrow {
+    margin-inline: -14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk__hero,
+  .dash-3d,
+  .os-page-art {
+    animation: none;
+  }
+}
+
+/* ---------- liquid motion ----------
+   Every 3D icon breathes: a slow float with a little squash and tilt, out
+   of phase with its neighbours so the desk never moves in lockstep. The
+   float animates the individual translate/rotate/scale properties and the
+   hover poke animates `transform`, so the two compose instead of one
+   cancelling the other. */
+
+@keyframes icon-breathe {
+  0%, 100% { translate: 0 0; rotate: 0deg; scale: 1 1; }
+  25% { translate: 0 -5px; rotate: -2.5deg; scale: 0.98 1.03; }
+  50% { translate: 0 -8px; rotate: 1deg; scale: 1.03 0.97; }
+  75% { translate: 0 -3px; rotate: 2.5deg; scale: 0.99 1.01; }
+}
+
+@keyframes icon-poke {
+  0% { transform: scale(1, 1); }
+  30% { transform: scale(1.14, 0.86) translateY(4px); }
+  55% { transform: scale(0.92, 1.1) translateY(-8px); }
+  75% { transform: scale(1.04, 0.97) translateY(-3px); }
+  100% { transform: scale(1, 1) translateY(-4px); }
+}
+
+.ico img,
+.stat-ico {
+  animation: icon-breathe 6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -0.83s);
+  transform-origin: 50% 85%;
+}
+
+.ico:hover img,
+.ico:focus-visible img,
+[data-os="app"] .stats > div:hover .stat-ico {
+  animation:
+    icon-breathe 6s ease-in-out infinite calc(var(--i, 0) * -0.83s),
+    icon-poke 0.75s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+[data-os="app"] .stats > div:nth-child(1) { --i: 0; }
+[data-os="app"] .stats > div:nth-child(2) { --i: 2; }
+[data-os="app"] .stats > div:nth-child(3) { --i: 4; }
+
+/* ---------- the dashboard, softened ----------
+   The 8px solid frame read as a box drawn around a box. Here the frame is
+   a hairline of light on frosted glass, the corners open up, and the
+   windows sit on soft colour that drifts behind them. */
+
+[data-os="app"] .win--page .win__body {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-os="app"] .win--page .win__body::before,
+[data-os="app"] .win--page .win__body::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 46rem;
+  aspect-ratio: 1;
+  filter: blur(80px);
+  opacity: 0.32;
+  pointer-events: none;
+  animation: liquid-drift 26s ease-in-out infinite alternate;
+}
+
+[data-os="app"] .win--page .win__body::before {
+  top: -10rem;
+  left: -14rem;
+  background: radial-gradient(closest-side, var(--cold), transparent);
+}
+
+[data-os="app"] .win--page .win__body::after {
+  top: 28rem;
+  right: -16rem;
+  background: radial-gradient(closest-side, #8b5cf6, transparent);
+  animation-duration: 32s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes liquid-drift {
+  0% { translate: 0 0; border-radius: 42% 58% 61% 39% / 45% 39% 61% 55%; scale: 1; }
+  50% { translate: 8rem 6rem; border-radius: 58% 42% 37% 63% / 60% 54% 46% 40%; scale: 1.15; }
+  100% { translate: -4rem 14rem; border-radius: 47% 53% 52% 48% / 38% 62% 38% 62%; scale: 0.92; }
+}
+
+[data-os="app"] .section:not(.dash-top) > .wrap,
+[data-os="app"] .stats > div {
+  border: 1px solid color-mix(in srgb, var(--raised) 55%, transparent);
+  background: color-mix(in srgb, var(--raised) 72%, transparent) padding-box;
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 70%, transparent),
+    0 1px 2px rgb(20 10 60 / 0.04),
+    0 12px 32px -12px rgb(40 20 120 / 0.16),
+    0 40px 80px -40px rgb(40 20 120 / 0.18);
+  transition:
+    translate 0.6s cubic-bezier(0.3, 1.4, 0.5, 1),
+    box-shadow 0.6s var(--ease);
+}
+
+[data-os="app"] .section:not(.dash-top) > .wrap {
+  border-radius: 36px;
+}
+
+[data-os="app"] .stats > div {
+  border-radius: 26px;
+  padding: 14px 18px;
+}
+
+[data-os="app"] .stats > div:hover,
+[data-os="app"] .section:not(.dash-top) > .wrap:hover {
+  translate: 0 -3px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 70%, transparent),
+    0 1px 2px rgb(20 10 60 / 0.05),
+    0 18px 40px -14px rgb(40 20 120 / 0.22),
+    0 50px 90px -40px rgb(40 20 120 / 0.24);
+}
+
+[data-os="app"] .btn,
+[data-os="app"] .decide button,
+[data-os="app"] .addhost button,
+[data-os="app"] .newproj-input,
+[data-os="app"] .rename-input,
+[data-os="app"] .danger-input,
+[data-os="app"] .addhost input[type="text"] {
+  border-radius: 999px;
+}
+
+[data-os="app"] .btn,
+[data-os="app"] .decide button,
+[data-os="app"] .addhost button {
+  transition: scale 0.45s cubic-bezier(0.3, 1.6, 0.5, 1), background-color 0.2s;
+}
+
+[data-os="app"] .btn:active,
+[data-os="app"] .decide button:active,
+[data-os="app"] .addhost button:active {
+  scale: 0.94;
+}
+
+/* The live wordmark takes the poster's class, and with it the box. */
+canvas.dash-3d {
+  aspect-ratio: 9 / 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ico img,
+  .stat-ico,
+  .ico:hover img,
+  [data-os="app"] .stats > div:hover .stat-ico,
+  [data-os="app"] .win--page .win__body::before,
+  [data-os="app"] .win--page .win__body::after {
+    animation: none;
+  }
+}
+
+/* ---------- boot screen (boot.js) ---------- */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #050507;
+  color: #fff;
+  transition: clip-path 0.9s cubic-bezier(0.7, 0, 0.2, 1);
+  clip-path: inset(0 0 0 0);
+}
+
+.boot.is-leaving {
+  clip-path: inset(0 0 100% 0);
+}
+
+html.is-booting {
+  overflow: hidden;
+}
+
+.boot__dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.boot__bar {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(14vw, 14vh) * 1.05 + 36px);
+  width: 160px;
+  height: 3px;
+  margin-left: -80px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.12);
+  overflow: hidden;
+}
+
+.boot__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6b8cff, #a78bfa);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.boot__foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(48px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font: 500 17px/24px var(--sans, system-ui);
+  letter-spacing: 0.02em;
+}
+
+.boot__roll {
+  height: 24px;
+  overflow: hidden;
+  mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent);
+}
+
+.boot__roll b {
+  display: block;
+  font-weight: inherit;
+  animation: boot-roll 2.8s cubic-bezier(0.7, 0, 0.2, 1) infinite;
+}
+
+@keyframes boot-roll {
+  0%, 18% { translate: 0 0; }
+  25%, 43% { translate: 0 -24px; }
+  50%, 68% { translate: 0 -48px; }
+  75%, 93% { translate: 0 -72px; }
+  100% { translate: 0 -96px; }
+}
+
+/* ---------- dashboard pages ----------
+   One concern per page: the key never shares a screen with payments, and
+   the delete button never shares one with anything you click every day. */
+
+.dash-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin: 18px auto 8px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--raised) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--raised) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 10px 30px -14px rgb(40 20 120 / 0.2);
+}
+
+.dash-tabs a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font: 500 14px/1 var(--sans);
+  color: var(--faint);
+  text-decoration: none;
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease), scale 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.dash-tabs a:hover {
+  color: var(--paper);
+}
+
+.dash-tabs a:active {
+  scale: 0.95;
+}
+
+.dash-tabs a.is-on {
+  background: var(--paper);
+  color: var(--raised);
+}
+
+.dash-tabs b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--cold);
+  color: #fff;
+  font: 600 11px/1 var(--sans);
+}
+
+[data-os="app"] .dash-top--compact {
+  padding-top: clamp(1.5rem, 4vh, 2.5rem);
+  padding-bottom: clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.setting {
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--hair);
+}
+
+.setting:first-of-type {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.setting-label {
+  display: block;
+  margin: 0 0 8px;
+  font: 500 13px/1.2 var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+.setting-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.setting-row input {
+  flex: 1 1 14rem;
+}
+
+/* ---------- movable desktop files (os.js) ---------- */
+
+@media (min-width: 861px) {
+  .desk .ico {
+    touch-action: none;
+    cursor: grab;
+  }
+}
+
+.ico.is-dragging {
+  z-index: 40;
+  cursor: grabbing;
+  animation: none;
+}
+
+.ico.is-dragging img {
+  animation: none;
+  scale: 1.12;
+  rotate: -4deg;
+  filter: drop-shadow(0 18px 22px rgb(30 20 90 / 0.28));
+  transition: scale 0.35s cubic-bezier(0.3, 1.6, 0.5, 1), rotate 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.ico.is-dropped img {
+  animation:
+    icon-breathe 6s ease-in-out infinite calc(var(--i, 0) * -0.83s),
+    icon-poke 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+/* ---------- the bezel ----------
+   A thin dark edge around the whole screen with rounded inner corners, so
+   the site reads as a device and the notch hangs off its top edge. The
+   outer shadow spills past the viewport and is clipped by it; only the
+   ring between the viewport edge and the rounded inset shows. */
+
+[data-os] body::after {
+  content: "";
+  position: fixed;
+  inset: 6px;
+  z-index: 69;
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 40px #0b0b0e,
+    inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  [data-os] body::after {
+    inset: 4px;
+    border-radius: 18px;
+  }
+}
+
+/* ---------- the notch, dressed ----------
+   Same ink as the bezel so it reads as one piece of glass, a lens with a
+   glint, a breathing status light, and a springier open. */
+
+.os-notch {
+  top: 0;
+  height: 34px;
+  background:
+    linear-gradient(180deg, #0b0b0e 0%, #121219 100%);
+  box-shadow:
+    inset 0 -1px 0 rgb(255 255 255 / 0.07),
+    0 10px 30px -12px rgb(0 0 0 / 0.5);
+  transition:
+    width 0.6s cubic-bezier(0.3, 1.35, 0.45, 1),
+    height 0.6s cubic-bezier(0.3, 1.35, 0.45, 1),
+    border-radius 0.6s cubic-bezier(0.3, 1.35, 0.45, 1),
+    box-shadow 0.4s var(--ease);
+}
+
+/* The status light, idle at the left of the closed notch. */
+.os-notch::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgb(74 222 128 / 0.6);
+  animation: notch-pulse 2.4s ease-out infinite;
+  transition: opacity 0.2s var(--ease);
+}
+
+.os-notch.is-open::before {
+  opacity: 0;
+}
+
+@keyframes notch-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(74 222 128 / 0.55); }
+  70% { box-shadow: 0 0 0 7px rgb(74 222 128 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(74 222 128 / 0); }
+}
+
+.os-notch__cam {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 50% 50%, #1d2b4a 0 30%, #0a0d14 45%, #050608 70%);
+  box-shadow: inset 0 0 0 1.5px #1a1c22, 0 0 0 1px rgb(255 255 255 / 0.04);
+}
+
+.os-notch__cam::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgb(150 180 255 / 0.55);
+}
+
+.os-notch__glyph {
+  position: relative;
+  overflow: hidden;
+  background: conic-gradient(from 0deg, #3e6cff, #8b5cf6, #22d3ee, #3e6cff);
+  animation: notch-glyph 4s linear infinite;
+}
+
+.os-notch__glyph::after {
+  content: "a.";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 13px/1 var(--sans);
+  color: #fff;
+  animation: notch-glyph 4s linear infinite reverse;
+}
+
+@keyframes notch-glyph {
+  to { rotate: 360deg; }
+}
+
+.os-notch.is-open {
+  height: 66px;
+  border-radius: 0 0 28px 28px;
+  box-shadow:
+    inset 0 -1px 0 rgb(255 255 255 / 0.08),
+    0 20px 40px -14px rgb(30 20 90 / 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-notch::before,
+  .os-notch__glyph,
+  .os-notch__glyph::after {
+    animation: none;
+  }
+}

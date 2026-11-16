@@ -176,8 +176,7 @@ p {
 }
 
 .btn:hover {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--warm) 50%, transparent),
-    0 8px 40px -8px color-mix(in srgb, var(--warm) 55%, transparent);
+  background: var(--hot);
 }
 
 .btn--ghost {

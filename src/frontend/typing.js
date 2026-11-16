@@ -144,7 +144,7 @@ function type(el, parts) {
 /* Each group types in order: the heading, then whatever follows it, so a
    hero reads top to bottom the way somebody would write it. */
 const groups = document.querySelectorAll("[data-type-group]");
-if (groups.length && !reduced.matches) {
+if (groups.length && !reduced.matches && !document.documentElement.dataset.os) {
   for (const group of groups) {
     /* Emptied now, typed when it is looked at. Waiting until the group
        is on screen to empty it means anything below the fold shows its

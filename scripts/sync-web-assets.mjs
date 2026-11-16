@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -28,8 +28,9 @@ const root = new URL("../", import.meta.url);
    one source, and this is a build step rather than a second copy to maintain. */
 const ASSETS = [
   ["src/frontend/styles/tokens.css", "src/web/public/styles/tokens.css"],
-  ["src/frontend/fonts/geist-var.woff2", "src/web/public/fonts/geist-var.woff2"],
-  ["src/frontend/fonts/geistmono-var.woff2", "src/web/public/fonts/geistmono-var.woff2"],
+  ...readdirSync(new URL("src/frontend/fonts/", root))
+    .filter((name) => name.endsWith(".woff2"))
+    .map((name) => [`src/frontend/fonts/${name}`, `src/web/public/fonts/${name}`]),
 
   /* The pointer choreography, shared with the marketing site rather than
      rewritten for the dashboard. cursor.js subscribes every effect to one
@@ -43,6 +44,20 @@ const ASSETS = [
   ["src/frontend/vendor/motion.js", "src/web/public/vendor/motion.js"],
   ["src/frontend/fence.js", "src/web/public/fence.js"],
   ["src/frontend/favicon.svg", "src/web/public/favicon.svg"],
+
+  /* The desktop shell (menubar, notch, Explore island, windows, theme) and
+     the Blender renders it shows, so the dashboard sits on the same desk
+     as the marketing pages. */
+  ["src/frontend/styles/os.css", "src/web/public/styles/os.css"],
+  ["src/frontend/os.js", "src/web/public/os.js"],
+  /* The live wordmark: the landing desk and the dashboard draw the same one. */
+  ["src/frontend/hero3d.js", "src/web/public/hero3d.js"],
+  ["src/frontend/boot.js", "src/web/public/boot.js"],
+  ["src/frontend/vendor/three.module.min.js", "src/web/public/vendor/three.module.min.js"],
+  ["src/frontend/vendor/RoomEnvironment.js", "src/web/public/vendor/RoomEnvironment.js"],
+  ...readdirSync(new URL("src/frontend/3d/", root))
+    .filter((name) => name.endsWith(".webp") || name.endsWith(".bin"))
+    .map((name) => [`src/frontend/3d/${name}`, `src/web/public/3d/${name}`]),
 ];
 
 for (const [source, target] of ASSETS) {
