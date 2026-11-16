@@ -55,8 +55,9 @@ const ASSETS = [
   ["src/frontend/boot.js", "src/web/public/boot.js"],
   ["src/frontend/vendor/three.module.min.js", "src/web/public/vendor/three.module.min.js"],
   ["src/frontend/vendor/RoomEnvironment.js", "src/web/public/vendor/RoomEnvironment.js"],
+  ["src/frontend/vendor/RGBELoader.js", "src/web/public/vendor/RGBELoader.js"],
   ...readdirSync(new URL("src/frontend/3d/", root))
-    .filter((name) => name.endsWith(".webp") || name.endsWith(".bin"))
+    .filter((name) => /\.(webp|bin|hdr)$/.test(name))
     .map((name) => [`src/frontend/3d/${name}`, `src/web/public/3d/${name}`]),
 ];
 

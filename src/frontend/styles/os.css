@@ -797,6 +797,9 @@
 /* The live wordmark (hero3d.js) takes the poster's place and box. */
 canvas.desk__hero {
   aspect-ratio: 9 / 5;
+  /* Particles near the canvas edge fade out instead of meeting a hard box. */
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
 }
 
 @keyframes desk-float {
@@ -1499,6 +1502,8 @@ canvas.desk__hero {
 /* The live wordmark takes the poster's class, and with it the box. */
 canvas.dash-3d {
   aspect-ratio: 9 / 5;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 70%, transparent 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
