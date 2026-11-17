@@ -30,7 +30,7 @@
 import * as THREE from "/vendor/three.module.min.js";
 import { RoomEnvironment } from "/vendor/RoomEnvironment.js";
 import { RGBELoader } from "/vendor/RGBELoader.js";
-import { meltable, droplets, tween, arrival } from "/look3d.js";
+import { meltable, droplets, tween, arrival, shown } from "/look3d.js?v=1794869433658";
 
 const poster = document.querySelector("img.desk__hero, img.dash-3d");
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -511,14 +511,14 @@ async function start() {
   const n = small ? 0.5 : 1; // half the points on a phone
 
   // 1. Dust riding the ring: dense at the tube, thinning out in a gaussian.
-  const trail = dust(Math.round(5200 * n), () => {
+  const trail = dust(Math.round(3600 * n), () => {
     const a = Math.random() * Math.PI * 2;
     return [a, RING_R + gauss() * 0.28, gauss() * 0.16];
   }, { spin: 0.24, size: () => 0.35 + Math.random() ** 4 * 2.2, sparkle: 0.02, aperture: 0.035 });
   ring.add(trail.points);
 
   // 2. A second, looser band trailing behind it, slower.
-  const wake = dust(Math.round(1600 * n), () => {
+  const wake = dust(Math.round(1100 * n), () => {
     const a = Math.random() * Math.PI * 2;
     return [a, RING_R + 0.25 + Math.random() * 0.7, gauss() * 0.45];
   }, { spin: 0.12, size: () => 0.4 + Math.random() ** 3 * 1.6, sparkle: 0.03, aperture: 0.045 });
@@ -572,12 +572,14 @@ async function start() {
     renderer.render(scene, camera);
   }
 
+  await renderer.compileAsync(scene, camera);
   poster.after(canvas);
   paintBackdrop();
   new ResizeObserver(resize).observe(canvas);
   resize();
   frame(2.2); // a good opening angle, and the only one under reduced motion
   poster.style.display = "none";
+  document.documentElement.classList.remove("is-arriving");
 
   /* The melt, and the reform on arrival. The word melts by the shared
      patch; the ring sinks and shrinks into the puddle with its dust. */
@@ -586,6 +588,7 @@ async function start() {
   const setMelt = (v) => {
     melted = v;
     wu.uMelt.value = wd.uMelt.value = v;
+    wu.wet(v);
     const k = v * v;
     pivot.scale.setScalar(1 - k * 0.85);
     pivot.position.y = -k * 1.6;
@@ -598,10 +601,10 @@ async function start() {
   });
   addEventListener("pageshow", (e) => { if (e.persisted) setMelt(0); });
   const came = arrival();
-  if (came && !reduced) {
+  if (came) {
     setMode(came.form);
     setMelt(1);
-    setTimeout(() => tween(1, 0, 1700, setMelt, (x) => 1 - Math.pow(1 - x, 3)), 150);
+    shown().then(() => setTimeout(() => tween(1, 0, 1600, setMelt, (x) => 1 - Math.pow(1 - x, 3)), 120));
   }
   dispatchEvent(new Event("adeia:hero-ready"));
 

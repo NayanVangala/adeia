@@ -66,9 +66,35 @@ async function stamp(html) {
 
 const pages = (await readdir(FRONTEND)).filter((name) => name.endsWith(".html")).sort();
 
+/* Modules that import /look3d.js carry its version too: an HTML stamp alone
+   lets a fresh hero3d.js meet a cached look3d.js missing what it imports.
+   Only look3d is stamped — the vendored three.js must keep one URL, or the
+   page gets two copies of it. */
+const IMPORTERS = ["hero3d.js", "objects3d.js"];
+const IMPORT = /from "(\/look3d\.js)(?:\?v=\d+)?"/g;
+async function stampImports(js) {
+  let out = js;
+  for (const m of js.matchAll(IMPORT)) {
+    const v = await versionOf(m[1]);
+    if (v !== null) out = out.replace(m[0], `from "${m[1]}?v=${v}"`);
+  }
+  return out;
+}
+
 const check = process.argv.includes("--check");
 const stale = [];
 let written = 0;
+
+for (const mod of IMPORTERS) {
+  const file = path.join(FRONTEND, mod);
+  const js = await readFile(file, "utf8");
+  const next = await stampImports(js);
+  if (next === js) continue;
+  if (check) stale.push(mod);
+  else { await writeFile(file, next); written += 1; }
+}
+// Importers changed on disk above, so their own stamps must be re-read.
+versions.clear();
 
 for (const page of pages) {
   const file = path.join(FRONTEND, page);

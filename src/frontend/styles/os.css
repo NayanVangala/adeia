@@ -2042,3 +2042,11 @@ html.is-booting {
 .lock__hint code {
   font-size: 11px;
 }
+
+/* Arriving mid-transition: the stills stay hidden until the live objects
+   draw (transition.js sets this, hero3d/objects3d clear it). */
+html.is-arriving img[src*="/3d/icon-"],
+html.is-arriving img.desk__hero,
+html.is-arriving img.dash-3d {
+  visibility: hidden;
+}

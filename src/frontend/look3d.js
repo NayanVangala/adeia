@@ -234,73 +234,96 @@ export function material(role, { big = false } = {}) {
  * The melt
  * ---------------------------------------------------------------- */
 
+/* The melt is computed once per vertex, before normals, so the surface can
+   turn toward the sky as it pools: a puddle catches the room's light the way
+   water does, instead of keeping the shading of the shape it used to be.
+   Nothing is cut away — the last of it shrinks and spreads to nothing. */
 const MELT_HEAD = `
   uniform float uMelt, uMode, uFloor, uTop, uSeed;
-  varying vec3 vMeltPos;
+  float meltK;
+  vec3 meltOffset;
   float mh(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719)) + uSeed) * 43758.5453); }
   float mn(vec3 p) {
     vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
     return mix(mix(mix(mh(i), mh(i + vec3(1,0,0)), f.x), mix(mh(i + vec3(0,1,0)), mh(i + vec3(1,1,0)), f.x), f.y),
                mix(mix(mh(i + vec3(0,0,1)), mh(i + vec3(1,0,1)), f.x), mix(mh(i + vec3(0,1,1)), mh(i + vec3(1,1,1)), f.x), f.y), f.z);
+  }
+  vec3 meltAt(vec3 p) {
+    float hgt = clamp((p.y - uFloor) / max(uTop - uFloor, 1e-3), 0.0, 1.0);
+    float nz = mn(p * 2.2);
+    float m = uMelt;
+    vec3 q = p;
+    // How far along this vertex is: tops go first, with a wandering front.
+    float k = smoothstep(0.0, 1.0, clamp(m * 1.6 - (1.0 - hgt) * 0.45 - nz * 0.3, 0.0, 1.0));
+    vec2 out2 = normalize(p.xz + 1e-4);
+    float pool = uFloor + 0.015;
+    if (uMode < 0.5) {
+      // Drip: slumps top-down; a few columns run ahead as drips, then pool.
+      float drip = pow(mn(vec3(p.x * 5.0, 0.0, p.z * 5.0)), 4.0);
+      q.y = mix(p.y, pool + (p.y - uFloor) * 0.03, k) - drip * sin(k * 3.14159) * 0.9;
+      q.xz += out2 * k * k * (0.45 + nz * 0.35);
+    } else if (uMode < 1.5) {
+      // Splash: drops all at once and slaps out into a wide, thin sheet.
+      float f = smoothstep(0.0, 1.0, clamp(m * 1.8 - nz * 0.25, 0.0, 1.0));
+      q.y = mix(p.y, pool, f) + sin(f * 3.14159) * 0.12 * (1.0 - hgt);
+      q.xz += out2 * f * (0.8 + nz * 0.6);
+      k = f;
+    } else if (uMode < 2.5) {
+      // Thaw: softens and sags from the bottom up, sliding as it goes.
+      float kk = smoothstep(0.0, 1.0, clamp(m * 1.6 - hgt * 0.5 - nz * 0.25, 0.0, 1.0));
+      q.y = mix(p.y, pool + (p.y - uFloor) * 0.05, kk);
+      q.x += sin(p.y * 4.0 + nz * 3.0) * 0.15 * sin(kk * 3.14159);
+      q.xz += out2 * kk * 0.5;
+      k = kk;
+    } else {
+      // Ripple: a wave runs through it before it settles into a disc.
+      float r = length(p.xz);
+      q.y += sin(r * 9.0 - m * 16.0) * 0.4 * k * (1.0 - k);
+      q.y = mix(q.y, pool, smoothstep(0.4, 1.0, k));
+      q.xz *= 1.0 + smoothstep(0.4, 1.0, k) * 0.55;
+    }
+    // The last of it spreads thin and is gone.
+    float gone = smoothstep(0.82, 1.0, m);
+    q.y = mix(q.y, pool, gone);
+    q.xz *= 1.0 + gone * 0.4;
+    q = mix(q, vec3(p.x, pool, p.z) * vec3(0.0, 1.0, 0.0), gone * gone);
+    meltK = k;
+    return q;
   }`;
+
+const MELT_NORMAL = `
+  vec3 objectNormal = vec3(normal);
+  meltK = 0.0;
+  meltOffset = position;
+  if (uMelt > 0.0) {
+    meltOffset = meltAt(position);
+    objectNormal = normalize(mix(objectNormal, vec3(0.0, 1.0, 0.0), smoothstep(0.35, 0.9, meltK)));
+  }
+  #ifdef USE_TANGENT
+    vec3 objectTangent = vec3(tangent.xyz);
+  #endif`;
 
 const MELT_BODY = `
-  vec3 transformed = vec3(position);
-  vMeltPos = position;
-  if (uMelt > 0.0) {
-    float hgt = clamp((position.y - uFloor) / max(uTop - uFloor, 1e-3), 0.0, 1.0);
-    float nz = mn(position * 2.5);
-    float m = uMelt;
-    if (uMode < 0.5) {
-      float k = smoothstep(0.0, 1.0, clamp(m * 1.7 - (1.0 - hgt) * 0.5 - nz * 0.35, 0.0, 1.0));
-      float drip = pow(mn(vec3(position.x * 6.0, 0.0, position.z * 6.0)), 3.0) * 0.7;
-      transformed.y = mix(position.y, uFloor + 0.02 + (position.y - uFloor) * 0.04, k) - drip * k * (1.0 - k) * 2.2;
-      transformed.xz += normalize(position.xz + 1e-4) * k * k * (0.35 + nz * 0.3);
-    } else if (uMode < 1.5) {
-      float k = clamp(m * 1.4 - nz * 0.4, 0.0, 1.0);
-      vec3 cell = floor(position * 8.0);
-      vec3 dir = normalize(normal + vec3(mh(cell), mh(cell + 3.1), mh(cell + 7.7)) - 0.5);
-      transformed += dir * k * 1.2;
-      transformed.y -= k * k * 1.8;
-      transformed *= 1.0 - k * 0.35;
-    } else if (uMode < 2.5) {
-      float k = clamp(m * 1.5 - hgt * 0.4 - nz * 0.3, 0.0, 1.0);
-      transformed.y += k * k * 1.4 + sin(position.x * 5.0 + k * 6.0) * 0.08 * k;
-      transformed.xz += (vec2(mn(position * 3.0 + 1.0), mn(position * 3.0 + 5.0)) - 0.5) * k * 0.8;
-    } else {
-      float r = length(position.xz);
-      float k = clamp(m * 1.3, 0.0, 1.0);
-      transformed.y += sin(r * 9.0 - m * 18.0) * 0.5 * k * (1.0 - k);
-      float settle = smoothstep(0.45, 1.0, k);
-      transformed.y = mix(transformed.y, uFloor + 0.02, settle);
-      transformed.xz *= 1.0 + settle * 0.5;
-    }
-  }`;
-
-const MELT_FRAG_HEAD = `
-  uniform float uMelt, uMode, uSeed;
-  varying vec3 vMeltPos;
-  float fh(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719)) + uSeed) * 43758.5453); }`;
-
-const MELT_FRAG = `
-  if (uMelt > 0.0) {
-    // Shatter and evaporate thin out as they go; everything is gone at the end.
-    float grain = fh(floor(vMeltPos * 40.0));
-    float thin = (uMode > 0.5 && uMode < 2.5) ? uMelt * 0.9 : smoothstep(0.75, 1.0, uMelt);
-    if (grain < thin) discard;
-  }`;
+  vec3 transformed = uMelt > 0.0 ? meltOffset : vec3(position);`;
 
 /** Makes a material meltable; returns the uniforms to drive. */
 export function meltable(mat, floor = -1, top = 1, seed = Math.random() * 100) {
   const u = {
     uMelt: { value: 0 }, uMode: { value: 0 }, uFloor: { value: floor }, uTop: { value: top }, uSeed: { value: seed },
   };
+  // Wetter as it melts: the surface polishes toward water.
+  const dry = { roughness: mat.roughness, clearcoatRoughness: mat.clearcoatRoughness ?? 0 };
+  u.wet = (v) => {
+    mat.roughness = dry.roughness * (1 - v * 0.85);
+    if ("clearcoatRoughness" in mat) mat.clearcoatRoughness = dry.clearcoatRoughness * (1 - v);
+  };
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, u);
-    shader.vertexShader = MELT_HEAD + "\n" + shader.vertexShader.replace("#include <begin_vertex>", MELT_BODY);
-    shader.fragmentShader = MELT_FRAG_HEAD + "\n" + shader.fragmentShader.replace("#include <clipping_planes_fragment>", "#include <clipping_planes_fragment>\n" + MELT_FRAG);
+    shader.vertexShader = MELT_HEAD + "\n" + shader.vertexShader
+      .replace("#include <beginnormal_vertex>", MELT_NORMAL)
+      .replace("#include <begin_vertex>", MELT_BODY);
   };
-  mat.customProgramCacheKey = () => "melt";
+  mat.customProgramCacheKey = () => "melt2";
   return u;
 }
 
@@ -335,9 +358,9 @@ export function droplets(count, box) {
         vec3 dir = normalize(vec3(fract(r * 91.7) - 0.5, fract(r * 37.3), fract(r * 13.1) - 0.5));
         if (uMode < 0.5)      p = vec3(p.x + dir.x * t * 0.3, mix(p.y, uFloor, t * t), p.z + dir.z * t * 0.3);
         else if (uMode < 1.5) p += dir * t * 1.6 - vec3(0.0, t * t * 2.2, 0.0);
-        else if (uMode < 2.5) p += vec3(dir.x * 0.5, 1.0, dir.z * 0.5) * t * 1.8;
+        else if (uMode < 2.5) p = vec3(p.x + dir.x * t * 0.2, mix(p.y, uFloor, smoothstep(0.0, 1.0, t)), p.z + dir.z * t * 0.2);
         else                  p = vec3(p.x * (1.0 + t * 0.6), mix(p.y, uFloor, t), p.z * (1.0 + t * 0.6));
-        vA = sin(t * 3.14159) * (uMode > 1.5 && uMode < 2.5 ? 0.5 : 0.9);
+        vA = sin(t * 3.14159) * 0.9;
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_PointSize = (2.0 + fract(r * 53.0) * 5.0) * uPx * uScale * (6.0 / -mv.z);
         gl_Position = projectionMatrix * mv;
@@ -378,14 +401,23 @@ export function tween(a, b, ms, set, ease = (x) => x * x * (3 - 2 * x)) {
   });
 }
 
-/** What the page that sent us here asked for: {melt, form} modes, or null. */
+/**
+ * Whether this page was reached by moving within the site, and which reform
+ * it plays. Worked out from the page itself rather than handed over, because
+ * a prerendered page loads before the click that will show it.
+ */
 export function arrival() {
-  try {
-    const raw = sessionStorage.getItem("adeia-arrive");
-    if (!raw) return null;
-    const a = JSON.parse(raw);
-    return Date.now() - a.at < 8000 ? a : null;
-  } catch {
-    return null;
-  }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+  let ref;
+  try { ref = new URL(document.referrer); } catch { return null; }
+  if (ref.origin !== location.origin || ref.href === location.href) return null;
+  const nav = performance.getEntriesByType("navigation")[0];
+  if (nav && nav.type === "reload") return null;
+  return { form: (hashPath(location.pathname + location.search) >>> 2) % 4 };
 }
+
+export const hashPath = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) >>> 0;
+
+/** Resolves once the page is actually on screen (immediately unless prerendered). */
+export const shown = () =>
+  document.prerendering ? new Promise((r) => document.addEventListener("prerenderingchange", r, { once: true })) : Promise.resolve();

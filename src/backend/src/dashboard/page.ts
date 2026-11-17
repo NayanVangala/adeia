@@ -1058,7 +1058,6 @@ function shell(title: string, body: string, os: "app" | "lock" = "app"): string 
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>${escapeHtml(title)}</title>
-<link rel="stylesheet" href="/styles/cursor.css">
 <style>${STYLE}</style>
 <!-- The desktop the marketing site sits on: menubar, notch, Explore island,
      windows, and the light/dark switch. os.js is synchronous so the theme is
@@ -1075,7 +1074,6 @@ function shell(title: string, body: string, os: "app" | "lock" = "app"): string 
      without a hovering pointer, which is the same judgement the marketing
      site makes. The dashboard is complete without any of them. -->
 <script src="/vendor/motion.js" defer></script>
-<script src="/cursor.js" type="module"></script>
 <script src="/reveal.js" type="module"></script>
 <script src="/fence.js" type="module"></script>
 <script>

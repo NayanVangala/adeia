@@ -15,7 +15,7 @@
  * arrival from another page, plays the matching reform.
  */
 
-import { THREE, studio, material, meltable, droplets, tween, arrival } from "/look3d.js";
+import { THREE, studio, material, meltable, droplets, tween, arrival, shown } from "/look3d.js?v=1794869433658";
 import { GLTFLoader } from "/vendor/GLTFLoader.js";
 import { DRACOLoader } from "/vendor/DRACOLoader.js";
 
@@ -48,7 +48,7 @@ async function start() {
   canvas.style.zIndex = document.querySelector(".desk") ? "6" : "50";
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   renderer.toneMapping = THREE.AgXToneMapping;
   renderer.autoClear = false;
 
@@ -110,7 +110,7 @@ async function start() {
     objects.push({
       img, holder, pose, uniforms, drops, backdrop, big,
       phase: Math.random() * 6.28, hover: 0, spin: 0,
-      set melt(v) { for (const u of uniforms) u.uMelt.value = v; drops.uniforms.uMelt.value = v; },
+      set melt(v) { for (const u of uniforms) { u.uMelt.value = v; u.wet(v); } drops.uniforms.uMelt.value = v; },
       set mode(m) { for (const u of uniforms) u.uMode.value = m; drops.uniforms.uMode.value = m; },
     });
   }
@@ -143,9 +143,15 @@ async function start() {
 
   // Arriving from another page: start melted, then reform.
   const a = arrival();
-  if (a && !reduced) {
+  if (a) {
     for (const o of objects) { o.mode = a.form; o.melt = 1; }
   }
+
+  // Build every shader before anything is shown, in parallel where the
+  // browser allows, so neither the first frame nor the reform stutters.
+  for (const o of objects) { o.holder.visible = true; if (o.backdrop) o.backdrop.visible = true; }
+  await renderer.compileAsync(scene, camera);
+  for (const o of objects) { o.holder.visible = false; if (o.backdrop) o.backdrop.visible = false; }
 
   const clock = new THREE.Clock();
   let first = true;
@@ -157,7 +163,6 @@ async function start() {
     for (const o of objects) {
       const r = o.img.getBoundingClientRect();
       if (r.width < 2 || r.bottom < -r.height || r.top > innerHeight + r.height || r.right < -r.width || r.left > innerWidth + r.width) continue;
-      if (getComputedStyle(o.img).display === "none") continue;
       // Draw into a box a little larger than the image, so a tilted object
       // is never clipped at the image's edge.
       const pad = r.width * 0.25;
@@ -184,7 +189,8 @@ async function start() {
     if (first) {
       first = false;
       for (const o of objects) o.img.style.visibility = "hidden";
-      if (a && !reduced) reform(a.form);
+      document.documentElement.classList.remove("is-arriving");
+      if (a && !reduced) shown().then(() => reform(a.form));
     }
   }
   renderer.setAnimationLoop(frame);
